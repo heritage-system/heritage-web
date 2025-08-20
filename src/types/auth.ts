@@ -1,6 +1,7 @@
 export interface SignInRequest {
-    phoneOrEmail: string;
+    emailOrUsername: string;
     password: string;
+    remember: boolean;
 }
 
 export interface SignInResponse {
