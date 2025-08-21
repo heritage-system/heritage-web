@@ -25,7 +25,6 @@ const ChatBoxAI: React.FC = () => {
     setMessages([...messages, { from: "user", text: input }]);
     setInput("");
 
-    // TODO: Gửi message tới AI và nhận phản hồi
     setTimeout(() => {
       setMessages((msgs) => [
         ...msgs,
@@ -36,14 +35,13 @@ const ChatBoxAI: React.FC = () => {
 
   return (
     <>
-      {/* Icon Chat và text */}
       {!open && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center space-x-3 group">
-          <span className="bg-white text-gray-800 px-4 py-2 rounded-2xl shadow-lg text-base font-medium transition-all duration-200 group-hover:bg-purple-50 group-hover:text-purple-700">
+          <span className="bg-white text-gray-800 px-4 py-2 rounded-2xl shadow-lg text-base font-medium transition-all duration-200 group-hover:bg-yellow-100 group-hover:text-yellow-800">
             Bạn có thắc mắc gì không?
           </span>
           <button
-            className="bg-gradient-to-tr from-purple-600 to-pink-500 hover:scale-110 transition-transform duration-200 text-white rounded-full p-4 shadow-2xl border-4 border-white"
+            className="bg-gradient-to-tr from-yellow-700 to-red-700 hover:scale-110 transition-transform duration-200 text-white rounded-full p-4 shadow-2xl border-4 border-white"
             onClick={() => setOpen((o) => !o)}
             aria-label="Mở chat AI"
           >
@@ -58,10 +56,9 @@ const ChatBoxAI: React.FC = () => {
         </div>
       )}
 
-      {/* Chat Box */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 max-w-[90vw] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-purple-100 animate-fade-in">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-5 py-4 flex justify-between items-center">
+        <div className="fixed bottom-24 right-6 z-50 w-80 max-w-[90vw] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-yellow-200 animate-fade-in">
+          <div className="bg-gradient-to-r from-yellow-700 to-red-700 text-white px-5 py-4 flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <span className="bg-white bg-opacity-20 rounded-full p-2">
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
@@ -81,7 +78,7 @@ const ChatBoxAI: React.FC = () => {
               &times;
             </button>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto max-h-80 bg-gradient-to-b from-purple-50 to-white">
+          <div className="flex-1 p-4 overflow-y-auto max-h-80 bg-gradient-to-b from-yellow-50 to-white">
             {messages.length === 0 && (
               <div className="text-center text-gray-400 mt-10">
                 Chưa có tin nhắn nào...
@@ -97,8 +94,8 @@ const ChatBoxAI: React.FC = () => {
                 <div
                   className={`px-4 py-2 rounded-2xl max-w-[70%] text-sm shadow ${
                     msg.from === "user"
-                      ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-900"
-                      : "bg-white text-gray-800 border border-purple-100"
+                      ? "bg-gradient-to-r from-yellow-100 to-red-100 text-yellow-900"
+                      : "bg-white text-gray-800 border border-yellow-200"
                   }`}
                 >
                   {msg.text}
@@ -112,7 +109,7 @@ const ChatBoxAI: React.FC = () => {
             className="flex border-t bg-white px-2 py-2"
           >
             <input
-              className="flex-1 px-3 py-2 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
+              className="flex-1 px-3 py-2 rounded-xl bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition"
               type="text"
               placeholder="Nhập tin nhắn..."
               value={input}
@@ -120,7 +117,7 @@ const ChatBoxAI: React.FC = () => {
             />
             <button
               type="submit"
-              className="ml-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg transition disabled:opacity-50"
+              className="ml-2 px-4 py-2 bg-gradient-to-r from-yellow-700 to-red-700 text-white font-bold rounded-xl hover:shadow-lg transition disabled:opacity-50"
               disabled={!input.trim()}
             >
               Gửi
@@ -129,7 +126,6 @@ const ChatBoxAI: React.FC = () => {
         </div>
       )}
 
-      {/* Hiệu ứng mở chat box */}
       <style>
         {`
           .animate-fade-in {

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Quiz } from '../../types/quiz';
+
 interface QuizCardProps {
   quiz: Quiz;
 }
@@ -21,13 +22,11 @@ interface QuizCardProps {
 const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
   const navigate = useNavigate();
 
-  // Map difficulty strings to icons
   const difficultyIcons: Record<string, React.ElementType> = {
     Easy: Target,
     Medium: TrendingUp,
     Hard: Zap,
   };
-  // Get the icon component for current quiz difficulty, default to Target if not matched
   const DifficultyIcon = difficultyIcons[quiz.difficulty] || Target;
 
   const handlePlayClick = () => {
@@ -67,13 +66,13 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
             onClick={handlePlayClick} 
             className="bg-white/90 backdrop-blur-sm p-3 rounded-full hover:bg-white transition-all shadow-lg"
           >
-            <Play className="w-5 h-5 text-blue-600" />
+            <Play className="w-5 h-5 text-yellow-600" />
           </button>
         </div>
       </div>
       
       <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-yellow-600 transition-colors">
           {quiz.title}
         </h3>
         <p className="text-gray-600 mb-4 line-clamp-2">
@@ -93,7 +92,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
         
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center text-yellow-400">
+            <div className="flex items-center text-yellow-600">
               <Star className="w-4 h-4 fill-current" />
               <span className="text-gray-900 ml-1">{quiz.rating}</span>
             </div>
@@ -112,16 +111,16 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
         <div className="bg-gray-100 rounded-lg p-3 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Gift className="w-4 h-4 text-purple-600 mr-2" />
+              <Gift className="w-4 h-4 text-yellow-600 mr-2" />
               <span className="text-sm font-medium text-gray-700">Phần thưởng:</span>
             </div>
-            <span className="text-sm text-purple-600 font-medium">{quiz.reward}</span>
+            <span className="text-sm text-yellow-600 font-medium">{quiz.reward}</span>
           </div>
         </div>
         
         <button 
           onClick={handlePlayClick} 
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl hover:shadow-lg transition-all font-semibold flex items-center justify-center"
+          className="w-full bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white py-3 rounded-xl hover:shadow-lg transition-all font-semibold flex items-center justify-center"
         >
           <Gamepad2 className="w-5 h-5 mr-2" />
           Chơi ngay

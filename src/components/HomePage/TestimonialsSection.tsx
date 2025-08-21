@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { 
   Star,
   Quote,
 } from 'lucide-react';
-
 
 // Testimonials Section
 const TestimonialsSection = () => {
@@ -37,18 +36,21 @@ const TestimonialsSection = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Người dùng{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-amber-700 to-red-700 bg-clip-text text-transparent">
               Nói gì
             </span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
             Cảm nhận từ cộng đồng về trải nghiệm VTFP
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div 
+              key={index} 
+              className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
               <div className="flex items-center mb-6">
                 <img 
                   src={testimonial.avatar} 
@@ -57,18 +59,18 @@ const TestimonialsSection = () => {
                 />
                 <div>
                   <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-                  <p className="text-gray-600 text-sm">{testimonial.role}</p>
+                  <p className="text-gray-700 text-sm">{testimonial.role}</p>
                 </div>
               </div>
               
               <div className="flex items-center mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  <Star key={i} className="w-5 h-5 text-amber-500 fill-current" />
                 ))}
               </div>
               
-              <Quote className="w-8 h-8 text-purple-300 mb-4" />
-              <p className="text-gray-700 leading-relaxed italic">
+              <Quote className="w-8 h-8 text-amber-400 mb-4" />
+              <p className="text-gray-800 leading-relaxed italic">
                 "{testimonial.content}"
               </p>
             </div>

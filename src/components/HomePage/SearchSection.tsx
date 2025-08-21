@@ -29,23 +29,23 @@ const SearchSection: React.FC<SearchSectionProps> = ({
   setSelectedCategory,
 }) => {
   const categories = [
-    { id: 'all', name: 'Tất cả', icon: Globe, color: 'from-purple-500 to-pink-500' },
-    { id: 'festival', name: 'Lễ hội', icon: Calendar, color: 'from-blue-500 to-cyan-500' },
-    { id: 'performance', name: 'Biểu diễn', icon: Play, color: 'from-green-500 to-emerald-500' },
-    { id: 'ritual', name: 'Nghi lễ', icon: Star, color: 'from-orange-500 to-red-500' },
-    { id: 'music', name: 'Âm nhạc', icon: BookOpen, color: 'from-pink-500 to-rose-500' }
+    { id: 'all', name: 'Tất cả', icon: Globe, color: 'from-yellow-700 to-red-700' },
+    { id: 'festival', name: 'Lễ hội', icon: Calendar, color: 'from-yellow-700 to-red-700' },
+    { id: 'performance', name: 'Biểu diễn', icon: Play, color: 'from-yellow-700 to-red-700' },
+    { id: 'ritual', name: 'Nghi lễ', icon: Star, color: 'from-yellow-700 to-red-700' },
+    { id: 'music', name: 'Âm nhạc', icon: BookOpen, color: 'from-yellow-700 to-red-700' }
   ];
 
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Tìm kiếm{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Di sản
-            </span>
-          </h2>
+         <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          Tìm kiếm{' '}
+          <span className="bg-gradient-to-r from-yellow-700 to-red-700 bg-clip-text text-transparent">
+            Di sản
+          </span>
+        </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Khám phá kho tàng văn hóa phong phú của Việt Nam
           </p>
@@ -60,7 +60,9 @@ const SearchSection: React.FC<SearchSectionProps> = ({
             <input
               type="text"
               placeholder="Tìm kiếm lễ hội, biểu diễn, nghi lễ, âm nhạc..."
-              className="w-full pl-12 pr-4 py-6 text-lg border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 bg-gray-50 hover:bg-white"
+              className="w-full pl-12 pr-4 py-6 text-lg border-2 border-gray-200 rounded-2xl 
+                          focus:ring-4 focus:ring-yellow-600/20 focus:border-yellow-600 outline-none 
+                          transition-all duration-300 bg-gray-50 hover:bg-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

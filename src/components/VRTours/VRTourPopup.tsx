@@ -66,7 +66,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ onClose }) => {
       <div className="bg-white rounded-2xl max-w-4xl w-full mx-4 overflow-hidden shadow-2xl animate-scale-up">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white p-6 flex justify-between items-center">
           <div className="flex items-center">
             <Eye className="w-6 h-6 mr-3" />
             <h2 className="text-2xl font-bold">VR Tour - Di sản Việt Nam</h2>
@@ -79,14 +79,13 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ onClose }) => {
           </button>
         </div>
 
-        {/* Nội dung (Loading hoặc Viewer) */}
+        {/* Nội dung */}
         {isLoading ? (
           <div className="h-96 flex flex-col items-center justify-center bg-gray-900">
-            {/* Loader */}
             <div className="relative">
-              <div className="w-20 h-20 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-20 h-20 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
               <div
-                className="absolute inset-0 w-20 h-20 border-4 border-pink-500 border-b-transparent rounded-full animate-spin"
+                className="absolute inset-0 w-20 h-20 border-4 border-red-700 border-b-transparent rounded-full animate-spin"
                 style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
               ></div>
             </div>
@@ -131,15 +130,15 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ onClose }) => {
             {/* Controls */}
             <div className="bg-gray-800 text-white p-4 flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <button className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-all">
+                <button className="flex items-center space-x-2 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:shadow-lg px-4 py-2 rounded-lg transition-all">
                   <RotateCcw className="w-4 h-4" />
                   <span>Reset View</span>
                 </button>
-                <button className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all">
+                <button className="flex items-center space-x-2 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:shadow-lg px-4 py-2 rounded-lg transition-all">
                   <Maximize2 className="w-4 h-4" />
                   <span>Toàn màn hình</span>
                 </button>
-                <button className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all">
+                <button className="flex items-center space-x-2 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:shadow-lg px-4 py-2 rounded-lg transition-all">
                   <Volume2 className="w-4 h-4" />
                   <span>Âm thanh</span>
                 </button>
@@ -157,8 +156,8 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ onClose }) => {
                   onClick={() => setCurrentScene(index)}
                   className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all ${
                     currentScene === index
-                      ? 'border-purple-500 shadow-lg'
-                      : 'border-gray-300 hover:border-purple-300'
+                      ? 'border-yellow-600 shadow-lg'
+                      : 'border-gray-300 hover:border-yellow-400'
                   }`}
                 >
                   <img src={scene.image} alt={scene.title} className="w-full h-full object-cover" />

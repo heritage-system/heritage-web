@@ -157,7 +157,7 @@ const sorted = [...filtered].sort((a, b) => {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Khám phá <span className="text-purple-600">Di sản Văn hóa</span> Việt Nam
+          Khám phá <span className="bg-gradient-to-r from-yellow-500 to-red-600 bg-clip-text text-transparent">Di sản Văn hóa</span> Việt Nam
           </h1>
           <p className="text-gray-600">Hành trình khám phá những giá trị văn hóa truyền thống</p>
         </div>
@@ -201,7 +201,7 @@ const sorted = [...filtered].sort((a, b) => {
             {view === "grid" && visibleCount < sorted.length && (
               <div className="text-center mt-8">
                 <button
-                  className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+                 className="bg-gradient-to-r from-yellow-700 to-red-700 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300"
                   onClick={() => setVisibleCount((prev) => prev + 4)}
                 >
                   Xem thêm di sản
@@ -215,22 +215,22 @@ const sorted = [...filtered].sort((a, b) => {
             <div className="sticky top-6 space-y-4">
               <DiscoveryUpcomingEvents />
 
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4">
+              <div className="bg-gradient-to-r from-yellow-100 to-red-100 rounded-xl p-4">
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
-                    <div className="text-lg font-bold text-purple-600">500+</div>
+                 <div className="text-lg font-bold text-yellow-700">500+</div>
                     <div className="text-xs text-gray-600">Di sản</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-blue-600">50+</div>
+                 <div className="text-lg font-bold text-red-700">50+</div>
                     <div className="text-xs text-gray-600">VR Tours</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-green-600">10K+</div>
+                 <div className="text-lg font-bold text-green-700">10K+</div>
                     <div className="text-xs text-gray-600">Người dùng</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-orange-600">98%</div>
+                     <div className="text-lg font-bold text-orange-700">98%</div>
                     <div className="text-xs text-gray-600">Hài lòng</div>
                   </div>
                 </div>

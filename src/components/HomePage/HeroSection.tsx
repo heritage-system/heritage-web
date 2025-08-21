@@ -32,16 +32,19 @@ const HeroSection = () => {
         <div className="animate-in fade-in slide-in-from-bottom duration-1000">
           <div className="flex justify-center mb-6">
             <div className="bg-white/80 backdrop-blur-sm rounded-full px-6 py-2 shadow-lg">
-              <span className="text-purple-600 font-medium flex items-center space-x-2">
-                <Sparkles className="w-4 h-4" />
+             <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-2 shadow-lg border border-yellow-600">
+              <span className="text-yellow-700 font-medium flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-yellow-600" />
                 <span>Khám phá di sản Việt Nam</span>
               </span>
+            </div>
             </div>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white">
             Hành trình{' '}
-            <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-yellow-700 via-yellow-600 to-red-700
+ bg-clip-text text-transparent">
               Văn hóa
             </span>
             <br />
@@ -53,14 +56,17 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-3">
-              <PlayCircle className="w-6 h-6" />
-              <span className="font-semibold">Bắt đầu khám phá</span>
-            </button>
-            <button className="bg-white/80 backdrop-blur-sm text-gray-700 px-8 py-4 rounded-2xl border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-3">
-              <Eye className="w-6 h-6" />
-              <span className="font-semibold">Trải nghiệm VR</span>
-            </button>
+          <button className="bg-gradient-to-r from-yellow-700 to-red-700 text-white px-8 py-4 rounded-2xl 
+            hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-3">
+            <PlayCircle className="w-6 h-6" />
+            <span className="font-semibold">Bắt đầu khám phá</span>
+          </button>
+
+          <button className="bg-white/90 backdrop-blur-sm text-gray-800 px-8 py-4 rounded-2xl border border-yellow-600 
+            hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-3">
+            <Eye className="w-6 h-6 text-yellow-700" />
+            <span className="font-semibold">Trải nghiệm VR</span>
+          </button>
           </div>
 
           {/* Stats */}
@@ -72,8 +78,8 @@ const HeroSection = () => {
               { number: '98%', label: 'Hài lòng' }
             ].map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-300 mb-2">{stat.number}</div>
-                <div className="text-gray-300">{stat.label}</div>
+               <div className="text-3xl md:text-4xl font-bold text-yellow-600 mb-2">{stat.number}</div>
+              <div className="text-gray-200">{stat.label}</div>
               </div>
             ))}
           </div>

@@ -34,40 +34,45 @@ const ActiveMentors = () => {
   ];
 
   return (
-    <div className="bg-white rounded-xl border p-4">
-      <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-        <Users className="w-4 h-4 mr-2 text-purple-600" />
-        Nghệ nhân đang hoạt động
-      </h3>
-      
-      <div className="space-y-3">
-        {mentors.map((mentor) => (
-          <div key={mentor.id} className="flex items-center space-x-3">
-            <div className="relative">
-              <img
-                src={mentor.avatar}
-                alt={mentor.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                mentor.isOnline ? 'bg-green-500' : 'bg-gray-400'
-              }`}></div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{mentor.name}</p>
-              <p className="text-xs text-gray-500 truncate">{mentor.specialty}</p>
-              <div className="flex items-center text-xs text-gray-400">
-                <Star className="w-3 h-3 mr-1 text-yellow-400 fill-current" />
-                {mentor.rating} • {mentor.students} học viên
-              </div>
-            </div>
-            <button className="bg-purple-100 text-purple-600 px-2 py-1 rounded text-xs hover:bg-purple-200 transition-colors">
-              Nhắn tin
-            </button>
+  <div className="bg-white rounded-xl shadow-md p-4">
+  <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+    <Users className="w-4 h-4 mr-2 text-amber-700" />
+    Nghệ nhân đang hoạt động
+  </h3>
+
+  <div className="space-y-3">
+    {mentors.map((mentor) => (
+      <div 
+        key={mentor.id} 
+        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-amber-50 transition-colors"
+      >
+        <div className="relative">
+          <img
+            src={mentor.avatar}
+            alt={mentor.name}
+            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+          />
+          <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+            mentor.isOnline ? 'bg-green-500' : 'bg-gray-400'
+          }`}></div>
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{mentor.name}</p>
+          <p className="text-xs text-gray-500 truncate">{mentor.specialty}</p>
+          <div className="flex items-center text-xs text-gray-400 mt-1">
+            <Star className="w-3 h-3 mr-1 text-yellow-500 fill-current" />
+            {mentor.rating} • {mentor.students} học viên
           </div>
-        ))}
+        </div>
+
+        <button className="bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white px-3 py-1 rounded-full text-xs hover:from-yellow-700 hover:via-red-800 hover:to-amber-950 transition-all shadow-sm">
+          Nhắn tin
+        </button>
       </div>
-    </div>
+    ))}
+  </div>
+</div>
   );
 };
 

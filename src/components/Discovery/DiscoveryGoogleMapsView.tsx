@@ -8,7 +8,7 @@ interface DiscoveryGoogleMapsViewProps {
 const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({ heritages }) => {
   return (
     <div className="bg-white rounded-xl border overflow-hidden">
-      <div className="h-96 bg-gradient-to-br from-blue-100 to-green-100 relative">
+      <div className="h-96 bg-gradient-to-br from-yellow-100 to-red-100 relative">
         {/* Simulated Google Maps */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
@@ -19,15 +19,15 @@ const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({ herit
         </div>
         
         {/* Sample map markers */}
-        <div className="absolute top-20 left-20 w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center shadow-lg">
-          <div className="w-2 h-2 bg-white rounded-full"></div>
-        </div>
-        <div className="absolute top-32 right-32 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
-          <div className="w-2 h-2 bg-white rounded-full"></div>
-        </div>
-        <div className="absolute bottom-20 left-1/3 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center shadow-lg">
-          <div className="w-2 h-2 bg-white rounded-full"></div>
-        </div>
+     <div className="absolute top-20 left-20 w-6 h-6 bg-yellow-700 rounded-full flex items-center justify-center shadow-lg">
+    <div className="w-2 h-2 bg-white rounded-full"></div>
+    </div>
+    <div className="absolute top-32 right-32 w-6 h-6 bg-red-700 rounded-full flex items-center justify-center shadow-lg">
+      <div className="w-2 h-2 bg-white rounded-full"></div>
+    </div>
+    <div className="absolute bottom-20 left-1/3 w-6 h-6 bg-orange-700 rounded-full flex items-center justify-center shadow-lg">
+      <div className="w-2 h-2 bg-white rounded-full"></div>
+    </div>
         
         {/* Map controls */}
         <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2">
@@ -41,15 +41,15 @@ const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({ herit
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-purple-600 rounded-full mr-2"></div>
+             <div className="w-3 h-3 bg-yellow-700 rounded-full mr-2"></div>
               <span className="text-sm text-gray-600">Lễ hội</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+              <div className="w-3 h-3 bg-red-700 rounded-full mr-2"></div>
               <span className="text-sm text-gray-600">Biểu diễn</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
+            <div className="w-3 h-3 bg-orange-700 rounded-full mr-2"></div> 
               <span className="text-sm text-gray-600">Thủ công</span>
             </div>
           </div>
