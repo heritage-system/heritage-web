@@ -46,7 +46,6 @@ const Register: React.FC = () => {
 
   return (
     <div className="relative w-full min-h-screen">
-      {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center z-0"
         style={{
@@ -61,7 +60,6 @@ const Register: React.FC = () => {
           <form onSubmit={handleSubmit} className="flex flex-col">
             <h3 className="mb-4 text-4xl font-extrabold text-gray-900 text-center">Đăng ký</h3>
 
-            {/* Name */}
             <label htmlFor="name" className="text-sm font-medium text-gray-700 mb-1">Họ tên</label>
             <input
               id="name"
@@ -74,7 +72,6 @@ const Register: React.FC = () => {
               className="mb-4 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
 
-            {/* Email */}
             <label htmlFor="email" className="text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               id="email"
@@ -87,7 +84,6 @@ const Register: React.FC = () => {
               className="mb-4 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
 
-            {/* Password */}
             <label htmlFor="password" className="text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
             <div className="relative mb-4">
               <input
@@ -109,7 +105,6 @@ const Register: React.FC = () => {
               </button>
             </div>
 
-            {/* Confirm Password */}
             <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 mb-1">Nhập lại mật khẩu</label>
             <div className="relative mb-4">
               <input
@@ -131,7 +126,6 @@ const Register: React.FC = () => {
               </button>
             </div>
 
-            {/* Agree */}
             <label className="flex items-center text-sm text-gray-700 mb-4">
               <input
                 type="checkbox"
@@ -144,7 +138,6 @@ const Register: React.FC = () => {
               <a href="#" className="ml-1 text-purple-600 hover:underline">điều khoản</a>
             </label>
 
-            {/* Submit */}
             <button
               type="submit"
               className="w-full py-3 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
@@ -152,7 +145,6 @@ const Register: React.FC = () => {
               Đăng ký
             </button>
 
-            {/* Đăng nhập */}
             <p className="text-center text-sm text-gray-700">
               Đã có tài khoản?{" "}
               <Link to="/login" className="text-purple-600 font-medium hover:underline">
