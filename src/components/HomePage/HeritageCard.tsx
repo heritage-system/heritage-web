@@ -52,13 +52,13 @@ const HeritageCard: React.FC<HeritageCardProps> = ({ item, favorites, toggleFavo
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col space-y-2">
           {item.hasVR && (
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
+            <div className="bg-gradient-to-r from-yellow-600 to-amber-700 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
               <Eye className="w-3 h-3" />
               <span>VR</span>
             </div>
           )}
           {item.trending && (
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
+            <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
               <TrendingUp className="w-3 h-3" />
               <span>Hot</span>
             </div>
@@ -67,12 +67,12 @@ const HeritageCard: React.FC<HeritageCardProps> = ({ item, favorites, toggleFavo
 
         {/* Bottom Actions */}
         <div className="absolute bottom-4 left-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button className="flex-1 bg-white/90 backdrop-blur-sm text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-white transition-all duration-300 flex items-center justify-center space-x-2">
-            <Play className="w-4 h-4" />
-            <span>Xem chi tiết</span>
-          </button>
+        <button className="flex-1 bg-gradient-to-r from-yellow-600 to-amber-700 text-white py-3 px-4 rounded-xl font-medium hover:opacity-90 transition-all duration-300 flex items-center justify-center space-x-2">
+          <Play className="w-4 h-4" />
+          <span>Xem chi tiết</span>
+        </button>
           {item.hasVR && (
-            <button className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2">
+            <button className="flex-1 bg-gradient-to-r from-yellow-600 to-red-600 text-white py-3 px-4 rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2">
               <Eye className="w-4 h-4" />
               <span>Trải nghiệm VR</span>
             </button>
@@ -92,7 +92,7 @@ const HeritageCard: React.FC<HeritageCardProps> = ({ item, favorites, toggleFavo
           </div>
         </div>
 
-        <h3 className="font-bold text-xl text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
+        <h3 className="font-bold text-xl text-gray-900 mb-3 group-hover:text-yellow-700 transition-colors">
           {item.name}
         </h3>
         

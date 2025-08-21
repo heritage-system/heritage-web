@@ -2,9 +2,7 @@
 import LearningHero from "../../components/Quizz/LearningHero";
 import QuizFilter from "../../components/Quizz/QuizFilter";
 import QuizGrid from "../../components/Quizz/QuizGrid";
-import InteractiveFeaturesSection from "../../components/Quizz/InteractiveFeaturesSection";
 import AchievementSection from "../../components/Quizz/AchievementSection";
-import LearningStatsSection from "../../components/Quizz/LearningStatsSection";
 
 // Main Learning Page Component
 const QuizzPage = () => {
@@ -13,9 +11,7 @@ const QuizzPage = () => {
       <LearningHero />
       <QuizFilter />
       <QuizGrid />
-      <InteractiveFeaturesSection />
       <AchievementSection />
-      <LearningStatsSection />
     </div>
   );
 };

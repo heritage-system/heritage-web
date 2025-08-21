@@ -34,44 +34,44 @@ const DiscoveryUpcomingEvents = () => {
 
   return (
     <div className="bg-white rounded-xl border p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900 flex items-center">
-          <Bell className="w-4 h-4 mr-2 text-purple-600" />
-          Sự kiện sắp tới
-        </h3>
-        <button className="text-purple-600 text-sm hover:underline">Xem tất cả</button>
-      </div>
-      
-      <div className="space-y-3">
-        {upcomingEvents.map((event) => (
-          <div key={event.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-            <img
-              src={event.image}
-              alt={event.title}
-              className="w-12 h-12 object-cover rounded-lg"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
-              <div className="flex items-center text-xs text-gray-500 mt-1">
-                <Calendar className="w-3 h-3 mr-1" />
-                {event.date}
-                <Clock className="w-3 h-3 ml-2 mr-1" />
-                {event.time}
-              </div>
-              <div className="flex items-center text-xs text-gray-500 mt-1">
-                <MapPin className="w-3 h-3 mr-1" />
-                {event.location}
-                <Users className="w-3 h-3 ml-2 mr-1" />
-                {event.attendees}
-              </div>
-            </div>
-            <button className="text-purple-600 hover:bg-purple-50 p-1 rounded">
-              <Bell className="w-4 h-4" />
-            </button>
+  <div className="flex items-center justify-between mb-4">
+    <h3 className="font-semibold flex items-center text-yellow-700">
+      <Bell className="w-4 h-4 mr-2 text-yellow-700" />
+      Sự kiện sắp tới
+    </h3>
+    <button className="text-yellow-700 text-sm hover:underline">Xem tất cả</button>
+  </div>
+
+  <div className="space-y-3">
+    {upcomingEvents.map((event) => (
+      <div key={event.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-yellow-50 cursor-pointer transition">
+        <img
+          src={event.image}
+          alt={event.title}
+          className="w-12 h-12 object-cover rounded-lg"
+        />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
+          <div className="flex items-center text-xs text-gray-500 mt-1">
+            <Calendar className="w-3 h-3 mr-1 text-yellow-700" />
+            {event.date}
+            <Clock className="w-3 h-3 ml-2 mr-1 text-yellow-700" />
+            {event.time}
           </div>
-        ))}
+          <div className="flex items-center text-xs text-gray-500 mt-1">
+            <MapPin className="w-3 h-3 mr-1 text-yellow-700" />
+            {event.location}
+            <Users className="w-3 h-3 ml-2 mr-1 text-yellow-700" />
+            {event.attendees}
+          </div>
+        </div>
+        <button className="text-yellow-700 hover:bg-yellow-100 p-1 rounded transition">
+          <Bell className="w-4 h-4" />
+        </button>
       </div>
-    </div>
+    ))}
+  </div>
+</div>
   );
 };
 

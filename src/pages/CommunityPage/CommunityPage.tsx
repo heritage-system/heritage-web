@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Video, MessageCircle } from 'lucide-react';
-import CommunityHeader from '../../components/Community/CommunityHeader';
 import CommunityFeed from '../../components/Community/CommunityFeed';
 import CommunityStats from '../../components/Community/CommunityStats';
 import LiveWorkshopPanel from '../../components/Community/LiveWorkshopPanel';
@@ -8,13 +7,10 @@ import WorkshopCard from '../../components/Community/WorkshopCard';
 import UpcomingWorkshops from '../../components/Community/UpcomingWorkshops';
 import ActiveMentors from '../../components/Community/ActiveMentors';
 
-
-// Main Community Page Component
 const CommunityPage = () => {
   const [activeTab, setActiveTab] = useState('workshops');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Sample workshop data
   const workshops = [
     {
       id: 1,
@@ -94,103 +90,110 @@ const CommunityPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-16">
-      
-      <main className="max-w-[1400px] mx-auto px-3 sm:px-4 lg:px-6 py-6">
-        {/* Page Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            <span className="text-purple-600">Cộng đồng</span> Di sản Văn hóa
+   <div className="min-h-screen bg-white mt-16">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">
+            <span className="bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 bg-clip-text text-transparent">
+  Cộng đồng
+</span> Di sản Văn hóa  
           </h1>
-          <p className="text-gray-600">
-            Kết nối, học hỏi và chia sẻ cùng cộng đồng yêu văn hóa truyền thống
-          </p>
+          <p className="text-gray-600 text-lg">Kết nối, học hỏi và chia sẻ cùng cộng đồng yêu văn hóa truyền thống</p>
         </div>
 
         {/* Community Stats */}
-        <CommunityStats />
+        <div className="mb-8">
+          <CommunityStats />
+        </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1 max-w-md mx-auto">
+        {/* Tabs */}
+        <div className="flex space-x-2 mb-8 bg-white/80 backdrop-blur-sm rounded-xl p-1 max-w-md mx-auto shadow-sm">
           <button
             onClick={() => setActiveTab('workshops')}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'workshops' 
-                ? 'bg-white text-purple-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'workshops'
+                ? 'bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white shadow-lg'
+                : 'text-gray-700 hover:bg-yellow-50'
             }`}
           >
             Workshop ảo
           </button>
           <button
             onClick={() => setActiveTab('community')}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'community' 
-                ? 'bg-white text-purple-600 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'community'
+                ? 'bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white shadow-lg'
+                : 'text-gray-700 hover:bg-yellow-50'
             }`}
           >
             Cộng đồng
           </button>
         </div>
 
-        <div className="flex flex-col xl:flex-row gap-4">
+        <div className="flex flex-col xl:flex-row gap-6">
           {/* Main Content */}
-          <div className="xl:flex-1">
+          <div className="xl:flex-1 space-y-8">
+
             {activeTab === 'workshops' ? (
               <>
                 {/* Live Workshop Panel */}
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <h2 className="text-xl font-semibold mb-4 flex items-center">
                     <Video className="w-5 h-5 mr-2 text-red-500" />
                     Workshop đang diễn ra
                   </h2>
                   <LiveWorkshopPanel />
                 </div>
 
-                {/* Workshop Filters */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {categories.map((category) => (
+                {/* Category Filters */}
+                <div className="flex flex-wrap gap-3">
+                  {categories.map(cat => (
                     <button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        selectedCategory === category.id
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        selectedCategory === cat.id
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow'
+                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-purple-50'
                       }`}
                     >
-                      <span className="mr-1">{category.icon}</span>
-                      {category.name}
+                      <span className="mr-1">{cat.icon}</span>
+                      {cat.name}
                     </button>
                   ))}
                 </div>
 
                 {/* Workshop Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {filteredWorkshops.map((workshop) => (
-                    <WorkshopCard key={workshop.id} workshop={workshop} />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredWorkshops.map(workshop => (
+                    <div key={workshop.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-4">
+                      <WorkshopCard workshop={workshop} />
+                    </div>
                   ))}
                 </div>
               </>
             ) : (
-              <>
-                {/* Community Feed */}
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <MessageCircle className="w-5 h-5 mr-2 text-blue-500" />
-                    Bài đăng từ cộng đồng
-                  </h2>
-                  <CommunityFeed />
-                </div>
-              </>
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-2 text-blue-500" />
+                  Bài đăng từ cộng đồng
+                </h2>
+                <CommunityFeed />
+              </div>
             )}
+
           </div>
 
           {/* Sidebar */}
-          <div className="xl:w-96 space-y-4">
-            <UpcomingWorkshops />
-            <ActiveMentors />
+          <div className="xl:w-96 space-y-6">
+            <div className="bg-white rounded-xl shadow-md p-4">
+              <UpcomingWorkshops />
+            </div>
+            <div className="bg-white rounded-xl shadow-md p-4">
+              <ActiveMentors />
+            </div>
           </div>
         </div>
       </main>
