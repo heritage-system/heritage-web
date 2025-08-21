@@ -1,8 +1,10 @@
 import React, { useState, ChangeEvent, FormEvent, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Thêm useNavigate
+import { Link, useNavigate,useLocation  } from "react-router-dom"; // Thêm useNavigate
 import { Eye, EyeOff } from "lucide-react";
-import Swal from "sweetalert2";
-
+import toast from 'react-hot-toast';
+import { forgotPassword} from "../../services/authService";
+import { resetPassword} from "../../services/authService";
+import { ResetPasswordRequest } from "../../types/auth";
 const OTP_LENGTH = 6;
 const RESEND_TIME = 60; // thời gian chờ gửi lại OTP (giây)
 
@@ -17,6 +19,9 @@ const ResetPassword: React.FC = () => {
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const navigate = useNavigate(); 
 
+  const location = useLocation();
+  const emailForm = location.state?.emailForm || "";
+
   useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => setTimer((t) => t - 1), 1000);
@@ -26,19 +31,23 @@ const ResetPassword: React.FC = () => {
     }
   }, [timer]);
 
-  const handleResendOTP = () => {
-    // TODO: Gọi API gửi lại OTP ở đây
-    setTimer(RESEND_TIME);
-    setCanResend(false);
-    Swal.fire({
-      position: "top-end",
-      icon: "success",
-      title: "OTP đã được gửi lại!",
-      showConfirmButton: false,
-      timer: 1500,
-      width: 320,
-    });
+  const handleResendOTP = async () => {    
+    try {
+
+      const res = await forgotPassword(emailForm);
+
+      if (res.code === 200) {
+        toast.success("Đã gửi hướng dẫn đặt lại mật khẩu tới email của bạn!");
+        setTimer(RESEND_TIME);
+        setCanResend(false);        
+      } else {
+        toast.error(res.message || "Gửi email thất bại!");
+      }
+    } catch (err) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
   };
+
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
@@ -60,42 +69,42 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (newPassword !== confirmPassword) {
-      Swal.fire({
-        position: "top-end",
-        icon: "error",
-        title: "Mật khẩu xác nhận không khớp!",
-        showConfirmButton: false,
-        timer: 1500,
-        width: 320,
-      });
+      toast.error("Mật khẩu xác nhận không khớp!", { duration: 4000, position: "top-right" });
       return;
     }
+
     if (otp.some((digit) => digit === "")) {
-      Swal.fire({
-        position: "top-end",
-        icon: "warning",
-        title: "Vui lòng nhập đủ mã OTP!",
-        showConfirmButton: false,
-        timer: 1500,
-        width: 320,
-      });
+      toast.error("Vui lòng nhập đủ mã OTP!", { duration: 4000, position: "top-right" });
       return;
     }
-    // TODO: Xử lý xác thực OTP và đặt lại mật khẩu ở đây
-    Swal.fire({
-      position: "top-end",
-      icon: "success",
-      title: "Đổi mật khẩu thành công!",
-      showConfirmButton: false,
-      timer: 1500,
-      width: 320,
-    }).then(() => {
-      navigate("/login"); 
-    });
+
+    const payload: ResetPasswordRequest = {
+      email: emailForm.email,
+      otp: otp.join(""),
+      newPassword: newPassword,
+    };
+
+    try {
+      const res = await resetPassword(payload);
+
+      if (res.code === 200) {
+        toast.success("Đặt lại mật khẩu thành công!");
+        setTimeout(() => {
+          toast.dismiss();
+          navigate("/login");
+        }, 2000);
+      } else {
+        toast.error(res.message || "Đặt lại mật khẩu thất bại!");
+      }
+    } catch (err) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
   };
+
 
   return (
     <div className="relative w-full min-h-screen">

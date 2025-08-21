@@ -28,7 +28,7 @@ const Register: React.FC = () => {
     setForm({ ...form, [name]: value });
   };
 
-  // ✅ Validate trước khi submit
+
   const validateForm = (): boolean => {
     if (form.password !== confirmPassword) {
       toast.error("Mật khẩu không khớp!", {
