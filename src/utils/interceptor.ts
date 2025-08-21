@@ -4,6 +4,7 @@ import { tokenStorage } from './tokenStorage';
 
 const PUBLIC_ENDPOINTS: string[] = [
   '/api/v1/auth/sign-in',
+  '/api/v1/auth/outbound',
   '/api/v1/users',
   '/api/v1/auth/forgot-password',
   '/api/v1/auth/reset-password',

@@ -1,12 +1,12 @@
 // src/pages/HomePage.tsx
 import React, { useState } from 'react';
-import Header from '../../components/HomePage/Header';
+import Header from '../../components/Layouts/Header';
 import HeroSection from '../../components/HomePage/HeroSection';
 import SearchSection from '../../components/HomePage/SearchSection';
 import FeaturesSection from '../../components/HomePage/FeaturesSection';
 import TestimonialsSection from '../../components/HomePage/TestimonialsSection';
 import NewsletterSection from '../../components/HomePage/NewsletterSection';
-import Footer from '../../components/HomePage/Footer';
+import Footer from '../../components/Layouts/Footer';
 import HeritageCard from '../../components/HomePage/HeritageCard';
 import { Heritage } from "../../types/heritage";
 

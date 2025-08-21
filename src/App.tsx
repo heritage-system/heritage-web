@@ -17,6 +17,7 @@ import HeritageDetailView from './components/Heritage/HeritageDetail';
 import QuizDetailView from './components/Quizz/QuizDetailView';
 import { Toaster } from 'react-hot-toast';
 import ViewProfile from './pages/AuthPage/ViewProfile';
+import CallbackGoogle from './pages/oauth2/callback/google/page';
 const App: React.FC = () => {
   return (
     <Router>
@@ -34,6 +35,7 @@ const App: React.FC = () => {
         <Route path="/heritagedetail" element={<MainLayout><HeritageDetailView /></MainLayout>} />
         <Route path="/quizdetailview" element={<MainLayout><QuizDetailView /></MainLayout>} />
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
+        <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
       </Routes>
 
       <ChatBoxAI />
