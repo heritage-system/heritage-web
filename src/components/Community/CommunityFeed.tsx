@@ -33,53 +33,57 @@ const CommunityFeed = () => {
   ];
 
   return (
-    <div className="space-y-4">
-      {posts.map(post => (
-        <div key={post.id} className="bg-white rounded-xl border p-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <img
-              src={post.user.avatar}
-              alt={post.user.name}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <h4 className="font-medium text-gray-900">{post.user.name}</h4>
-                <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
-                  {post.user.role}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500">{post.time}</p>
-            </div>
+   <div className="space-y-4">
+  {posts.map(post => (
+    <div key={post.id} className="bg-white rounded-xl shadow-md p-4 border border-amber-200 hover:shadow-lg transition-shadow">
+      {/* User Info */}
+      <div className="flex items-center space-x-3 mb-3">
+        <img
+          src={post.user.avatar}
+          alt={post.user.name}
+          className="w-10 h-10 rounded-full object-cover border-2 border-amber-300"
+        />
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <h4 className="font-medium text-gray-900">{post.user.name}</h4>
+            <span className="text-xs bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white px-2 py-1 rounded">
+              {post.user.role}
+            </span>
           </div>
-          
-          <p className="text-gray-800 mb-3">{post.content}</p>
-          
-          {post.image && (
-            <img
-              src={post.image}
-              alt="Post content"
-              className="w-full h-48 object-cover rounded-lg mb-3"
-            />
-          )}
-          
-          <div className="flex items-center justify-between pt-3 border-t">
-            <button className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors">
-              <Heart className="w-4 h-4" />
-              <span className="text-sm">{post.likes}</span>
-            </button>
-            <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-sm">{post.comments}</span>
-            </button>
-            <button className="flex items-center space-x-1 text-gray-500 hover:text-green-500 transition-colors">
-              <Share2 className="w-4 h-4" />
-              <span className="text-sm">{post.shares}</span>
-            </button>
-          </div>
+          <p className="text-xs text-gray-500">{post.time}</p>
         </div>
-      ))}
+      </div>
+
+      {/* Post Content */}
+      <p className="text-gray-800 mb-3">{post.content}</p>
+
+      {/* Post Image */}
+      {post.image && (
+        <img
+          src={post.image}
+          alt="Post content"
+          className="w-full h-48 object-cover rounded-lg mb-3 border border-amber-200"
+        />
+      )}
+
+      {/* Post Actions */}
+      <div className="flex items-center justify-between pt-3 border-t border-amber-200">
+        <button className="flex items-center space-x-1 text-gray-500 hover:text-red-700 transition-colors">
+          <Heart className="w-4 h-4" />
+          <span className="text-sm">{post.likes}</span>
+        </button>
+        <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-700 transition-colors">
+          <MessageCircle className="w-4 h-4" />
+          <span className="text-sm">{post.comments}</span>
+        </button>
+        <button className="flex items-center space-x-1 text-gray-500 hover:text-amber-900 transition-colors">
+          <Share2 className="w-4 h-4" />
+          <span className="text-sm">{post.shares}</span>
+        </button>
+      </div>
     </div>
+  ))}
+</div>
   );
 };
 

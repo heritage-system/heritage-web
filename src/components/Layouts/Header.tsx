@@ -50,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse"></div>
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-yellow-700 to-yellow-500 bg-clip-text text-transparent">
                 VTFP
               </h1>
               {/* <p className="text-xs text-white">Heritage Portal</p> */}
@@ -70,11 +70,12 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               key={idx}
               to={item.path}
               className={`font-medium transition duration-300 ${
-                isScrolled ? 'text-gray-700 hover:text-purple-600' : 'text-fuchsia-700 hover:text-purple-200'
+                isScrolled ? 'text-gray-700 hover:text-yellow-700' : 'text-yellow-900 hover:text-yellow-600'
               }`}
             >
               {item.label}
             </Link>
+
           ))}
         </nav>
 
@@ -91,7 +92,8 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             {!isLoggedIn ? (
               <button
                 onClick={() => navigate('/login')}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+                 className="bg-gradient-to-r from-yellow-800 to-yellow-600 text-white px-6 py-2 rounded-xl 
+             hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Đăng nhập</span>

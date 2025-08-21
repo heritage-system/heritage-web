@@ -30,32 +30,42 @@ const VRFeaturesSection = () => {
 
   return (
     <section className="bg-white py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Tính năng <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Đột phá</span>
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Công nghệ hiện đại kết hợp với di sản truyền thống
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index} className="text-center group hover:scale-105 transition-transform duration-300">
-                <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-xl transition-shadow`}>
-                  <Icon className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    {/* Header */}
+    <div className="text-center mb-12">
+      <h2 className="text-4xl font-bold text-gray-900 mb-4">
+        Tính năng{' '}
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900">
+          Đột phá
+        </span>
+      </h2>
+      <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        Công nghệ hiện đại kết hợp với di sản truyền thống
+      </p>
+    </div>
+
+    {/* Features Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {features.map((feature, index) => {
+        const Icon = feature.icon;
+        return (
+          <div
+            key={index}
+            className="text-center group hover:scale-105 transition-transform duration-300"
+          >
+            <div
+              className={`w-16 h-16 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-xl transition-shadow`}
+            >
+              <Icon className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+            <p className="text-gray-600">{feature.description}</p>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>
   );
 };
 
