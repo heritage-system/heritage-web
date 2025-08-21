@@ -6,9 +6,11 @@ import toast, { Toaster } from 'react-hot-toast';
 import { SignInRequest } from "../../types/auth";
 import { useAuth } from '../../hooks/useAuth';
 import { GoogleConfiguration } from '../../configuration/GoogleConfiguration';
+import { Eye, EyeOff } from "lucide-react"; 
 
 const Login: React.FC = () => {
   const [form, setForm] = useState<SignInRequest>({ emailOrUsername: "", password: "", remember: false });
+  const [showPassword, setShowPassword] = useState(false); 
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +58,6 @@ const Login: React.FC = () => {
 
   return (
     <div className="relative w-full min-h-screen">
-      {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center z-0"
         style={{
@@ -64,17 +65,14 @@ const Login: React.FC = () => {
             "url('https://happywall-img-gallery.imgix.net/117243/vintage-vietnam-ha-long-bay-poster-roll.jpg?auto=format&q=40&w=2304')",
         }}
       />
-      {/* Overlay */}
       <div className="absolute inset-0 bg-white opacity-50 z-0" />
 
-      {/* Login content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen">
         <div className="bg-white bg-opacity-90 p-10 rounded-3xl shadow-xl max-w-md w-full">
           <form onSubmit={handleSubmit} className="flex flex-col">
             <h3 className="mb-3 text-4xl font-extrabold text-gray-900 text-center">Đăng nhập</h3>
             <p className="mb-6 text-gray-700 text-center">Vui lòng nhập email và mật khẩu để tiếp tục</p>
 
-            {/* Email */}
             <label htmlFor="email" className="text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               id="email"
@@ -87,20 +85,27 @@ const Login: React.FC = () => {
               required
             />
 
-            {/* Password */}
             <label htmlFor="password" className="text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Nhập mật khẩu"
-              value={form.password}
-              onChange={handleChange}
-              className="mb-2 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              required
-            />
+            <div className="relative mb-2">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Nhập mật khẩu"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                required
+              />
+              <span
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                onClick={() => setShowPassword((prev) => !prev)}
+                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </span>
+            </div>
 
-            {/* Options */}
             <div className="flex items-center justify-between mb-4">
               <label className="flex items-center text-sm text-gray-700">
                 <input
@@ -117,7 +122,6 @@ const Login: React.FC = () => {
               </Link>
             </div>
 
-            {/* Submit button */}
             <button
               type="submit"
               className="w-full py-3 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
@@ -125,7 +129,6 @@ const Login: React.FC = () => {
               Đăng nhập
             </button>
 
-            {/* Google Sign-in - optional */}
             <button
               type="button"
               className="w-full py-3 mb-4 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:shadow-md transition duration-300 flex justify-center items-center space-x-2"
@@ -135,12 +138,10 @@ const Login: React.FC = () => {
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png"
                 alt="Google"
                 className="w-5 h-5"
-                
               />
               <span>Đăng nhập với Google</span>
             </button>
 
-            {/* Register */}
             <p className="text-center text-sm text-gray-700">
               Chưa có tài khoản?{" "}
               <Link to="/register" className="text-purple-600 font-medium hover:underline">

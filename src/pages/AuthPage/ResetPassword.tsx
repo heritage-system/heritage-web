@@ -1,35 +1,104 @@
-import React, { useState, ChangeEvent, FormEvent } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, ChangeEvent, FormEvent, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom"; // Thêm useNavigate
+import { Eye, EyeOff } from "lucide-react";
+import Swal from "sweetalert2";
 
-interface ResetPasswordForm {
-  password: string;
-  confirmPassword: string;
-}
+const OTP_LENGTH = 6;
+const RESEND_TIME = 60; // thời gian chờ gửi lại OTP (giây)
 
 const ResetPassword: React.FC = () => {
-  const [form, setForm] = useState<ResetPasswordForm>({
-    password: "",
-    confirmPassword: "",
-  });
+  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [timer, setTimer] = useState(RESEND_TIME);
+  const [canResend, setCanResend] = useState(false);
+  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+  const navigate = useNavigate(); 
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCanResend(true);
+    }
+  }, [timer]);
+
+  const handleResendOTP = () => {
+    // TODO: Gọi API gửi lại OTP ở đây
+    setTimer(RESEND_TIME);
+    setCanResend(false);
+    Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "OTP đã được gửi lại!",
+      showConfirmButton: false,
+      timer: 1500,
+      width: 320,
+    });
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d?$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < OTP_LENGTH - 1) {
+      inputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      alert("Mật khẩu xác nhận không khớp!");
+    if (newPassword !== confirmPassword) {
+      Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: "Mật khẩu xác nhận không khớp!",
+        showConfirmButton: false,
+        timer: 1500,
+        width: 320,
+      });
       return;
     }
-    // TODO: Xử lý đặt lại mật khẩu ở đây
-    alert("Đặt lại mật khẩu thành công!");
+    if (otp.some((digit) => digit === "")) {
+      Swal.fire({
+        position: "top-end",
+        icon: "warning",
+        title: "Vui lòng nhập đủ mã OTP!",
+        showConfirmButton: false,
+        timer: 1500,
+        width: 320,
+      });
+      return;
+    }
+    // TODO: Xử lý xác thực OTP và đặt lại mật khẩu ở đây
+    Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Đổi mật khẩu thành công!",
+      showConfirmButton: false,
+      timer: 1500,
+      width: 320,
+    }).then(() => {
+      navigate("/login"); 
+    });
   };
 
   return (
     <div className="relative w-full min-h-screen">
-      {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center z-0"
         style={{
@@ -37,49 +106,112 @@ const ResetPassword: React.FC = () => {
             "url('https://happywall-img-gallery.imgix.net/117243/vintage-vietnam-ha-long-bay-poster-roll.jpg?auto=format&q=40&w=2304')",
         }}
       />
-      {/* Overlay */}
       <div className="absolute inset-0 bg-white opacity-50 z-0" />
 
-      {/* Reset Password content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen">
         <div className="bg-white bg-opacity-90 p-10 rounded-3xl shadow-xl max-w-md w-full">
           <form onSubmit={handleSubmit} className="flex flex-col">
-            <h3 className="mb-3 text-4xl font-extrabold text-gray-900 text-center">Đặt lại mật khẩu</h3>
+            <h3 className="mb-3 text-4xl font-extrabold text-gray-900 text-center">
+              Đặt lại mật khẩu
+            </h3>
             <p className="mb-6 text-gray-700 text-center">
-              Nhập mật khẩu mới cho tài khoản của bạn
+              Nhập mã OTP và mật khẩu mới của bạn
             </p>
 
-            {/* New Password */}
-            <label htmlFor="password" className="text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="otp"
+              className="text-sm font-medium text-gray-700 mb-1"
+            >
+              Mã OTP
+            </label>
+            <div className="flex justify-between mb-2">
+              {otp.map((digit, idx) => (
+                <input
+                  key={idx}
+                  ref={(el) => {
+                    inputsRef.current[idx] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(idx, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  className="w-12 h-12 text-center text-xl rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 mx-1"
+                  required
+                />
+              ))}
+            </div>
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-sm text-gray-500">
+                {canResend
+                  ? "Bạn chưa nhận được mã?"
+                  : `Gửi lại OTP sau ${timer}s`}
+              </span>
+              <button
+                type="button"
+                className={`text-purple-600 font-medium hover:underline text-sm ml-2 ${
+                  canResend ? "" : "opacity-50 cursor-not-allowed"
+                }`}
+                onClick={handleResendOTP}
+                disabled={!canResend}
+              >
+                Gửi lại OTP
+              </button>
+            </div>
+
+            <label
+              htmlFor="newPassword"
+              className="text-sm font-medium text-gray-700 mb-1"
+            >
               Mật khẩu mới
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Nhập mật khẩu mới"
-              value={form.password}
-              onChange={handleChange}
-              className="mb-4 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              required
-            />
+            <div className="relative mb-6">
+              <input
+                id="newPassword"
+                name="newPassword"
+                type={showNewPassword ? "text" : "password"}
+                placeholder="Nhập mật khẩu mới"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                required
+              />
+              <span
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+                title={showNewPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </span>
+            </div>
 
-            {/* Confirm Password */}
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 mb-1">
-              Xác nhận mật khẩu
+            <label
+              htmlFor="confirmPassword"
+              className="text-sm font-medium text-gray-700 mb-1"
+            >
+              Nhập lại mật khẩu mới
             </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="Nhập lại mật khẩu mới"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              className="mb-6 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              required
-            />
+            <div className="relative mb-6">
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Nhập lại mật khẩu mới"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+                required
+              />
+              <span
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                title={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </span>
+            </div>
 
-            {/* Submit button */}
             <button
               type="submit"
               className="w-full py-3 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
@@ -87,10 +219,12 @@ const ResetPassword: React.FC = () => {
               Đặt lại mật khẩu
             </button>
 
-            {/* Back to login */}
             <p className="text-center text-sm text-gray-700">
               Đã nhớ mật khẩu?{" "}
-              <Link to="/login" className="text-purple-600 font-medium hover:underline">
+              <Link
+                to="/login"
+                className="text-purple-600 font-medium hover:underline"
+              >
                 Đăng nhập
               </Link>
             </p>
