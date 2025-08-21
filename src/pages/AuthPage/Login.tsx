@@ -5,6 +5,8 @@ import { getRedirectPath } from "../../utils/Authorities";
 import toast, { Toaster } from 'react-hot-toast';
 import { SignInRequest } from "../../types/auth";
 import { useAuth } from '../../hooks/useAuth';
+import { GoogleConfiguration } from '../../configuration/GoogleConfiguration';
+
 const Login: React.FC = () => {
   const [form, setForm] = useState<SignInRequest>({ emailOrUsername: "", password: "", remember: false });
   const navigate = useNavigate();
@@ -46,6 +48,10 @@ const Login: React.FC = () => {
         iconTheme: { primary: '#fff', secondary: '#DC2626' },
       });
     }
+  };
+  const handleGoogleLogin = () => {
+        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GoogleConfiguration.client_id}&redirect_uri=${GoogleConfiguration.redirect_uri}&response_type=${GoogleConfiguration.response_type}&scope=${GoogleConfiguration.scope}&prompt=consent`;
+        window.location.href = url;
   };
 
   return (
@@ -123,12 +129,13 @@ const Login: React.FC = () => {
             <button
               type="button"
               className="w-full py-3 mb-4 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:shadow-md transition duration-300 flex justify-center items-center space-x-2"
-              
+              onClick={handleGoogleLogin}
             >
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png"
                 alt="Google"
                 className="w-5 h-5"
+                
               />
               <span>Đăng nhập với Google</span>
             </button>

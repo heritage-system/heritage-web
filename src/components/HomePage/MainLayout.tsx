@@ -1,6 +1,6 @@
 import { Layout } from 'antd';
-import Header from './Header';
-import Footer from './Footer';
+import Header from '../Layouts/Header';
+import Footer from '../Layouts/Footer';
 import styled from 'styled-components';
 import React, { useState } from 'react';
 
