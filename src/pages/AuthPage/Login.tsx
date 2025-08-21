@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser, SignInWithGoogle } from "../../services/authService"; 
+import { loginUser} from "../../services/authService"; 
 import { getRedirectPath } from "../../utils/Authorities";
 import toast, { Toaster } from 'react-hot-toast';
 import { SignInRequest } from "../../types/auth";
