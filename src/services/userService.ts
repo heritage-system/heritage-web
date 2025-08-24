@@ -1,4 +1,4 @@
-import { ApiResponse } from "../types/apiResonse";
+import { ApiResponse } from "../types/apiResponse";
 import { UserCreationRequest, UserCreationResponse } from "../types/user";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
