@@ -9,8 +9,7 @@ const PUBLIC_ENDPOINTS: string[] = [
   '/api/v1/auth/forgot-password',
   '/api/v1/auth/reset-password',
   '/api/v1/auth/verify-email',
-  '/api/v1/specialty',
-  '/api/v1/doctors',
+  
 ];
 
 function isPublicEndpoint(url: string): boolean {
