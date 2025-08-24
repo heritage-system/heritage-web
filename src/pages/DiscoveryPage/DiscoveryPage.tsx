@@ -7,9 +7,31 @@ import DiscoveryViewToggle from "../../components/Discovery/DiscoveryViewToggle"
 import { Heritage } from "../../types/heritage";
 import { HeritageLocationResponse } from "../../types/heritageLocation";
 import { getHeritages } from "../../services/heritageLocationService";
-import { ApiResponse } from "../../types/apiResonse";
 
 const SORT_OPTIONS = ["Mới nhất", "Phổ biến", "Đánh giá cao"];
+
+// ✅ Data cứng cho Grid view
+const STATIC_HERITAGES: Heritage[] = [
+  {
+    id: 1,
+    name: "Lễ hội Chùa Hương",
+    lat: 20.5531,
+    lng: 105.5872,
+    description: "Lễ hội lớn nhất miền Bắc, diễn ra tại chùa Hương với nhiều hoạt động tâm linh.",
+    image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400&h=240&fit=crop",
+    location: "Hà Nội",
+    date: "15/01/2025",
+    rating: 4.9,
+    views: 12300,
+    comments: 23,
+    hasVR: true,
+    trending: true,
+    type: "festival",
+    isHot: true,
+    category: "festivals",
+  },
+  // ... các di sản khác giữ nguyên như bạn đã có
+];
 
 const DiscoveryPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -18,19 +40,25 @@ const DiscoveryPage: React.FC = () => {
   const [sortOption, setSortOption] = useState<string>("Mới nhất");
   const [mapHeritages, setMapHeritages] = useState<HeritageLocationResponse[]>([]);
   const [loading, setLoading] = useState(false);
-  const [heritages, setHeritages] = useState<Heritage[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-// Fetch map data
+  const heritages: Heritage[] = STATIC_HERITAGES;
+
+  // ✅ Fetch API khi chuyển sang Map
   useEffect(() => {
     const fetchMapData = async () => {
       try {
         setLoading(true);
-        const response: ApiResponse<HeritageLocationResponse[]> = await getHeritages();
-        if (response.code === 200 && response.result) {
-          setMapHeritages(response.result);
-        }
+        setError(null);
+
+        const response = await getHeritages();
+        if (!response) throw new Error("No response received from API");
+        if (response.code !== 200) throw new Error(`API error: ${response.message}`);
+
+        setMapHeritages(response.result ?? []);
       } catch (error) {
-        console.error('Error fetching map data:', error);
+        setError(error instanceof Error ? error.message : "Unknown error occurred");
+        setMapHeritages([]);
       } finally {
         setLoading(false);
       }
@@ -41,13 +69,11 @@ const DiscoveryPage: React.FC = () => {
     }
   }, [view]);
 
-  // Filter for grid view (using existing heritages data)
+  // ---- Grid data filter + sort ----
   const filtered = heritages.filter(
     (h: Heritage) => selectedCategory === "all" || h.category === selectedCategory
   );
 
-
-// Sort logic remains the same
   const sorted = [...filtered].sort((a, b) => {
     switch (sortOption) {
       case "Phổ biến":
@@ -57,28 +83,35 @@ const DiscoveryPage: React.FC = () => {
       default:
         const [dayA, monthA, yearA] = a.date.split("/").map(Number);
         const [dayB, monthB, yearB] = b.date.split("/").map(Number);
-        return new Date(yearB, monthB - 1, dayB).getTime() - new Date(yearA, monthA - 1, dayA).getTime();
+        return (
+          new Date(yearB, monthB - 1, dayB).getTime() -
+          new Date(yearA, monthA - 1, dayA).getTime()
+        );
     }
   });
 
-  // Pagination / Load more
   const visibleHeritages = sorted.slice(0, visibleCount);
 
   return (
     <div className="min-h-screen bg-gray-50 mt-16">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header - giữ nguyên */}
+        {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Khám phá <span className="bg-gradient-to-r from-yellow-500 to-red-600 bg-clip-text text-transparent">Di sản Văn hóa</span> Việt Nam
+            Khám phá{" "}
+            <span className="bg-gradient-to-r from-yellow-500 to-red-600 bg-clip-text text-transparent">
+              Di sản Văn hóa
+            </span>{" "}
+            Việt Nam
           </h1>
-          <p className="text-gray-600">Hành trình khám phá những giá trị văn hóa truyền thống</p>
+          <p className="text-gray-600">
+            Hành trình khám phá những giá trị văn hóa truyền thống
+          </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main Content */}
           <div className="lg:flex-1">
-            {/* Controls - giữ nguyên */}
+            {/* Filters + View Toggle */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <DiscoveryQuickFilters
                 selectedCategory={selectedCategory}
@@ -98,27 +131,51 @@ const DiscoveryPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Results Counter - cập nhật để hiển thị số lượng đúng */}
+            {/* Heritage Count */}
             <p className="text-sm text-gray-600 mb-4">
-              Tìm thấy <span className="font-medium">
+              Tìm thấy{" "}
+              <span className="font-medium">
                 {view === "map" ? mapHeritages.length : filtered.length}
-              </span> di sản văn hóa
+              </span>{" "}
+              di sản văn hóa
             </p>
 
-            {/* Content View - cập nhật để xử lý loading và map data */}
-            {view === "grid" ? (
-              <DiscoveryHeritageGrid heritages={visibleHeritages} />
-            ) : (
-              loading ? (
-                <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-700"></div>
+            {/* Error UI */}
+            {error && view === "map" && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center">
+                  <div className="text-red-400 mr-2">⚠️</div>
+                  <div>
+                    <h4 className="text-red-800 font-medium">Lỗi tải dữ liệu</h4>
+                    <p className="text-red-600 text-sm">{error}</p>
+                    <button
+                      onClick={() => {
+                        setError(null);
+                        setView("grid");
+                        setTimeout(() => setView("map"), 100);
+                      }}
+                      className="text-red-700 underline text-sm mt-1 hover:text-red-800"
+                    >
+                      Thử lại
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <DiscoveryGoogleMapsView heritages={mapHeritages} />
-              )
+              </div>
             )}
 
-            {/* Load More - chỉ hiển thị trong grid view */}
+            {/* Grid / Map */}
+            {view === "grid" ? (
+              <DiscoveryHeritageGrid heritages={visibleHeritages} />
+            ) : loading ? (
+              <div className="h-96 flex flex-col items-center justify-center bg-gray-50 rounded-lg">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-700 mb-4"></div>
+                <p className="text-gray-600">Đang tải dữ liệu bản đồ...</p>
+              </div>
+            ) : (
+              <DiscoveryGoogleMapsView heritages={mapHeritages} />
+            )}
+
+            {/* Load more */}
             {view === "grid" && visibleCount < sorted.length && (
               <div className="text-center mt-8">
                 <button
@@ -131,7 +188,7 @@ const DiscoveryPage: React.FC = () => {
             )}
           </div>
 
-          {/* Sidebar - giữ nguyên */}
+          {/* Sidebar */}
           <div className="lg:w-80">
             <div className="sticky top-6 space-y-4">
               <DiscoveryUpcomingEvents />

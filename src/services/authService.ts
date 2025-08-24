@@ -1,7 +1,7 @@
 import { SignInRequest, SignInResponse,ForgotPasswordRequest,ForgotPasswordResponse,ResetPasswordRequest } from "../types/auth";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
-import { ApiResponse } from "../types/apiResonse";
+import { ApiResponse } from "../types/apiResponse";
 
 export const loginUser = async (request: SignInRequest): Promise<ApiResponse<SignInResponse>> => {
   const data = await fetchInterceptor<SignInResponse>(

@@ -1,10 +1,11 @@
 export interface CoordinateDto {
+  id: number;
   latitude: number;
   longitude: number;
 }
 
 export interface LocationDto {
-  locationId: number;
+  id: number;
   name: string;
   code: string;
 }
