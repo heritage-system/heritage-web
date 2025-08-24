@@ -1,14 +1,29 @@
-import { ApiResponse } from "../types/apiResonse";
-import { UserCreationRequest, UserCreationResponse } from "../types/user";
+import { ApiResponse } from "../types/apiResponse";
+import { PageResponse } from "../types/pageResponse";
+import { HeritageSearchRequest, HeritageSearchResponse } from "../types/heritage";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 
-export const searchHeritage = async (data: UserCreationRequest): Promise<ApiResponse<UserCreationResponse>> => {
-    const response = await fetchInterceptor(`${API_URL}/api/v1/users`, {
-        method: "POST",
-        body: JSON.stringify(data)
-    })
+export const searchHeritage = async (
+  params: HeritageSearchRequest
+): Promise<ApiResponse<PageResponse<HeritageSearchResponse>>> => {
 
-    //const result: ApiResponse<UserCreationResponse> = await response.json();
-    return response;
-} 
+    const queryString = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+        value.forEach(v => queryString.append(key, String(v)));
+    } else {
+        queryString.append(key, String(value));
+    }
+    });
+
+    const response = await fetchInterceptor<PageResponse<HeritageSearchResponse>>(
+    `${API_URL}/api/v1/users/search_heritage?${queryString.toString()}`,
+    { method: "GET" }
+    );
+
+  return response;
+};

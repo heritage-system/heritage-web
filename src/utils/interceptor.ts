@@ -9,7 +9,7 @@ const PUBLIC_ENDPOINTS: string[] = [
   '/api/v1/auth/forgot-password',
   '/api/v1/auth/reset-password',
   '/api/v1/auth/verify-email',
-  
+  '/api/v1/users/search_heritage',
 ];
 
 function isPublicEndpoint(url: string): boolean {
@@ -106,10 +106,11 @@ export const fetchInterceptor = async <T = any>(
     }
 
     return {
-      code: 200,
-      message: data?.Message,
-      result: data?.Result ?? data, // fallback
+      code: data?.code ?? response.status,
+      message: data?.message ?? response.statusText,
+      result: data?.result ?? data?.Result ?? data,
     };
+
   } catch (err) {
     return {
       code: -1,
