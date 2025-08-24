@@ -1,18 +1,15 @@
 export interface UserCreationRequest {
     email: string;
-    phone: string;
+    username: string;
     password: string;
-    firstName: string;
-    lastName: string;
-    dob: string;
+    fullName: string;   
+   
 }
 
 export interface UserCreationResponse {
     email: string;
-    phone: string;
-    firstName: string;
-    lastName: string;
-    dob: string;
+    username: string;   
+    fullName: string; 
     userType: string;
 }
 

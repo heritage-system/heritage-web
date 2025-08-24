@@ -1,4 +1,4 @@
-import { ApiResponse } from "../types/apiResonse";
+import { ApiResponse } from "../types/apiResponse";
 import { UserCreationRequest, UserCreationResponse } from "../types/user";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
@@ -9,6 +9,6 @@ export const registration = async (data: UserCreationRequest): Promise<ApiRespon
         body: JSON.stringify(data)
     })
 
-    const result: ApiResponse<UserCreationResponse> = await response.json();
-    return result;
+    //const result: ApiResponse<UserCreationResponse> = await response.json();
+    return response;
 } 

@@ -1,3 +1,6 @@
+/* Leaflet styles */
+@import "leaflet/dist/leaflet.css";
+
 .App {
   text-align: center;
 }
@@ -35,4 +38,62 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Custom popup styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  min-width: 200px;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+/* Custom marker styling for different heritage types */
+.heritage-marker {
+  background-color: #f59e0b;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.heritage-marker.festival {
+  background-color: #b45309; /* yellow-700 */
+}
+
+.heritage-marker.performance {
+  background-color: #b91c1c; /* red-700 */
+}
+
+.heritage-marker.craft {
+  background-color: #c2410c; /* orange-700 */
+}
+
+/* Map container improvements */
+.leaflet-container {
+  font-family: inherit;
+}
+
+/* Improved button styling */
+.map-overlay-button {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.map-overlay-button:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
