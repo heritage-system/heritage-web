@@ -9,6 +9,6 @@ export const registration = async (data: UserCreationRequest): Promise<ApiRespon
         body: JSON.stringify(data)
     })
 
-    const result: ApiResponse<UserCreationResponse> = await response.json();
-    return result;
+    //const result: ApiResponse<UserCreationResponse> = await response.json();
+    return response;
 } 

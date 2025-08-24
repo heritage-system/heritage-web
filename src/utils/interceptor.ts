@@ -1,7 +1,7 @@
 // src/utils/fetchInterceptor.ts
 import { API_URL } from './baseUrl';
 import { tokenStorage } from './tokenStorage';
-
+import { ApiResponse } from "../types/apiResonse";
 const PUBLIC_ENDPOINTS: string[] = [
   '/api/v1/auth/sign-in',
   '/api/v1/auth/outbound',
@@ -50,17 +50,16 @@ interface FetchInterceptorOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
-export const fetchInterceptor = async (
+export const fetchInterceptor = async <T = any>(
   url: string,
   options: FetchInterceptorOptions = {}
-): Promise<Response> => {
+): Promise<ApiResponse<T>> => {
   const requestOptions: RequestInit = {
     ...options,
-  };
-
-  requestOptions.headers = {
-    'Content-Type': 'application/json',
-    ...requestOptions.headers,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
   };
 
   const isPublic = options.skipAuth || isPublicEndpoint(url);
@@ -78,43 +77,44 @@ export const fetchInterceptor = async (
   try {
     let response = await fetch(url, requestOptions);
 
-    if (response.status === 401 && !options.skipAuth) { // ✅ sửa ở đây
+    // Nếu access token hết hạn -> refresh rồi retry
+    if (response.status === 401 && !options.skipAuth) {
       if (!refreshingPromise) {
         refreshingPromise = refreshAccessToken();
       }
       try {
         await refreshingPromise;
-
         requestOptions.headers = {
           ...requestOptions.headers,
           Authorization: `Bearer ${tokenStorage.getAccessToken()}`,
         };
-
         response = await fetch(url, requestOptions);
       } catch (error) {
-        console.log('Token refresh failed:', error);
-        window.location.href = '/login'; // 🚀 thay cho next/navigation
+        console.error('Token refresh failed:', error);
+        window.location.href = '/login';
+        throw { Code: 401, Message: 'Unauthorized' };
       }
     }
 
-    const responseData = await response.json();
+    const data  = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      throw new Error(
-        (responseData && responseData.message) ||
-          `HTTP error! status: ${response.status}`
-      );
+      if (!response.ok) {
+      // Luôn trả về ApiResponse<T>, không throw
+      return {
+        code: response.status,
+        message: data?.Message || response.statusText,
+      };
     }
 
-    return new Response(JSON.stringify(responseData), {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error('Network error occurred');
+    return {
+      code: 200,
+      message: data?.Message,
+      result: data?.Result ?? data, // fallback
+    };
+  } catch (err) {
+    return {
+      code: -1,
+      message: 'Network error occurred',
+    };
   }
 };
