@@ -1,23 +1,21 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-
-interface RegisterForm {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  agree: boolean;
-}
+import { UserCreationRequest } from "../../types/user";
+import { registration } from "../../services/userService";
+import toast from 'react-hot-toast';
 
 const Register: React.FC = () => {
-  const [form, setForm] = useState<RegisterForm>({
-    name: "",
+  const [form, setForm] = useState<UserCreationRequest>({
+    username: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    agree: false,
+    fullName: "",
   });
+  const navigate = useNavigate();
+
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [agree, setAgree] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -26,22 +24,47 @@ const Register: React.FC = () => {
   const toggleConfirm = () => setShowConfirm(!showConfirm);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      alert("Mật khẩu không khớp!");
-      return;
-    }
-    if (!form.agree) {
-      alert("Bạn cần đồng ý với điều khoản!");
-      return;
-    }
 
-    alert("Đăng ký thành công!");
+  const validateForm = (): boolean => {
+    if (form.password !== confirmPassword) {
+      toast.error("Mật khẩu không khớp!", {
+        duration: 4000,
+        position: "top-right",
+      });
+      return false;
+    }
+    if (!agree) {
+      toast.error("Bạn cần đồng ý với điều khoản!", {
+        duration: 4000,
+        position: "top-right",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      const res = await registration(form);
+      if (res.code) {
+        toast.success("Đăng ký thành công!");
+        setTimeout(() => {
+          toast.dismiss(); 
+          navigate("/login");
+        }, 500);
+      } else {
+        toast.error(res.message || "Đăng ký thất bại!");
+      }
+    } catch (err) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
   };
 
   return (
@@ -60,13 +83,13 @@ const Register: React.FC = () => {
           <form onSubmit={handleSubmit} className="flex flex-col">
             <h3 className="mb-4 text-4xl font-extrabold text-gray-900 text-center">Đăng ký</h3>
 
-            <label htmlFor="name" className="text-sm font-medium text-gray-700 mb-1">Họ tên</label>
+            {/* Username */}
+            <label htmlFor="username" className="text-sm font-medium text-gray-700 mb-1">Tên người dùng</label>
             <input
-              id="name"
-              name="name"
+              id="username"
+              name="username"
               type="text"
-              placeholder="Nguyễn Văn A"
-              value={form.name}
+              value={form.username}
               onChange={handleChange}
               required
               className="mb-4 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -77,20 +100,31 @@ const Register: React.FC = () => {
               id="email"
               name="email"
               type="email"
-              placeholder="example@email.com"
               value={form.email}
               onChange={handleChange}
               required
               className="mb-4 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
 
+            {/* Full Name */}
+            <label htmlFor="fullName" className="text-sm font-medium text-gray-700 mb-1">Họ tên</label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              value={form.fullName}
+              onChange={handleChange}
+              required
+              className="mb-4 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+
+            {/* Password */}
             <label htmlFor="password" className="text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
             <div className="relative mb-4">
               <input
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Mật khẩu"
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -111,9 +145,8 @@ const Register: React.FC = () => {
                 id="confirmPassword"
                 name="confirmPassword"
                 type={showConfirm ? "text" : "password"}
-                placeholder="Nhập lại mật khẩu"
-                value={form.confirmPassword}
-                onChange={handleChange}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 className="w-full px-4 py-3 pr-10 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
@@ -129,9 +162,8 @@ const Register: React.FC = () => {
             <label className="flex items-center text-sm text-gray-700 mb-4">
               <input
                 type="checkbox"
-                name="agree"
-                checked={form.agree}
-                onChange={handleChange}
+                checked={agree}
+                onChange={(e) => setAgree(e.target.checked)}
                 className="mr-2"
               />
               Tôi đồng ý với{" "}
@@ -145,6 +177,7 @@ const Register: React.FC = () => {
               Đăng ký
             </button>
 
+            {/* Login */}
             <p className="text-center text-sm text-gray-700">
               Đã có tài khoản?{" "}
               <Link to="/login" className="text-purple-600 font-medium hover:underline">
