@@ -10,15 +10,25 @@ const PUBLIC_ENDPOINTS: string[] = [
   '/api/v1/auth/reset-password',
   '/api/v1/auth/verify-email',
   '/api/v1/users/search_heritage',
-  '/api/v1/users/profile',
-  
+ 
 ];
 
 function isPublicEndpoint(url: string): boolean {
-  return PUBLIC_ENDPOINTS.some(
-    (endpoint) => url.includes(endpoint) || url.endsWith(endpoint)
+  let path: string;
+
+  try {
+  
+    path = new URL(url).pathname;
+  } catch {
+   
+    path = url;
+  }
+
+  return PUBLIC_ENDPOINTS.some(endpoint =>
+    path === endpoint 
   );
 }
+
 
 let refreshingPromise: Promise<boolean> | null = null;
 

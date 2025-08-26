@@ -14,7 +14,7 @@ import {
   UserX,
   Users as UsersIcon,
 } from "lucide-react";
-import Pagination from "./Pagination";
+import Pagination from "../Layouts/Pagination";
 import SearchFilter from "./SearchFilter";
 
 /* ===================== Types ===================== */
