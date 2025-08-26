@@ -1,5 +1,6 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useSearchParams } from "react-router-dom";
+import FavoriteHeritageList from "../../components/Auth/FavoriteHeritageList";
 
 interface User {
   avatar: string;
@@ -86,6 +87,7 @@ const mockContributions: ContributionItem[] = [
 
 const MENU: MenuItem[] = [
   { key: "profile", label: "Thông tin cá nhân", icon: "👤" },
+  { key: "favorites", label: "Di sản yêu thích", icon: "❤️" },
   { key: "heritage", label: "Di sản đã tương tác", icon: "🏛️" },
   { key: "events", label: "Sự kiện đã tham gia", icon: "🎉" },
   { key: "quiz", label: "Lịch sử quiz", icon: "📝" },
@@ -104,7 +106,8 @@ const ViewProfile: React.FC = () => {
     description: "",
     type: "Bài viết",
   });
-  const [contributions, setContributions] = useState<ContributionItem[]>(mockContributions);
+  const [contributions, setContributions] =
+    useState<ContributionItem[]>(mockContributions);
 
   useEffect(() => {
     setMenu(currentTab);
@@ -114,7 +117,9 @@ const ViewProfile: React.FC = () => {
     setSearchParams({ tab: key });
   };
 
-  const handleContributionChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleContributionChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setContributionForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -136,7 +141,6 @@ const ViewProfile: React.FC = () => {
     setContributionForm({ title: "", description: "", type: "Bài viết" });
     handleMenuChange("contributions");
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center py-20 px-6">
@@ -185,7 +189,9 @@ const ViewProfile: React.FC = () => {
                 </span>
               </div>
               <div>
-                <span className="block text-xs text-gray-500">Thành viên từ</span>
+                <span className="block text-xs text-gray-500">
+                  Thành viên từ
+                </span>
                 <span className="bg-gray-100 rounded-xl px-3 py-1 text-gray-700">
                   {user.joined}
                 </span>
@@ -198,7 +204,9 @@ const ViewProfile: React.FC = () => {
             {menu === "profile" && (
               <div className="bg-purple-50 rounded-2xl p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-bold text-purple-700">Thông tin cá nhân</h2>
+                  <h2 className="text-lg font-bold text-purple-700">
+                    Thông tin cá nhân
+                  </h2>
                   {!editMode ? (
                     <button
                       onClick={() => setEditMode(true)}
@@ -231,16 +239,22 @@ const ViewProfile: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
                   <div>
-                    <span className="block text-xs text-gray-500">Họ và tên</span>
+                    <span className="block text-xs text-gray-500">
+                      Họ và tên
+                    </span>
                     {editMode ? (
                       <input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       />
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.name}</span>
+                      <span className="block bg-white rounded-xl px-3 py-1">
+                        {user.name}
+                      </span>
                     )}
                   </div>
                   <div>
@@ -249,11 +263,15 @@ const ViewProfile: React.FC = () => {
                       <input
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       />
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.email}</span>
+                      <span className="block bg-white rounded-xl px-3 py-1">
+                        {user.email}
+                      </span>
                     )}
                   </div>
                   <div>
@@ -262,11 +280,15 @@ const ViewProfile: React.FC = () => {
                       <input
                         type="text"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       />
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.phone}</span>
+                      <span className="block bg-white rounded-xl px-3 py-1">
+                        {user.phone}
+                      </span>
                     )}
                   </div>
                   <div>
@@ -275,19 +297,27 @@ const ViewProfile: React.FC = () => {
                       <input
                         type="text"
                         value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, address: e.target.value })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       />
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.address}</span>
+                      <span className="block bg-white rounded-xl px-3 py-1">
+                        {user.address}
+                      </span>
                     )}
                   </div>
                   <div>
-                    <span className="block text-xs text-gray-500">Giới tính</span>
+                    <span className="block text-xs text-gray-500">
+                      Giới tính
+                    </span>
                     {editMode ? (
                       <select
                         value={formData.gender}
-                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, gender: e.target.value })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       >
                         <option>Nam</option>
@@ -295,16 +325,25 @@ const ViewProfile: React.FC = () => {
                         <option>Khác</option>
                       </select>
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.gender}</span>
+                      <span className="block bg-white rounded-xl px-3 py-1">
+                        {user.gender}
+                      </span>
                     )}
                   </div>
                   <div>
-                    <span className="block text-xs text-gray-500">Ngày sinh</span>
+                    <span className="block text-xs text-gray-500">
+                      Ngày sinh
+                    </span>
                     {editMode ? (
                       <input
                         type="date"
                         value={formData.birthdate}
-                        onChange={(e) => setFormData({ ...formData, birthdate: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            birthdate: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       />
                     ) : (
@@ -314,44 +353,72 @@ const ViewProfile: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <span className="block text-xs text-gray-500">Nghề nghiệp</span>
+                    <span className="block text-xs text-gray-500">
+                      Nghề nghiệp
+                    </span>
                     {editMode ? (
                       <input
                         type="text"
                         value={formData.job}
-                        onChange={(e) => setFormData({ ...formData, job: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, job: e.target.value })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       />
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.job}</span>
+                      <span className="block bg-white rounded-xl px-3 py-1">
+                        {user.job}
+                      </span>
                     )}
                   </div>
                   <div>
-                    <span className="block text-xs text-gray-500">Sở thích</span>
+                    <span className="block text-xs text-gray-500">
+                      Sở thích
+                    </span>
                     {editMode ? (
                       <input
                         type="text"
                         value={formData.hobbies}
-                        onChange={(e) => setFormData({ ...formData, hobbies: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, hobbies: e.target.value })
+                        }
                         className="w-full px-3 py-1 border rounded-xl"
                       />
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.hobbies}</span>
+                      <span className="block bg-white rounded-xl px-3 py-1">
+                        {user.hobbies}
+                      </span>
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <span className="block text-xs text-gray-500">Giới thiệu</span>
+                    <span className="block text-xs text-gray-500">
+                      Giới thiệu
+                    </span>
                     {editMode ? (
                       <textarea
                         value={formData.bio}
-                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, bio: e.target.value })
+                        }
                         className="w-full px-3 py-2 border rounded-xl h-60 resize-none"
                       />
                     ) : (
-                      <span className="block bg-white rounded-xl px-3 py-2">{user.bio}</span>
+                      <span className="block bg-white rounded-xl px-3 py-2">
+                        {user.bio}
+                      </span>
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+            {menu === "favorites" && (
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-bold text-purple-700">
+                    Di sản yêu thích
+                  </h2>
+                </div>
+                <FavoriteHeritageList />
               </div>
             )}
             {menu === "heritage" && (
@@ -368,7 +435,9 @@ const ViewProfile: React.FC = () => {
                   </li>
                 ))}
                 {mockHeritage.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                  <div className="text-gray-400 text-center">
+                    Chưa có dữ liệu
+                  </div>
                 )}
               </ul>
             )}
@@ -384,7 +453,9 @@ const ViewProfile: React.FC = () => {
                   </li>
                 ))}
                 {mockEvents.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                  <div className="text-gray-400 text-center">
+                    Chưa có dữ liệu
+                  </div>
                 )}
               </ul>
             )}
@@ -402,14 +473,18 @@ const ViewProfile: React.FC = () => {
                   </li>
                 ))}
                 {mockQuiz.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                  <div className="text-gray-400 text-center">
+                    Chưa có dữ liệu
+                  </div>
                 )}
               </ul>
             )}
             {menu === "contributions" && (
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-bold text-purple-700">Đóng góp đã gửi</h2>
+                  <h2 className="text-lg font-bold text-purple-700">
+                    Đóng góp đã gửi
+                  </h2>
                   <button
                     onClick={() => handleMenuChange("add-contribution")}
                     className="px-3 py-1 text-sm bg-purple-600 text-white rounded-xl hover:bg-purple-700"
@@ -438,14 +513,18 @@ const ViewProfile: React.FC = () => {
                     </li>
                   ))}
                   {contributions.length === 0 && (
-                    <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                    <div className="text-gray-400 text-center">
+                      Chưa có dữ liệu
+                    </div>
                   )}
                 </ul>
               </div>
             )}
             {menu === "add-contribution" && (
               <div className="bg-purple-50 rounded-2xl p-4">
-                <h2 className="text-lg font-bold text-purple-700 mb-4">Thêm đóng góp di sản</h2>
+                <h2 className="text-lg font-bold text-purple-700 mb-4">
+                  Thêm đóng góp di sản
+                </h2>
                 <div className="grid grid-cols-1 gap-4 text-sm text-gray-700">
                   <div>
                     <span className="block text-xs text-gray-500">Tiêu đề</span>
@@ -459,7 +538,9 @@ const ViewProfile: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <span className="block text-xs text-gray-500">Loại đóng góp</span>
+                    <span className="block text-xs text-gray-500">
+                      Loại đóng góp
+                    </span>
                     <select
                       name="type"
                       value={contributionForm.type}
