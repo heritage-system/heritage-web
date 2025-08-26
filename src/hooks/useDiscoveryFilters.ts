@@ -24,7 +24,7 @@ export const useDiscoveryFilters = (
 
   const [filters, setFilters] = useState<HeritageSearchRequest>({
     page: 1,
-    pageSize: 10,
+    pageSize: 12,
     ...initialFilters,
   });
 
@@ -42,7 +42,7 @@ export const useDiscoveryFilters = (
     return () => clearTimeout(handler);
   }, [filters, debounceMs]);
 
-  // ✅ Fetch API
+  
   const fetchHeritages = useCallback(async (params: HeritageSearchRequest) => {
     setLoading(true);
     setError(null);
@@ -63,12 +63,11 @@ export const useDiscoveryFilters = (
     }
   }, []);
 
-  // ✅ Fetch lại khi debouncedFilters đổi
   useEffect(() => {
     fetchHeritages(debouncedFilters);
   }, [debouncedFilters, fetchHeritages]);
 
-  // ✅ API thay đổi filter
+
   const onFiltersChange = useCallback(
     (changes: Partial<HeritageSearchRequest>, resetPage: boolean = false) => {
       setFilters((prev) => ({

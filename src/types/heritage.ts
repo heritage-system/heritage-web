@@ -14,7 +14,7 @@ export interface Heritage {
   comments?: number;
   hasVR?: boolean;
   trending?: boolean;
-  type: "festival" | "performance" | "craft",
+  type: "festival" | "performance",
     isHot: boolean,
     category: string;
 }
@@ -66,15 +66,14 @@ export interface HeritageTag {
 
 export interface HeritageLocation {
   id: number;
-  name: string;
-  code: string;
+  province: string,
+  district: string,
+  ward: string,
+  addressDetail: string,
+  latitude: number;
+  longitude: number;  
 }
 
-export interface HeritageCoordinate {
-  id: number;
-  latitude: number;
-  longitude: number;
-}
 
 export interface HeritageSearchResponse {
   id: number;
@@ -86,8 +85,7 @@ export interface HeritageSearchResponse {
   heritageOccurrences: HeritageOccurrence[];
   media: HeritageMedia[];
   heritageTags: string[]; 
-  heritageLocations: HeritageLocation[];
-  coordinates: HeritageCoordinate[];
+  heritageLocations: HeritageLocation[]; 
   nameUnsigned: string;
   descriptionUnsigned: string;
 }

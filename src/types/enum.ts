@@ -5,8 +5,8 @@ export enum CalendarType {
 }
 
 export enum SortBy {
-  NameAsc = "NameAsc",
-  NameDesc = "NameDesc",
+  NameAsc = "NAMEASC",
+  NameDesc = "NAMEDESC",
   DateAsc = "DateAsc",
   DateDesc = "DateDesc"
 }
