@@ -8,6 +8,7 @@ import { Heritage, HeritageSearchResponse } from "../../types/heritage";
 import { HeritageLocationResponse } from "../../types/heritageLocation";
 import { getHeritages } from "../../services/heritageLocationService";
 import { useDiscoveryFilters } from "../../hooks/useDiscoveryFilters";
+import Pagination from "../../components/Layouts/Pagination";
 
 const DiscoveryPage: React.FC = () => {
   const {
@@ -15,6 +16,7 @@ const DiscoveryPage: React.FC = () => {
     loading,
     error,
     filters,
+    totalPages,
     totalElements,
     onFiltersChange,
     onPageChange,
@@ -26,29 +28,28 @@ const DiscoveryPage: React.FC = () => {
   const [mapError, setMapError] = useState<string | null>(null);
 
   // ✅ Lấy map data khi chuyển sang Map view
-  useEffect(() => {
-    const fetchMapData = async () => {
-      try {
-        setMapLoading(true);
-        setMapError(null);
+  // useEffect(() => {
+  //   const fetchMapData = async () => {
+  //     try {
+  //       setMapLoading(true);
+  //       setMapError(null);
 
-        const response = await getHeritages();
-        if (!response) throw new Error("No response received from API");
-        if (response.code !== 200) throw new Error(`API error: ${response.message}`);
-        console.log("aaaaa" + response);
-        setMapHeritages(response.result ?? []);
-      } catch (error) {
-        setMapError(error instanceof Error ? error.message : "Unknown error occurred");
-        setMapHeritages([]);
-      } finally {
-        setMapLoading(false);
-      }
-    };
+  //       const response = await getHeritages();
+  //       if (!response) throw new Error("No response received from API");
+  //       if (response.code !== 200) throw new Error(`API error: ${response.message}`);      
+  //       setMapHeritages(response.result ?? []);
+  //     } catch (error) {
+  //       setMapError(error instanceof Error ? error.message : "Unknown error occurred");
+  //       setMapHeritages([]);
+  //     } finally {
+  //       setMapLoading(false);
+  //     }
+  //   };
 
-    if (view === "map") {
-      fetchMapData();
-    }
-  }, [view]);
+  //   if (view === "map") {
+  //     fetchMapData();
+  //   }
+  // }, [view]);
 
   return (
     <div className="min-h-screen bg-gray-50 mt-16">
@@ -80,13 +81,13 @@ const DiscoveryPage: React.FC = () => {
             </div>
 
             {/* Heritage Count */}
-            <p className="text-sm text-gray-600 mb-4">
+            {view === "grid" && (<p className="text-sm text-gray-600 mb-4">
               Tìm thấy{" "}
               <span className="font-medium">
-                {view === "map" ? mapHeritages.length : totalElements}
+                {totalElements}
               </span>{" "}
               di sản văn hóa
-            </p>
+            </p>)}
 
             {/* Error UI */}
             {mapError && view === "map" && (
@@ -118,27 +119,30 @@ const DiscoveryPage: React.FC = () => {
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-700"></div>
                 </div>
               ) : (
-               <DiscoveryHeritageGrid heritages={heritages || []} />
+                <DiscoveryHeritageGrid heritages={heritages || []} />
               )
-            ) : mapLoading ? (
+            ) : loading ? (
               <div className="h-96 flex flex-col items-center justify-center bg-gray-50 rounded-lg">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-700 mb-4"></div>
                 <p className="text-gray-600">Đang tải dữ liệu bản đồ...</p>
               </div>
             ) : (
-              <DiscoveryGoogleMapsView heritages={mapHeritages} />
+               <DiscoveryGoogleMapsView 
+                heritages={heritages}
+                onFiltersChange={onFiltersChange}
+                isLoading={loading} // ✅ Truyền loading state từ hook
+              />
             )}
 
             {/* Pagination */}
-            {view === "grid" && totalElements > (filters.page ?? 1) * (filters.pageSize ?? 10) && (
-              <div className="text-center mt-8">
-                <button
-                  className="bg-gradient-to-r from-yellow-700 to-red-700 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300"
-                  onClick={() => onPageChange((filters.page ?? 1) + 1)}
-                >
-                  Xem thêm di sản
-                </button>
-              </div>
+            {view === "grid" && totalPages > 1 && (
+              <Pagination
+                currentPage={filters.page ?? 1}
+                totalPages={totalPages}
+                onPageChange={(page) => onPageChange(page)}
+                itemsPerPage={filters.pageSize ?? 12}
+                totalItems={totalElements}
+              />
             )}
           </div>
 

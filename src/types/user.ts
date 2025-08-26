@@ -78,3 +78,23 @@ export interface AppointmentSummary {
   consultationFee: number;
   totalFee: number;
 }
+
+export interface UpdateProfileRequest {
+  fullName?: string;
+  email?: string;
+  userName?: string;
+  phone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  avatarUrl?: string;
+}
+
+export interface UpdateProfileResponse {
+  userName: string;
+  email: string;
+  fullName: string;
+  phone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  avatarUrl?: string;
+}

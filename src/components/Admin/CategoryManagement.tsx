@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Edit, Eye, Plus, Trash2, X, Folder, CheckCircle, XCircle, Layers } from 'lucide-react';
-import Pagination from './Pagination';
+import Pagination from '../Layouts/Pagination';
 import SearchFilter from './SearchFilter';
 
 // ---- Types ----

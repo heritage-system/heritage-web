@@ -1,28 +1,82 @@
-import { MapPin, Eye, MessageSquare, Calendar, Heart } from 'lucide-react';
+import { useState } from "react";
+import { MapPin, Calendar, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { HeritageSearchResponse } from "../../types/heritage";
+import { HeritageSearchResponse, HeritageLocation, HeritageOccurrence } from "../../types/heritage";
 
 interface DiscoveryHeritageCardProps {
   heritage: HeritageSearchResponse;
 }
 
+const DEFAULT_IMAGE = "https://placehold.co/600x400?text=No+Image";
+
 const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({ heritage }) => {
   const navigate = useNavigate();
+  const [showAllLocations, setShowAllLocations] = useState(false);
 
   const handleCardClick = () => {
-    navigate(`/heritagedetail/${heritage.id}`); // điều hướng chi tiết có id
+    navigate(`/heritagedetail/${heritage.id}`);
   };
 
-  // Lấy ảnh đầu tiên trong media (nếu có)
-  const imageUrl = heritage.media?.[0]?.url || "https://placehold.co/600x400?text=No+Image";
+  const imageUrl = heritage.media?.[0]?.url || DEFAULT_IMAGE;
 
-  // Lấy địa điểm (nếu có)
-  const locationName = heritage.heritageLocations?.[0]?.name || "Chưa rõ địa điểm";
+  const formatLocation = (loc: HeritageLocation) => {
+    return [loc.province, loc.district, loc.ward, loc.addressDetail]
+      .filter(Boolean)
+      .join(", ");
+  };
 
-  // Lấy thời gian từ occurrences (nếu có)
-  const occurrence = heritage.heritageOccurrences?.[0];
+  const locationNames = heritage.heritageLocations?.length
+    ? heritage.heritageLocations.map(formatLocation)
+    : ["Chưa rõ địa điểm"];
+
+  const displayLocation = showAllLocations ? (
+  <div className="flex flex-col space-y-1">
+    {locationNames.map((loc, i) => (
+      <span key={i} className="truncate max-w-[220px]">
+        {loc}
+      </span>
+    ))}
+    {locationNames.length > 1 && (
+      <button
+        className="text-blue-600 text-xs mt-1 hover:underline self-start"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowAllLocations(false);
+        }}
+      >
+        Thu gọn
+      </button>
+    )}
+  </div>
+) : (
+  <div className="flex flex-col">
+    <span className="truncate max-w-[200px] inline-block align-bottom">
+      {locationNames[0]}
+    </span>
+    {locationNames.length > 1 && (
+      <button
+        className="text-blue-600 font-medium whitespace-nowrap text-xs hover:underline mt-1 text-left"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowAllLocations(true);
+        }}
+      >
+        +{locationNames.length - 1} địa điểm khác
+      </button>
+    )}
+  </div>
+);
+
+
+  const occurrence: HeritageOccurrence | undefined = heritage.heritageOccurrences?.[0];
+
+  const calendarLabelMap: Record<string, string> = {
+    SOLAR: "Dương lịch",
+    LUNAR: "Âm lịch",
+  };
+
   const dateLabel = occurrence
-    ? `${occurrence.startDay}/${occurrence.startMonth} (${occurrence.calendarTypeName})`
+    ? `${occurrence.startDay}/${occurrence.startMonth} (${calendarLabelMap[occurrence.calendarTypeName] || occurrence.calendarTypeName})`
     : "Không xác định";
 
   return (
@@ -57,27 +111,18 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({ heritage 
           {heritage.name}
         </h3>
 
-        {/* Description */}
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {heritage.description}
+        {/* Category & Tags */}
+        <p className="text-xs text-gray-500 mb-1">
+          <strong>Danh mục:</strong> {heritage.categoryName || "Chưa rõ danh mục"}
+        </p>
+        <p className="text-xs text-gray-500 mb-3">
+          <strong>Tags:</strong> {heritage.heritageTags.length ? heritage.heritageTags.join(", ") : "Chưa có tag"}
         </p>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center text-sm text-gray-500">
-            <MapPin className="w-4 h-4 mr-1" />
-            {locationName}
-          </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <span className="flex items-center">
-              <Eye className="w-4 h-4 mr-1" />
-              {heritage.isFeatured ? "Nổi bật" : "Thường"}
-            </span>
-            <span className="flex items-center">
-              <MessageSquare className="w-4 h-4 mr-1" />
-              {heritage.heritageTags?.length || 0} tags
-            </span>
-          </div>
+        {/* Footer */}  
+        <div className="flex items-start text-sm text-gray-500 overflow-hidden">
+          <MapPin className="w-4 h-4 mr-1 shrink-0 mt-1" />
+          {displayLocation}
         </div>
       </div>
     </div>
