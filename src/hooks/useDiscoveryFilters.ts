@@ -12,11 +12,13 @@ interface UseDiscoveryFiltersResult {
   onFiltersChange: (changes: Partial<HeritageSearchRequest>, resetPage?: boolean) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  fetchHeritagesDirect: (params: Partial<HeritageSearchRequest>) => Promise<HeritageSearchResponse[]>;
 }
 
 export const useDiscoveryFilters = (
   initialFilters: HeritageSearchRequest = {},
-  debounceMs: number = 500
+  debounceMs: number = 500,
+  isMapView: boolean = false
 ): UseDiscoveryFiltersResult => {
   const [heritages, setHeritages] = useState<HeritageSearchResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,16 +69,38 @@ export const useDiscoveryFilters = (
     fetchHeritages(debouncedFilters);
   }, [debouncedFilters, fetchHeritages]);
 
+  const fetchHeritagesDirect = useCallback(
+  async (params: Partial<HeritageSearchRequest>): Promise<HeritageSearchResponse[]> => {
+    const merged = { ...filters, ...params };
+    setLoading(true);
+    try {
+      const response = await searchHeritage(merged);
+      if (response.code === 200 && response.result) {
+        // Trả về trước khi set state
+        return response.result.items;
+      } else {
+        return [];
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  },
+  [filters]
+);
+
 
   const onFiltersChange = useCallback(
     (changes: Partial<HeritageSearchRequest>, resetPage: boolean = false) => {
       setFilters((prev) => ({
         ...prev,
-        ...(resetPage ? { page: 1 } : {}),
+        ...(isMapView ? { page: 0 } : resetPage ? { page: 1 } : {}),
         ...changes,
       }));
     },
-    []
+    [isMapView]
   );
 
   const onPageChange = useCallback((page: number) => {
@@ -97,5 +121,6 @@ export const useDiscoveryFilters = (
     onFiltersChange,
     onPageChange,
     onPageSizeChange,
+    fetchHeritagesDirect,
   };
 };

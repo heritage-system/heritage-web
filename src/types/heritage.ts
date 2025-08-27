@@ -24,7 +24,7 @@ export interface HeritageSearchRequest {
 
   categoryIds?: number[];
   tagIds?: number[];
-  locationIds?: number[];
+  locations?: string[];
 
   lat?: number;
   lng?: number;

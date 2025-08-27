@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { HeritageSearchRequest } from "../../types/heritage";
 import { CalendarType, SortBy } from "../../types/enum";
+import { Province } from "../../types/location";
+import { Category } from "../../types/category";
+import { Tag } from "../../types/tag";
 import { Search } from "lucide-react";
 
 interface DiscoveryQuickFiltersProps {
   filters: HeritageSearchRequest;
   onFiltersChange: (filters: Partial<HeritageSearchRequest>) => void;
+  view: "grid" | "map"; 
+  locations?: Province[];
+  categories?: Category[];
+  tags: Tag[];
 }
 
 const CATEGORIES = [
@@ -35,6 +42,9 @@ const LOCATIONS = [
 const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
   filters,
   onFiltersChange,
+  locations,
+  categories,
+  tags
 }) => {
   const [showTagsPopup, setShowTagsPopup] = useState(false);
   const [showCategoriesPopup, setShowCategoriesPopup] = useState(false);
@@ -43,40 +53,56 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
 
   const currentCalendar = filters.calendarType ?? CalendarType.SOLAR;
 
-  const toggleArrayValue = (
-    key: "categoryIds" | "tagIds" | "locationIds",
-    value: number
-  ) => {
-    const current = filters[key] || [];
-    const exists = current.includes(value);
-    const updated = exists ? current.filter((v) => v !== value) : [...current, value];
+  type FilterKey = "categoryIds" | "tagIds" | "locations";
+
+const toggleArrayValue = (key: FilterKey, value: number | string) => {
+  if (key === "locations" && typeof value === "string") {
+    const current: string[] = filters.locations || [];
+    const updated = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    onFiltersChange({ locations: updated });
+  } else {
+    const current: number[] = (filters[key] as number[]) || [];
+    const updated = current.includes(value as number)
+      ? current.filter((v) => v !== value)
+      : [...current, value as number];
     onFiltersChange({ [key]: updated });
-  };
+  }
+};
+
+
+
 
   const clearDateFilters = () => {
-    onFiltersChange({
-      startDay: undefined,
-      startMonth: undefined,
-      endDay: undefined,
-      endMonth: undefined,
-      calendarType: CalendarType.SOLAR, 
-    });
-  };
+  onFiltersChange({
+    ...filters,
+    startDay: undefined,
+    startMonth: undefined,
+    endDay: undefined,
+    endMonth: undefined,
+    calendarType: CalendarType.SOLAR,
+    page: filters.page ?? 1, // giữ nguyên page
+  });
+};
 
-  const clearAllFilters = () => {
-    onFiltersChange({
-      keyword: undefined,
-      categoryIds: [],
-      tagIds: [],
-      locationIds: [],
-      startDay: undefined,
-      startMonth: undefined,
-      endDay: undefined,
-      endMonth: undefined,
-      calendarType: CalendarType.SOLAR,
-      sortBy: SortBy.NameAsc,
-    });
-  };
+const clearAllFilters = () => {
+  onFiltersChange({
+    ...filters,
+    keyword: undefined,
+    categoryIds: [],
+    tagIds: [],
+    locations: [],
+    startDay: undefined,
+    startMonth: undefined,
+    endDay: undefined,
+    endMonth: undefined,
+    calendarType: CalendarType.SOLAR,
+    sortBy: SortBy.NameAsc,
+    page: filters.page ?? 1, // giữ nguyên page
+  });
+};
+
 
   const handleDateChange = (field: keyof typeof filters, value?: number) => {
     const newFilters = { ...filters, [field]: value };
@@ -133,42 +159,44 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
       {expanded && (
         <>
           {/* Categories */}
-          <div>
-            <h4 className="font-medium mb-2">Danh mục</h4>
-            <div className="flex flex-wrap gap-2">
-              {(filters.categoryIds?.length
-                ? CATEGORIES.filter((c) => filters.categoryIds?.includes(c.id))
-                : CATEGORIES.slice(0, 3)
-              ).map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => toggleArrayValue("categoryIds", cat.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border transition ${
-                    filters.categoryIds?.includes(cat.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
-                  }`}
-                >
-                  {cat.icon} {cat.name}
-                  {filters.categoryIds?.includes(cat.id) && <span className="ml-1">✕</span>}
-                </button>
-              ))}
-              <button
-                onClick={() => setShowCategoriesPopup(true)}
-                className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
-              >
-                + Thêm
-              </button>
-            </div>
-          </div>
+
+<div>
+  <h4 className="font-medium mb-2">Danh mục</h4>
+  <div className="flex flex-wrap gap-2">
+    {(filters.categoryIds?.length
+      ? (categories || []).filter((c) => filters.categoryIds?.includes(c.id))
+      : (categories || []).slice(0, 3)
+    ).map((cat) => (
+      <button
+        key={cat.id}
+        onClick={() => toggleArrayValue("categoryIds", cat.id)}
+        className={`px-3 py-1 rounded-2xl text-sm border transition ${
+          filters.categoryIds?.includes(cat.id)
+            ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+            : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
+        }`}
+      >
+        {cat.name} {/* Nếu muốn icon thì cần bổ sung từ API */}
+        {filters.categoryIds?.includes(cat.id) && <span className="ml-1">✕</span>}
+      </button>
+    ))}
+    <button
+      onClick={() => setShowCategoriesPopup(true)}
+      className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
+    >
+      + Thêm
+    </button>
+  </div>
+</div>
+
 
           {/* Tags */}
           <div>
             <h4 className="font-medium mb-2">Tags</h4>
             <div className="flex flex-wrap gap-2">
               {(filters.tagIds?.length
-                ? TAGS.filter((t) => filters.tagIds?.includes(t.id))
-                : TAGS.slice(0, 3)
+                ? (tags || []).filter((t) => filters.tagIds?.includes(t.id))
+                : (tags || []).slice(0, 3)
               ).map((tag) => (
                 <button
                   key={tag.id}
@@ -192,35 +220,36 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
             </div>
           </div>
 
-          {/* Locations */}
-          <div>
-            <h4 className="font-medium mb-2">Địa phương</h4>
-            <div className="flex flex-wrap gap-2">
-              {(filters.locationIds?.length
-                ? LOCATIONS.filter((l) => filters.locationIds?.includes(l.id))
-                : LOCATIONS.slice(0, 3)
-              ).map((loc) => (
-                <button
-                  key={loc.id}
-                  onClick={() => toggleArrayValue("locationIds", loc.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border transition ${
-                    filters.locationIds?.includes(loc.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
-                  }`}
-                >
-                  {loc.name}
-                  {filters.locationIds?.includes(loc.id) && <span className="ml-1">✕</span>}
-                </button>
-              ))}
-              <button
-                onClick={() => setShowLocationsPopup(true)}
-                className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
-              >
-                + Thêm
-              </button>
-            </div>
-          </div>
+         {/* Locations */}
+<div>
+  <h4 className="font-medium mb-2">Địa phương</h4>
+  <div className="flex flex-wrap gap-2">
+    {(filters.locations?.length
+      ? locations?.filter((l) => filters.locations?.includes(l.name))
+      : locations?.slice(0, 3)
+    )?.map((loc) => (
+      <button
+        key={loc.name}
+        onClick={() => toggleArrayValue("locations", loc.name)}
+        className={`px-3 py-1 rounded-2xl text-sm border transition ${
+          filters.locations?.includes(loc.name)
+            ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+            : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
+        }`}
+      >
+        {loc.name}
+        {filters.locations?.includes(loc.name) && <span className="ml-1">✕</span>}
+      </button>
+    ))}
+    <button
+      onClick={() => setShowLocationsPopup(true)}
+      className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
+    >
+      + Thêm
+    </button>
+  </div>
+</div>
+
 
           {/* Date range + Calendar type */}
           <div>
@@ -368,35 +397,36 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
 
       {/* Popup chọn nhiều Category */}
       {showCategoriesPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white shadow-lg p-4 rounded-xl w-80">
-            <h5 className="font-medium mb-2">Chọn nhiều danh mục</h5>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => toggleArrayValue("categoryIds", cat.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    filters.categoryIds?.includes(cat.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300"
-                  }`}
-                >
-                  {cat.icon} {cat.name}
-                </button>
-              ))}
-            </div>
-            <div className="mt-3 text-right">
-              <button
-                onClick={() => setShowCategoriesPopup(false)}
-                className="px-3 py-1 bg-yellow-600 text-white rounded-lg"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div className="bg-white shadow-lg p-4 rounded-xl w-80">
+      <h5 className="font-medium mb-2">Chọn nhiều danh mục</h5>
+      <div className="flex flex-wrap gap-2">
+        {(categories || []).map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => toggleArrayValue("categoryIds", cat.id)}
+            className={`px-3 py-1 rounded-2xl text-sm border ${
+              filters.categoryIds?.includes(cat.id)
+                ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+                : "bg-white text-gray-700 border-yellow-300"
+            }`}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 text-right">
+        <button
+          onClick={() => setShowCategoriesPopup(false)}
+          className="px-3 py-1 bg-yellow-600 text-white rounded-lg"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Popup chọn nhiều Tag */}
       {showTagsPopup && (
@@ -404,7 +434,7 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
           <div className="bg-white shadow-lg p-4 rounded-xl w-80">
             <h5 className="font-medium mb-2">Chọn nhiều Tag</h5>
             <div className="flex flex-wrap gap-2">
-              {TAGS.map((tag) => (
+              {(tags || []).map((tag) => (
                 <button
                   key={tag.id}
                   onClick={() => toggleArrayValue("tagIds", tag.id)}
@@ -432,35 +462,37 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
 
       {/* Popup chọn nhiều Location */}
       {showLocationsPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white shadow-lg p-4 rounded-xl w-80">
-            <h5 className="font-medium mb-2">Chọn nhiều địa phương</h5>
-            <div className="flex flex-wrap gap-2">
-              {LOCATIONS.map((loc) => (
-                <button
-                  key={loc.id}
-                  onClick={() => toggleArrayValue("locationIds", loc.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    filters.locationIds?.includes(loc.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300"
-                  }`}
-                >
-                  {loc.name}
-                </button>
-              ))}
-            </div>
-            <div className="mt-3 text-right">
-              <button
-                onClick={() => setShowLocationsPopup(false)}
-                className="px-3 py-1 bg-yellow-600 text-white rounded-lg"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div className="bg-white shadow-lg p-4 rounded-xl w-80">
+      <h5 className="font-medium mb-2">Chọn nhiều địa phương</h5>
+      <div className="flex flex-wrap gap-2">
+        {locations?.map((loc) => (
+          <button
+            key={loc.name}
+            onClick={() => toggleArrayValue("locations", loc.name)}
+            className={`px-3 py-1 rounded-2xl text-sm border ${
+              filters.locations?.includes(loc.name)
+                ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+                : "bg-white text-gray-700 border-yellow-300"
+            }`}
+          >
+            {loc.name}
+            {filters.locations?.includes(loc.name) && <span className="ml-1">✕</span>}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 text-right">
+        <button
+          onClick={() => setShowLocationsPopup(false)}
+          className="px-3 py-1 bg-yellow-600 text-white rounded-lg"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
