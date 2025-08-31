@@ -89,3 +89,82 @@ export interface HeritageSearchResponse {
   nameUnsigned: string;
   descriptionUnsigned: string;
 }
+
+export interface HeritageAdmin {
+  id: number;
+  name: string;
+  categoryId: number;
+  categoryName: string;
+  mapUrl: string;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  description: string;
+  media: { id: number; url: string; mediaType: string }[];
+  tags: any[];
+  locations: any[];
+  occurrences: any[];
+}
+
+export interface HeritageApiResponse {
+  currentPages: number;
+  pageSizes: number;
+  totalPages: number;
+  totalElements: number;
+  items: HeritageAdmin[];
+}
+
+export interface TableColumn<T> {
+  key: keyof T;
+  label: string;
+  render?: (value: any, item: T) => React.ReactNode;
+  sortable?: boolean;
+}
+
+export interface TableProps<T> {
+  data: T[];
+  columns: TableColumn<T>[];
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  onView?: (item: T) => void;
+  loading?: boolean;
+}
+
+export interface SelectOption {
+  label: string;
+  value: string;
+}
+
+
+export interface HeritageDetail {
+  id: number;
+  name: string;
+  description: string;
+  categoryId: number;
+  categoryName: string;
+  mapUrl: string;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  media: { id: number; url: string; mediaType: string }[];
+  tags: { id: number; name: string }[];
+  locations: {
+    province: string;
+    district: string;
+    ward: string;
+    addressDetail: string;
+    latitude: number;
+    longitude: number;
+  }[];
+  occurrences: {
+    id: number;
+    occurrenceType: string;
+    calendarType: string;
+    startDay: number;
+    startMonth: number;
+    endDay: number;
+    endMonth: number;
+    frequency: string;
+    description: string;
+  }[];
+}

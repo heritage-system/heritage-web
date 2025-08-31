@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Edit,
   Eye,
@@ -13,34 +13,16 @@ import {
 } from 'lucide-react';
 import Pagination from '../Layouts/Pagination';
 import SearchFilter from './SearchFilter';
+import { fetchHeritages, fetchTotalHeritageCount, deleteHeritage } from "../../services/heritageService";
+import { fetchTags} from "../../services/tagService";
+import { fetchCategories} from "../../services/categoryService";
+import { HeritageAdmin, TableColumn, TableProps} from '../../types/heritage';
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-interface Heritage {
-  id: string;
-  name: string;
-  category: string;
-  location: string;
-  status: 'active' | 'pending' | 'archived';
-  createdAt: string;
-  views: number;
-}
 
-interface TableColumn<T> {
-  key: keyof T;
-  label: string;
-  render?: (value: any, item: T) => React.ReactNode;
-  sortable?: boolean;
-}
-
-interface TableProps<T> {
-  data: T[];
-  columns: TableColumn<T>[];
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  onView?: (item: T) => void;
-  loading?: boolean;
-}
-
-function DataTable<T extends { id: string }>({ 
+function DataTable<T extends { id: number }>({ 
   data, columns, onEdit, onDelete, onView, loading = false 
 }: TableProps<T>) {
   if (loading) {
@@ -117,23 +99,31 @@ function DataTable<T extends { id: string }>({
 
 // ---------------- MAIN COMPONENT ----------------
 const HeritageManagement: React.FC = () => {
-  const [heritages, setHeritages] = useState<Heritage[]>([
-    { id: '1', name: 'Hoàng thành Thăng Long', category: 'Di tích lịch sử', location: 'Hà Nội', status: 'active', createdAt: '2024-01-15', views: 1250 },
-    { id: '2', name: 'Phố cổ Hội An', category: 'Di tích lịch sử', location: 'Quảng Nam', status: 'active', createdAt: '2024-02-10', views: 980 },
-    { id: '3', name: 'Ca Trù', category: 'Di sản phi vật thể', location: 'Toàn quốc', status: 'pending', createdAt: '2024-03-05', views: 750 },
-  ]);
+  const [heritages, setHeritages] = useState<HeritageAdmin[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   // Modal state
   const [modalType, setModalType] = useState<'add' | 'edit' | 'view' | null>(null);
-  const [selectedHeritage, setSelectedHeritage] = useState<Heritage | null>(null);
+  const [selectedHeritage, setSelectedHeritage] = useState<HeritageAdmin | null>(null);
 
-  const openModal = (type: 'add' | 'edit' | 'view', heritage?: Heritage) => {
+  const [categories, setCategories] = useState<{ label: string; value: string }[]>([]);
+  const [tags, setTags] = useState<{ label: string; value: string }[]>([]);
+
+  // Thêm state mới
+  const [totalHeritageCount, setTotalHeritageCount] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState<HeritageAdmin | null>(null);
+
+  const navigate = useNavigate();
+
+  const openModal = (type: 'add' | 'edit' | 'view', heritage?: HeritageAdmin) => {
     setModalType(type);
     setSelectedHeritage(heritage || null);
   };
@@ -142,52 +132,138 @@ const HeritageManagement: React.FC = () => {
     setSelectedHeritage(null);
   };
 
-  const filteredHeritages = useMemo(() => {
-    return heritages.filter(heritage => {
-      const matchesSearch = heritage.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           heritage.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !selectedCategory || heritage.category === selectedCategory;
-      const matchesStatus = !selectedStatus || heritage.status === selectedStatus;
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
-  }, [heritages, searchTerm, selectedCategory, selectedStatus]);
+  useEffect(() => {
+  const fetchAll = async () => {
+    setLoading(true);
+    try {
+      const heritageResult = await fetchHeritages({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        keyword: searchTerm,
+        categoryId: selectedCategory,
+        tagId: selectedTag,
+      });
 
-  const paginatedHeritages = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredHeritages.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredHeritages, currentPage, itemsPerPage]);
+      setHeritages(heritageResult.items);
+      setTotalPages(heritageResult.totalPages);
+      setTotalElements(heritageResult.totalElements);
+
+      const categoryResponse = await fetchCategories();
+      const catList = categoryResponse.result || [];
+
+      setCategories([
+        { label: "Tất cả danh mục", value: "" },
+        ...catList.map((c) => ({
+          label: c.name,
+          value: String(c.id),
+        })),
+      ]);
+
+      // Gọi API tag
+      const tagResponse = await fetchTags();
+      const tagList = tagResponse.result || [];
+
+      setTags([
+        { label: "Tất cả Tag", value: "" },
+        ...tagList.map((t) => ({
+          label: t.name,
+          value: String(t.id),
+        })),
+      ]);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAll();
+}, [currentPage, itemsPerPage, searchTerm, selectedCategory, selectedTag]);
+
+
+useEffect(() => {
+  const getTotalCount = async () => {
+    try {
+      const total = await fetchTotalHeritageCount();
+      setTotalHeritageCount(total);
+    } catch (error) {
+      console.error("Error fetching total heritage count:", error);
+    }
+  };
+  getTotalCount();
+}, []);
+
 
   const stats = useMemo(() => {
     return {
-      total: filteredHeritages.length,
-      active: filteredHeritages.filter(h => h.status === 'active').length,
-      pending: filteredHeritages.filter(h => h.status === 'pending').length,
-      archived: filteredHeritages.filter(h => h.status === 'archived').length,
-      views: filteredHeritages.reduce((sum, h) => sum + h.views, 0),
+      total: totalHeritageCount, 
+      active: 0,
+      pending: 0,
+      archived: 0,
+      views: 0,
     };
-  }, [filteredHeritages]);
+  }, [totalHeritageCount]);
 
-  const columns: TableColumn<Heritage>[] = [
-    { key: 'name', label: 'Tên di sản' },
-    { key: 'category', label: 'Danh mục' },
-    { key: 'location', label: 'Địa điểm' },
-    { 
-      key: 'status', 
-      label: 'Trạng thái',
-      render: (status: string) => (
-        <span className={`px-2 py-1 text-xs rounded-full ${
-          status === 'active' ? 'bg-green-100 text-green-800' :
-          status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
-          {status === 'active' ? 'Hoạt động' : 
-           status === 'pending' ? 'Chờ duyệt' : 'Lưu trữ'}
-        </span>
-      )
+  const columns: TableColumn<HeritageAdmin>[] = [
+    {
+      key: 'name',
+      label: 'Tên di sản',
+      render: (value: string) =>
+        value.length > 30
+          ? <span title={value}>{value.slice(0, 30)}...</span>
+          : value,
     },
-    { key: 'views', label: 'Lượt xem' },
-    { key: 'createdAt', label: 'Ngày tạo' }
+    { key: 'categoryName', label: 'Danh mục' },
+    {
+      key: 'tags',
+      label: 'Tag',
+      render: (_: any, item: HeritageAdmin) =>
+        item.tags && item.tags.length > 0
+          ? (
+          <div>
+            {item.tags.map((tag: any) => (
+              <div key={tag.id}>{tag.name}</div>
+            ))}
+          </div>
+        )
+      : <span className="text-gray-400 italic">Không có tag</span>,
+    },
+    { key: 'createdAt', label: 'Ngày tạo', render: (date: string) => new Date(date).toLocaleDateString() },
+    { key: 'description', label: 'Mô tả', render: (desc: string) => <span title={desc}>{desc.slice(0, 30)}...</span> },
+    { key: 'isFeatured', label: 'Nổi bật', render: (val: boolean) => val ? 'Có' : 'Không' },
   ];
+
+  const handleDeleteHeritage = (heritage: HeritageAdmin) => {
+  setConfirmDelete(heritage);
+};
+
+const confirmDeleteHeritage = async () => {
+  if (!confirmDelete) return;
+  try {
+    await deleteHeritage(confirmDelete.id);
+    toast.success("Xoá di sản thành công!");
+    const heritageResult = await fetchHeritages({
+      page: currentPage,
+      pageSize: itemsPerPage,
+      keyword: searchTerm,
+      categoryId: selectedCategory,
+      tagId: selectedTag,
+    });
+    setHeritages(heritageResult.items);
+    setTotalPages(heritageResult.totalPages);
+    setTotalElements(heritageResult.totalElements);
+  } catch (error: any) {
+    if (error?.response?.status === 401 || error?.response?.status === 403) {
+      toast.error("Bạn không có quyền xoá di sản này!");
+    } else if (error?.response?.status === 404) {
+      toast.error("Di sản không tồn tại!");
+    } else {
+      toast.error(error.message || "Xoá di sản thất bại");
+    }
+  } finally {
+    setConfirmDelete(null);
+  }
+};
 
   return (
     <div>
@@ -251,48 +327,43 @@ const HeritageManagement: React.FC = () => {
 
       <SearchFilter
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={(value) => {
+          setSearchTerm(value);
+          setCurrentPage(1);
+        }}
         filters={[
-          { 
-            label: 'Lọc theo danh mục', 
-            value: 'category', 
-            options: [
-              { label: 'Tất cả danh mục', value: '' },
-              { label: 'Di tích lịch sử', value: 'Di tích lịch sử' },
-              { label: 'Di sản phi vật thể', value: 'Di sản phi vật thể' }
-            ]
-          },
-          { 
-            label: 'Lọc theo trạng thái', 
-            value: 'status', 
-            options: [
-              { label: 'Tất cả trạng thái', value: '' },
-              { label: 'Hoạt động', value: 'active' },
-              { label: 'Chờ duyệt', value: 'pending' },
-              { label: 'Lưu trữ', value: 'archived' }
-            ]
-          }
+          { label: "Lọc theo danh mục", value: "category", options: categories || [] },
+          { label: "Lọc theo Tag", value: "tag", options: tags || [] },
         ]}
         onFilterChange={(key, value) => {
-          if (key === 'category') setSelectedCategory(value);
-          if (key === 'status') setSelectedStatus(value);
+          if (key === "category") {
+            setSelectedCategory(value);
+            setCurrentPage(1);
+          }
+          if (key === "tag") {
+            setSelectedTag(value);
+            setCurrentPage(1);
+          }
         }}
       />
 
+
+
       <DataTable
-        data={paginatedHeritages}
+        data={heritages}
         columns={columns}
         onEdit={(heritage) => openModal('edit', heritage)}
-        onDelete={(heritage) => console.log('Delete heritage:', heritage)}
-        onView={(heritage) => openModal('view', heritage)}
+        onDelete={handleDeleteHeritage}
+        onView={(heritage) => navigate(`/heritage/${heritage.id}`)}
+        loading={loading}
       />
 
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.ceil(filteredHeritages.length / itemsPerPage)}
+        totalPages={totalPages}
         onPageChange={setCurrentPage}
         itemsPerPage={itemsPerPage}
-        totalItems={filteredHeritages.length}
+        totalItems={totalElements}
       />
 
       {/* ---------------- Modal ---------------- */}
@@ -320,8 +391,8 @@ const HeritageManagement: React.FC = () => {
                 <h3 className="text-xl font-bold mb-4">Chỉnh sửa di sản</h3>
                 <form className="space-y-4">
                   <input defaultValue={selectedHeritage.name} className="w-full border px-3 py-2 rounded" />
-                  <input defaultValue={selectedHeritage.category} className="w-full border px-3 py-2 rounded" />
-                  <input defaultValue={selectedHeritage.location} className="w-full border px-3 py-2 rounded" />
+                  <input defaultValue={selectedHeritage.categoryId} className="w-full border px-3 py-2 rounded" />
+                  <input defaultValue={selectedHeritage.locations} className="w-full border px-3 py-2 rounded" />
                   <button className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Cập nhật</button>
                 </form>
               </div>
@@ -330,16 +401,41 @@ const HeritageManagement: React.FC = () => {
             {modalType === 'view' && selectedHeritage && (
               <div>
                 <h3 className="text-xl font-bold mb-4">{selectedHeritage.name}</h3>
-                <p><strong>Danh mục:</strong> {selectedHeritage.category}</p>
-                <p><strong>Địa điểm:</strong> {selectedHeritage.location}</p>
-                <p><strong>Trạng thái:</strong> {selectedHeritage.status}</p>
-                <p><strong>Lượt xem:</strong> {selectedHeritage.views}</p>
+                <p><strong>Danh mục:</strong> {selectedHeritage.categoryName}</p>
+                <p><strong>Địa điểm:</strong> {selectedHeritage.mapUrl}</p>
+                {/* <p><strong>Trạng thái:</strong> {selectedHeritage.isFeatured}</p> */}
+                {/* <p><strong>Lượt xem:</strong> {selectedHeritage.views}</p> */}
                 <p><strong>Ngày tạo:</strong> {selectedHeritage.createdAt}</p>
               </div>
             )}
           </div>
         </div>
       )}
+      {confirmDelete && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+      <h3 className="text-lg font-bold mb-4 text-center">Xác nhận xoá di sản</h3>
+      <p className="mb-6 text-center">
+        Bạn có chắc muốn xoá di sản <b>{confirmDelete.name}</b>?
+      </p>
+      <div className="flex justify-center gap-4">
+        <button
+          onClick={confirmDeleteHeritage}
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+        >
+          Xoá
+        </button>
+        <button
+          onClick={() => setConfirmDelete(null)}
+          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+        >
+          Hủy
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };
