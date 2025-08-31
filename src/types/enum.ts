@@ -10,3 +10,5 @@ export enum SortBy {
   DateAsc = "DateAsc",
   DateDesc = "DateDesc"
 }
+
+export type MediaType = "image" | "video" | "audio" | "other"; 
