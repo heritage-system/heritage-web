@@ -178,7 +178,7 @@ const DiscoveryPage: React.FC = () => {
               <DiscoveryHeritageGrid heritages={displayedHeritages || []} />
             ) : (
               <>
-                <div className="mb-2 flex gap-2 justify-end">
+                <div className="relative z-0 mb-2 flex gap-2 justify-end">
                   {mapMode === "paged" ? (
                     <button
                       onClick={showAllOnMap}

@@ -28,6 +28,17 @@ export const searchHeritage = async (
 
   return response;
 };
+export const getHeritageDetail = async (id: number): Promise<ApiResponse<HeritageSearchResponse>> => {
+  const queryString = new URLSearchParams({ id: id.toString() });
+
+  return await fetchInterceptor<HeritageSearchResponse>(
+    `${API_URL}/api/v1/users/heritageDetail?${queryString}`,
+    {
+      method: "GET",
+    }
+  );
+};
+
 
 export async function fetchHeritages(params: {
   page: number;

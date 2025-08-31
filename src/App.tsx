@@ -13,7 +13,7 @@ import ForgotPassword from './pages/AuthPage/ForgotPassword';
 import ResetPassword from './pages/AuthPage/ResetPassword'; 
 import ChangePassword from './pages/AuthPage/ChangePassword';
 import ChatBoxAI from './components/Chatbox/ChatBoxAI';
-import HeritageDetailView from './components/Heritage/HeritageDetail';
+import HeritageDetailPage from "./pages/HeritagePage/HeritageDetailPage";
 import QuizDetailView from './components/Quizz/QuizDetailView';
 import { Toaster } from 'react-hot-toast';
 import ViewProfile from './pages/AuthPage/ViewProfile';
@@ -35,7 +35,7 @@ const App: React.FC = () => {
         <Route path="/forgot-password" element={<MainLayout><ForgotPassword /></MainLayout>} />
         <Route path="/reset-password" element={<MainLayout><ResetPassword /></MainLayout>} />
         <Route path="/change-password" element={<MainLayout><ChangePassword /></MainLayout>} />
-        <Route path="/heritagedetail" element={<MainLayout><HeritageDetailView /></MainLayout>} />
+        <Route path="/heritagedetail/:id" element={<MainLayout><HeritageDetailPage /></MainLayout>} />
         <Route path="/quizdetailview" element={<MainLayout><QuizDetailView /></MainLayout>} />
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
