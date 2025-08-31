@@ -11,7 +11,8 @@ const PUBLIC_ENDPOINTS: string[] = [
   '/api/v1/auth/verify-email',
   '/api/v1/users/search_heritage',
  '/api/v1/Category',
-  '/api/v1/Tags'
+  '/api/v1/Tags',
+  '/api/v1/users/heritageDetail'
 ];
 
 function isPublicEndpoint(url: string): boolean {
