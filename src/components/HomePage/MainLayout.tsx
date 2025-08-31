@@ -5,9 +5,10 @@ import styled from 'styled-components';
 import React, { useState } from 'react';
 
 const { Content } = Layout;
-
+const HEADER_H = 65;
 const StyledContent = styled(Content)`
-  min-height: calc(100vh - 64px - 200px);
+  padding-top: ${HEADER_H}px;                 /* chừa chỗ cho header fixed */
+  min-height: calc(100vh - ${HEADER_H}px - 200px);
 `;
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
