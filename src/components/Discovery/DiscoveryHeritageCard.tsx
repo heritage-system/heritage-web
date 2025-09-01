@@ -2,7 +2,6 @@ import { useState } from "react";
 import { MapPin, Calendar, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HeritageSearchResponse, HeritageLocation, HeritageOccurrence } from "../../types/heritage";
-
 interface DiscoveryHeritageCardProps {
   heritage: HeritageSearchResponse;
 }
@@ -16,7 +15,6 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({ heritage 
   const handleCardClick = () => {
     navigate(`/heritagedetail/${heritage.id}`);
   };
-
   const imageUrl = heritage.media?.[0]?.url || DEFAULT_IMAGE;
 
   const formatLocation = (loc: HeritageLocation) => {

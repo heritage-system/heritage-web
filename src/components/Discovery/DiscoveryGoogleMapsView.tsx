@@ -107,7 +107,7 @@ const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({
 
   return (
     <div className="bg-white rounded-xl border overflow-hidden">
-      <div className="h-96 relative">
+      <div className=" z-0 h-96 relative">
         <MapContainer
           center={initialView.center}
           zoom={initialView.zoom}
