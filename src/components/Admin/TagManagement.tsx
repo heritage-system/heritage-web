@@ -331,7 +331,7 @@ const clearSearch = () => {
           <tr key={tag.id} className="hover:bg-gray-50">
             <td className="px-6 py-4">{tag.id}</td>
             <td className="px-6 py-4">{tag.name}</td>
-            <td className="px-6 py-4">{tag.createdBy}</td>
+            <td className="px-6 py-4">{tag.createByEmail}</td>
             <td className="px-6 py-4">{new Date(tag.createdAt).toLocaleString()}</td>
             <td className="px-6 py-4">{new Date(tag.updatedAt).toLocaleString()}</td>
             <td className="px-6 py-4">{tag.count}</td>

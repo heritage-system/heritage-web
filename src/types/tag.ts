@@ -17,8 +17,10 @@ export interface TagSearchResponse {
   nameUnsigned: string;
   createdBy: string;
   createByName?: string;
+  createByEmail?: string;
   updatedBy?: string;
   updatedByName?: string;
+  updatedByEmail?: string;
   createdAt: string;
   updatedAt: string;
   count: number; // number of linked heritages

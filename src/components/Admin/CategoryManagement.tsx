@@ -352,7 +352,7 @@ const clearSearch = () => {
         <td className="px-6 py-4">{Category.id}</td>
         <td className="px-6 py-4">{Category.name}</td>
         <td className="px-6 py-4">{Category.description}</td> {/* <-- new */}
-        <td className="px-6 py-4">{Category.createdBy}</td>
+        <td className="px-6 py-4">{Category.createByEmail}</td>
         <td className="px-6 py-4">{new Date(Category.createdAt).toLocaleString()}</td>
         <td className="px-6 py-4">{new Date(Category.updatedAt).toLocaleString()}</td>
         <td className="px-6 py-4">{Category.count}</td>

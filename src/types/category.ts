@@ -21,8 +21,10 @@ export interface CategorySearchResponse {
   descriptionUnsigned: string;
   createdBy: string;
   createByName?: string;
+  createByEmail?: string;
   updatedBy?: string;
   updatedByName?: string;
+  updateByEmail?: string;
   createdAt: string;
   updatedAt: string;
   count: number;
