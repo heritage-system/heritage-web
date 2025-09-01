@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Edit, Eye, Plus, Trash2, X } from "lucide-react";
 import Pagination from "../Layouts/Pagination";
-import { CategorySearchResponse as Category } from "../../types/category";
+import { CategorySearchResponse  } from "../../types/category";
 import { toast } from 'react-hot-toast';
 import { searchCategories, createCategory, updateCategory, deleteCategory } from "../../services/categoryService";
 
@@ -109,14 +109,14 @@ function DataTable<T extends { id: number }>({
 
 // ---- Main Category Management ----
 const CategoryManagement: React.FC = () => {
-  const [Categories, setCategories] = useState<Category[]>([]);
+  const [Categories, setCategories] = useState<CategorySearchResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   // Modal state
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategorySearchResponse | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showView, setShowView] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -133,7 +133,7 @@ const loadCategories = async () => {
   });
 
   if (res.code === 200 && res.result) {
-    setCategories(res.result.items);
+    setCategories(res.result.items || [] );
 
     // đồng bộ pagination từ API
     setCurrentPage(res.result.currentPages ?? 1);
@@ -157,17 +157,17 @@ const loadCategories = async () => {
     setShowForm(true);
   };
 
-  const handleEdit = (Category: Category) => {
+  const handleEdit = (Category: CategorySearchResponse) => {
     setSelectedCategory(Category);
     setShowForm(true);
   };
 
-  const handleView = (Category: Category) => {
+  const handleView = (Category: CategorySearchResponse) => {
     setSelectedCategory(Category);
     setShowView(true);
   };
 
-  const handleDelete = (Category: Category) => {
+  const handleDelete = (Category: CategorySearchResponse) => {
     setSelectedCategory(Category);
     setShowConfirmDelete(true);
   };
@@ -201,7 +201,7 @@ const confirmDelete = async () => {
   setShowConfirmDelete(false);
 };
 
-const saveCategory = async (Category: Category) => {
+const saveCategory = async (Category: CategorySearchResponse) => {
   try {
     let res;
     if (selectedCategory) {
@@ -432,11 +432,11 @@ const clearSearch = () => {
 };
 // ---- Category Form Component ----
 const CategoryForm: React.FC<{
-  Category: Category | null;
-  onSave: (Category: Category) => void;
+  Category: CategorySearchResponse | null;
+  onSave: (Category: CategorySearchResponse) => void;
   onClose: () => void;
 }> = ({ Category, onSave, onClose }) => {
- const [form, setForm] = useState<Category>(
+ const [form, setForm] = useState<CategorySearchResponse>(
   Category || {
     id: 0,
     name: "",
@@ -451,7 +451,7 @@ const CategoryForm: React.FC<{
 );
 
 
-  const handleChange = (field: keyof Category, value: any) => {
+  const handleChange = (field: keyof CategorySearchResponse, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 

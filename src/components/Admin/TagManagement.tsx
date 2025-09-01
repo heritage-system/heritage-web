@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Edit, Eye, Plus, Trash2, X } from "lucide-react";
 import Pagination from "../Layouts/Pagination";
-import { TagSearchResponse as Tag } from "../../types/tag";
+import { TagSearchResponse  } from "../../types/tag";
 import { toast } from 'react-hot-toast';
 import { searchTags, createTag, updateTag, deleteTag } from "../../services/tagService";
 
@@ -109,14 +109,15 @@ function DataTable<T extends { id: number }>({
 
 // ---- Main Tag Management ----
 const TagManagement: React.FC = () => {
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tags, setTags] = useState<TagSearchResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   // Modal state
-  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
+  const [selectedTag, setSelectedTag] = useState<TagSearchResponse | null>(null);
+
   const [showForm, setShowForm] = useState(false);
   const [showView, setShowView] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -133,7 +134,7 @@ const loadTags = async () => {
   });
 
   if (res.code === 200 && res.result) {
-    setTags(res.result.items);
+    setTags(res.result.items || [] );
 
     // đồng bộ pagination từ API
     setCurrentPage(res.result.currentPages ?? 1);
@@ -157,17 +158,17 @@ const loadTags = async () => {
     setShowForm(true);
   };
 
-  const handleEdit = (tag: Tag) => {
+  const handleEdit = (tag: TagSearchResponse) => {
     setSelectedTag(tag);
     setShowForm(true);
   };
 
-  const handleView = (tag: Tag) => {
+  const handleView = (tag: TagSearchResponse) => {
     setSelectedTag(tag);
     setShowView(true);
   };
 
-  const handleDelete = (tag: Tag) => {
+  const handleDelete = (tag: TagSearchResponse) => {
     setSelectedTag(tag);
     setShowConfirmDelete(true);
   };
@@ -195,7 +196,7 @@ const loadTags = async () => {
 };
 
 
-  const saveTag = async (tag: Tag) => {
+  const saveTag = async (tag: TagSearchResponse) => {
   try {
     if (selectedTag) {
       await updateTag({ id: selectedTag.id, name: tag.name });
@@ -409,15 +410,25 @@ const clearSearch = () => {
 };
 // ---- Tag Form Component ----
 const TagForm: React.FC<{
-  tag: Tag | null;
-  onSave: (tag: Tag) => void;
+  tag: TagSearchResponse | null;
+  onSave: (tag: TagSearchResponse) => void;
   onClose: () => void;
 }> = ({ tag, onSave, onClose }) => {
-  const [form, setForm] = useState<Tag>(
-    tag || { id: 0, name: "", nameUnsigned: "", createdBy: "", createdAt: "", updatedAt: "", count: 0 }
-  );
+  const [form, setForm] = useState<TagSearchResponse>(
+  tag || {
+    id: 0,
+    name: "",
+    nameUnsigned: "",
+    createdBy: "",
+    createdAt: "",
+    updatedAt: "",
+    updatedBy: "",   // ✅ add this
+    count: 0,
+  }
+);
 
-  const handleChange = (field: keyof Tag, value: any) => {
+
+  const handleChange = (field: keyof TagSearchResponse, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 

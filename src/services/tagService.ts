@@ -4,6 +4,7 @@ import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 
 import { TagSearchRequest, TagSearchResponse } from "../types/tag";
+import { PageResponse } from "@/types/pageResponse";
 
 // Create Tag
 export const createTag = async (
@@ -44,14 +45,14 @@ export const fetchTags = async (): Promise<ApiResponse<Tag[]>> => {
 
 export const searchTags = async (
   params: { keyword?: string; page?: number; pageSize?: number }
-): Promise<ApiResponse<any>> => {
+): Promise<ApiResponse<PageResponse<TagSearchResponse>>> => {
   const query = new URLSearchParams();
 
   if (params.keyword) query.append("Keyword", params.keyword);
   if (params.page) query.append("Page", params.page.toString());
   if (params.pageSize) query.append("PageSize", params.pageSize.toString());
 
-  return await fetchInterceptor<any>(
+  return await fetchInterceptor<PageResponse<TagSearchResponse>>(
     `${API_URL}/api/v1/Tags/search_tag?${query.toString()}`,
     { method: "GET" }
   );

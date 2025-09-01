@@ -3,7 +3,7 @@ import { ApiResponse } from "../types/apiResponse";
 import { Category, CategorySearchRequest, CategorySearchResponse } from "../types/category";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
-
+import { PageResponse } from "@/types/pageResponse";
 /**
  * Fetch all categories (no filters)
  */
@@ -19,7 +19,7 @@ export const fetchCategories = async (): Promise<ApiResponse<Category[]>> => {
  */
 export const searchCategories = async (
   params: CategorySearchRequest
-): Promise<ApiResponse<any>> => {
+): Promise<ApiResponse<PageResponse<CategorySearchResponse>>> => {
   const query = new URLSearchParams();
 
   if (params.keyword) query.append("Keyword", params.keyword);
@@ -27,7 +27,8 @@ export const searchCategories = async (
   if (params.page) query.append("Page", params.page.toString());
   if (params.pageSize) query.append("PageSize", params.pageSize.toString());
 
-return await fetchInterceptor<any>(
+
+  return await fetchInterceptor<PageResponse<CategorySearchResponse>>(
     `${API_URL}/api/v1/Category/search_categories?${query.toString()}`,
     { method: "GET" }
   );
@@ -37,7 +38,7 @@ return await fetchInterceptor<any>(
  * Create a category
  */
 export const createCategory = async (data: { name: string; description: string }) => {
-  return await fetchInterceptor<ApiResponse<any>>(
+  return await fetchInterceptor<ApiResponse<Category>>(
     `${API_URL}/api/v1/Category`,
     {
       method: "POST",
@@ -51,7 +52,7 @@ export const createCategory = async (data: { name: string; description: string }
  * Update a category
  */
 export const updateCategory = async (data: { id: number; name: string; description: string }) => {
-  return await fetchInterceptor<ApiResponse<any>>(
+  return await fetchInterceptor<ApiResponse<Category>>(
     `${API_URL}/api/v1/Category`,
     {
       method: "PUT",
@@ -65,7 +66,7 @@ export const updateCategory = async (data: { id: number; name: string; descripti
  * Delete a category
  */
 export const deleteCategory = async (id: number) => {
-  return await fetchInterceptor<ApiResponse<any>>(
+  return await fetchInterceptor<ApiResponse<Category>>(
     `${API_URL}/api/v1/Category`,
     {
       method: "DELETE",

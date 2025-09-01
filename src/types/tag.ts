@@ -3,10 +3,6 @@
 export interface Tag {
   id: number;
   name: string;
-  nameUnsigned: string;
-  createdBy: string;
-  createdAt: string; // ISO string
-  updatedAt: string; // ISO string
 }
 
 export interface TagSearchRequest {
@@ -20,6 +16,9 @@ export interface TagSearchResponse {
   name: string;
   nameUnsigned: string;
   createdBy: string;
+  createByName?: string;
+  updatedBy?: string;
+  updatedByName?: string;
   createdAt: string;
   updatedAt: string;
   count: number; // number of linked heritages
