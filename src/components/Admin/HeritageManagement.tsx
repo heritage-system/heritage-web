@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Edit,
   Eye,
@@ -9,21 +9,26 @@ import {
   Clock,
   Archive,
   BarChart3,
-  X
-} from 'lucide-react';
-import Pagination from '../Layouts/Pagination';
-import SearchFilter from './SearchFilter';
-import { fetchHeritages, fetchTotalHeritageCount, deleteHeritage } from "../../services/heritageService";
-import { fetchTags} from "../../services/tagService";
-import { fetchCategories} from "../../services/categoryService";
-import { HeritageAdmin, TableColumn, TableProps} from '../../types/heritage';
+  X,
+} from "lucide-react";
+import Pagination from "../Layouts/Pagination";
+import SearchFilter from "./SearchFilter";
+import { fetchHeritages, deleteHeritage } from "../../services/heritageService";
+import { fetchTags } from "../../services/tagService";
+import { fetchCategories } from "../../services/categoryService";
+import { HeritageAdmin, TableColumn, TableProps } from "../../types/heritage";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-function DataTable<T extends { id: number }>({ 
-  data, columns, onEdit, onDelete, onView, loading = false 
+// Table component
+function DataTable<T extends { id: number }>({
+  data,
+  columns,
+  onEdit,
+  onDelete,
+  onView,
+  loading = false,
 }: TableProps<T>) {
   if (loading) {
     return (
@@ -57,8 +62,13 @@ function DataTable<T extends { id: number }>({
           {data.map((item) => (
             <tr key={item.id} className="hover:bg-gray-50">
               {columns.map((column) => (
-                <td key={String(column.key)} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {column.render ? column.render(item[column.key], item) : String(item[column.key])}
+                <td
+                  key={String(column.key)}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                >
+                  {column.render
+                    ? column.render(item[column.key], item)
+                    : String(item[column.key])}
                 </td>
               ))}
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -104,38 +114,131 @@ const HeritageManagement: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedTag, setSelectedTag] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Modal state
-  const [modalType, setModalType] = useState<'add' | 'edit' | 'view' | null>(null);
-  const [selectedHeritage, setSelectedHeritage] = useState<HeritageAdmin | null>(null);
-
-  const [categories, setCategories] = useState<{ label: string; value: string }[]>([]);
+  const [categories, setCategories] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [tags, setTags] = useState<{ label: string; value: string }[]>([]);
 
-  // Thêm state mới
-  const [totalHeritageCount, setTotalHeritageCount] = useState(0);
-  const [confirmDelete, setConfirmDelete] = useState<HeritageAdmin | null>(null);
-
+  const [confirmDelete, setConfirmDelete] = useState<HeritageAdmin | null>(
+    null
+  );
   const navigate = useNavigate();
 
-  const openModal = (type: 'add' | 'edit' | 'view', heritage?: HeritageAdmin) => {
-    setModalType(type);
-    setSelectedHeritage(heritage || null);
-  };
-  const closeModal = () => {
-    setModalType(null);
-    setSelectedHeritage(null);
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const heritageResult = await fetchHeritages({
+          page: currentPage,
+          pageSize: itemsPerPage,
+          keyword: searchTerm,
+          categoryId: selectedCategory,
+          tagId: selectedTag,
+        });
+
+        setHeritages(heritageResult.result?.items || []);
+        setTotalPages(heritageResult.result?.totalPages || 1);
+        setTotalElements(heritageResult.result?.totalElements || 0);
+
+        const categoryResponse = await fetchCategories();
+        const catList = categoryResponse.result || [];
+        setCategories([
+          { label: "Tất cả danh mục", value: "" },
+          ...catList.map((c) => ({
+            label: c.name,
+            value: String(c.id),
+          })),
+        ]);
+
+        const tagResponse = await fetchTags();
+        const tagList = tagResponse.result || [];
+        setTags([
+          { label: "Tất cả Tag", value: "" },
+          ...tagList.map((t) => ({
+            label: t.name,
+            value: String(t.id),
+          })),
+        ]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, [currentPage, itemsPerPage, searchTerm, selectedCategory, selectedTag]);
+
+  const stats = useMemo(() => {
+    return {
+      total: totalElements,
+      active: 0,
+      pending: 0,
+      archived: 0,
+      views: 0,
+    };
+  }, [totalElements]);
+
+  const columns: TableColumn<HeritageAdmin>[] = [
+    {
+      key: "name",
+      label: "Tên di sản",
+      render: (value: string) =>
+        value.length > 30 ? (
+          <span title={value}>{value.slice(0, 30)}...</span>
+        ) : (
+          value
+        ),
+    },
+    { key: "categoryName", label: "Danh mục" },
+    {
+      key: "tags",
+      label: "Tag",
+      render: (_: any, item: HeritageAdmin) =>
+        item.tags && item.tags.length > 0 ? (
+          <div>
+            {item.tags.map((tag: any) => (
+              <div key={tag.id}>{tag.name}</div>
+            ))}
+          </div>
+        ) : (
+          <span className="text-gray-400 italic">Không có tag</span>
+        ),
+    },
+    {
+      key: "createdAt",
+      label: "Ngày tạo",
+      render: (date: string) => new Date(date).toLocaleDateString(),
+    },
+    {
+      key: "description",
+      label: "Mô tả",
+      render: (desc: string) => (
+        <span title={desc}>{desc.slice(0, 30)}...</span>
+      ),
+    },
+    {
+      key: "isFeatured",
+      label: "Nổi bật",
+      render: (val: boolean) => (val ? "Có" : "Không"),
+    },
+  ];
+
+  const handleDeleteHeritage = (heritage: HeritageAdmin) => {
+    setConfirmDelete(heritage);
   };
 
-  useEffect(() => {
-  const fetchAll = async () => {
-    setLoading(true);
+  const confirmDeleteHeritage = async () => {
+    if (!confirmDelete) return;
     try {
+      await deleteHeritage(confirmDelete.id);
+      toast.success("Xoá di sản thành công!");
       const heritageResult = await fetchHeritages({
         page: currentPage,
         pageSize: itemsPerPage,
@@ -143,127 +246,21 @@ const HeritageManagement: React.FC = () => {
         categoryId: selectedCategory,
         tagId: selectedTag,
       });
-
-      setHeritages(heritageResult.items);
-      setTotalPages(heritageResult.totalPages);
-      setTotalElements(heritageResult.totalElements);
-
-      const categoryResponse = await fetchCategories();
-      const catList = categoryResponse.result || [];
-
-      setCategories([
-        { label: "Tất cả danh mục", value: "" },
-        ...catList.map((c) => ({
-          label: c.name,
-          value: String(c.id),
-        })),
-      ]);
-
-      // Gọi API tag
-      const tagResponse = await fetchTags();
-      const tagList = tagResponse.result || [];
-
-      setTags([
-        { label: "Tất cả Tag", value: "" },
-        ...tagList.map((t) => ({
-          label: t.name,
-          value: String(t.id),
-        })),
-      ]);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+      setHeritages(heritageResult.result?.items || []);
+      setTotalPages(heritageResult.result?.totalPages || 1);
+      setTotalElements(heritageResult.result?.totalElements || 0);
+    } catch (error: any) {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        toast.error("Bạn không có quyền xoá di sản này!");
+      } else if (error?.response?.status === 404) {
+        toast.error("Di sản không tồn tại!");
+      } else {
+        toast.error(error.message || "Xoá di sản thất bại");
+      }
     } finally {
-      setLoading(false);
+      setConfirmDelete(null);
     }
   };
-
-  fetchAll();
-}, [currentPage, itemsPerPage, searchTerm, selectedCategory, selectedTag]);
-
-
-useEffect(() => {
-  const getTotalCount = async () => {
-    try {
-      const total = await fetchTotalHeritageCount();
-      setTotalHeritageCount(total);
-    } catch (error) {
-      console.error("Error fetching total heritage count:", error);
-    }
-  };
-  getTotalCount();
-}, []);
-
-
-  const stats = useMemo(() => {
-    return {
-      total: totalHeritageCount, 
-      active: 0,
-      pending: 0,
-      archived: 0,
-      views: 0,
-    };
-  }, [totalHeritageCount]);
-
-  const columns: TableColumn<HeritageAdmin>[] = [
-    {
-      key: 'name',
-      label: 'Tên di sản',
-      render: (value: string) =>
-        value.length > 30
-          ? <span title={value}>{value.slice(0, 30)}...</span>
-          : value,
-    },
-    { key: 'categoryName', label: 'Danh mục' },
-    {
-      key: 'tags',
-      label: 'Tag',
-      render: (_: any, item: HeritageAdmin) =>
-        item.tags && item.tags.length > 0
-          ? (
-          <div>
-            {item.tags.map((tag: any) => (
-              <div key={tag.id}>{tag.name}</div>
-            ))}
-          </div>
-        )
-      : <span className="text-gray-400 italic">Không có tag</span>,
-    },
-    { key: 'createdAt', label: 'Ngày tạo', render: (date: string) => new Date(date).toLocaleDateString() },
-    { key: 'description', label: 'Mô tả', render: (desc: string) => <span title={desc}>{desc.slice(0, 30)}...</span> },
-    { key: 'isFeatured', label: 'Nổi bật', render: (val: boolean) => val ? 'Có' : 'Không' },
-  ];
-
-  const handleDeleteHeritage = (heritage: HeritageAdmin) => {
-  setConfirmDelete(heritage);
-};
-
-const confirmDeleteHeritage = async () => {
-  if (!confirmDelete) return;
-  try {
-    await deleteHeritage(confirmDelete.id);
-    toast.success("Xoá di sản thành công!");
-    const heritageResult = await fetchHeritages({
-      page: currentPage,
-      pageSize: itemsPerPage,
-      keyword: searchTerm,
-      categoryId: selectedCategory,
-      tagId: selectedTag,
-    });
-    setHeritages(heritageResult.items);
-    setTotalPages(heritageResult.totalPages);
-    setTotalElements(heritageResult.totalElements);
-  } catch (error: any) {
-    if (error?.response?.status === 401 || error?.response?.status === 403) {
-      toast.error("Bạn không có quyền xoá di sản này!");
-    } else if (error?.response?.status === 404) {
-      toast.error("Di sản không tồn tại!");
-    } else {
-      toast.error(error.message || "Xoá di sản thất bại");
-    }
-  } finally {
-    setConfirmDelete(null);
-  }
-};
 
   return (
     <div>
@@ -274,8 +271,8 @@ const confirmDeleteHeritage = async () => {
             <Upload size={16} />
             Import
           </button>
-          <button 
-            onClick={() => openModal('add')}
+          <button
+            onClick={() => navigate("/admin/create-heritage")}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
           >
             <Plus size={16} />
@@ -284,7 +281,7 @@ const confirmDeleteHeritage = async () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow flex items-center gap-3">
           <Landmark className="text-blue-600" size={24} />
@@ -316,15 +313,6 @@ const confirmDeleteHeritage = async () => {
         </div>
       </div>
 
-      {/* Extra Stats Card */}
-      <div className="bg-white p-4 rounded-lg shadow flex items-center gap-3 mb-6">
-        <BarChart3 className="text-purple-600" size={24} />
-        <div>
-          <p className="text-sm text-gray-500">Tổng lượt xem</p>
-          <p className="text-xl font-semibold">{stats.views.toLocaleString()}</p>
-        </div>
-      </div>
-
       <SearchFilter
         searchTerm={searchTerm}
         onSearchChange={(value) => {
@@ -347,14 +335,12 @@ const confirmDeleteHeritage = async () => {
         }}
       />
 
-
-
       <DataTable
         data={heritages}
         columns={columns}
-        onEdit={(heritage) => openModal('edit', heritage)}
+        onEdit={(heritage) => navigate(`/admin/heritage/edit/${heritage.id}`)}
         onDelete={handleDeleteHeritage}
-        onView={(heritage) => navigate(`/heritage/${heritage.id}`)}
+        onView={(heritage) => navigate(`/admin/heritage/${heritage.id}`)}
         loading={loading}
       />
 
@@ -366,75 +352,34 @@ const confirmDeleteHeritage = async () => {
         totalItems={totalElements}
       />
 
-      {/* ---------------- Modal ---------------- */}
-      {modalType && (
+      {/* Modal xác nhận xoá */}
+      {confirmDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-            <button onClick={closeModal} className="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
-              <X size={20} />
-            </button>
-            
-            {modalType === 'add' && (
-              <div>
-                <h3 className="text-xl font-bold mb-4">Thêm di sản mới</h3>
-                <form className="space-y-4">
-                  <input type="text" placeholder="Tên di sản" className="w-full border px-3 py-2 rounded" />
-                  <input type="text" placeholder="Danh mục" className="w-full border px-3 py-2 rounded" />
-                  <input type="text" placeholder="Địa điểm" className="w-full border px-3 py-2 rounded" />
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Lưu</button>
-                </form>
-              </div>
-            )}
-
-            {modalType === 'edit' && selectedHeritage && (
-              <div>
-                <h3 className="text-xl font-bold mb-4">Chỉnh sửa di sản</h3>
-                <form className="space-y-4">
-                  <input defaultValue={selectedHeritage.name} className="w-full border px-3 py-2 rounded" />
-                  <input defaultValue={selectedHeritage.categoryId} className="w-full border px-3 py-2 rounded" />
-                  <input defaultValue={selectedHeritage.locations} className="w-full border px-3 py-2 rounded" />
-                  <button className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Cập nhật</button>
-                </form>
-              </div>
-            )}
-
-            {modalType === 'view' && selectedHeritage && (
-              <div>
-                <h3 className="text-xl font-bold mb-4">{selectedHeritage.name}</h3>
-                <p><strong>Danh mục:</strong> {selectedHeritage.categoryName}</p>
-                <p><strong>Địa điểm:</strong> {selectedHeritage.mapUrl}</p>
-                {/* <p><strong>Trạng thái:</strong> {selectedHeritage.isFeatured}</p> */}
-                {/* <p><strong>Lượt xem:</strong> {selectedHeritage.views}</p> */}
-                <p><strong>Ngày tạo:</strong> {selectedHeritage.createdAt}</p>
-              </div>
-            )}
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold mb-4 text-center">
+              Xác nhận xoá di sản
+            </h3>
+            <p className="mb-6 text-center">
+              Bạn có chắc muốn xoá di sản <b>{confirmDelete.name}</b>?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={confirmDeleteHeritage}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Xoá
+              </button>
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+              >
+                Hủy
+              </button>
+            </div>
           </div>
         </div>
       )}
-      {confirmDelete && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
-      <h3 className="text-lg font-bold mb-4 text-center">Xác nhận xoá di sản</h3>
-      <p className="mb-6 text-center">
-        Bạn có chắc muốn xoá di sản <b>{confirmDelete.name}</b>?
-      </p>
-      <div className="flex justify-center gap-4">
-        <button
-          onClick={confirmDeleteHeritage}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Xoá
-        </button>
-        <button
-          onClick={() => setConfirmDelete(null)}
-          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-        >
-          Hủy
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );

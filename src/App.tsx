@@ -19,7 +19,7 @@ import { Toaster } from 'react-hot-toast';
 import ViewProfile from './pages/AuthPage/ViewProfile';
 import CallbackGoogle from './pages/oauth2/callback/google/page';
 import AdminPage from './pages/AdminPage/AdminPage';
-import HeritageDetailPage from './components/Admin/HeritageDetailManagement';
+import HeritageDetailManagement from './components/Admin/HeritageDetailManagement';
 
 const App: React.FC = () => {
   return (
@@ -40,13 +40,13 @@ const App: React.FC = () => {
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/heritage/:id" element={<HeritageDetailPage />} />
+        <Route path="/admin/heritage/:id" element={<HeritageDetailManagement />} />
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
 
 
       </Routes>
 
-      <ChatBoxAI />
+      {/* <ChatBoxAI /> */}
 
       <Toaster 
         position="top-right"

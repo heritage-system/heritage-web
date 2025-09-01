@@ -114,7 +114,7 @@ const HeritageAdminPanel: React.FC<HeritageAdminPanelProps> = ({ children }) => 
 
         {/* Page Content */}
         <div className="flex-1 p-6 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 h-[1000px]">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             {children ? children : <ActiveComponent />}
           </div>
         </div>

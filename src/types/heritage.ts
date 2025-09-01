@@ -183,3 +183,4 @@ export interface HeritageDetail {
     description: string;
   }[];
 }
+

@@ -1,9 +1,8 @@
 import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
-import { HeritageSearchRequest, HeritageSearchResponse, SelectOption, HeritageDetail } from "../types/heritage";
+import { HeritageSearchRequest, HeritageSearchResponse, HeritageAdmin, HeritageDetail} from "../types/heritage";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
-import { HeritageApiResponse } from "../types/heritage";
 
 export const searchHeritage = async (
   params: HeritageSearchRequest
@@ -28,6 +27,7 @@ export const searchHeritage = async (
 
   return response;
 };
+
 export const getHeritageDetail = async (id: number): Promise<ApiResponse<HeritageSearchResponse>> => {
   const queryString = new URLSearchParams({ id: id.toString() });
 
@@ -46,7 +46,7 @@ export async function fetchHeritages(params: {
   keyword?: string;
   categoryId?: string;
   tagId?: string;
-}): Promise<HeritageApiResponse> {
+}): Promise<ApiResponse<PageResponse<HeritageAdmin>>> {
   const query = new URLSearchParams({
     page: params.page.toString(),
     pageSize: params.pageSize.toString(),
@@ -55,37 +55,48 @@ export async function fetchHeritages(params: {
     tagId: params.tagId || "",
   });
 
-  const response = await fetch(`${API_URL}/api/Heritage/heritage?${query}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch heritages");
-  }
+  const response = await fetchInterceptor<PageResponse<HeritageAdmin>>(
+    `${API_URL}/api/Heritage/all?${query}`,
+    {
+      method: "GET"
+    }
+  );
 
-  return response.json();
+  return response;
 }
 
-export async function fetchTotalHeritageCount(): Promise<number> {
-  const response = await fetch(`${API_URL}/api/Heritage/heritage?page=1&pageSize=1`);
-  const result: HeritageApiResponse = await response.json();
-  return result.totalElements;
-}
+export const fetchHeritageDetail = async (
+  id: number
+): Promise<ApiResponse<HeritageDetail>> => {
+  const response = await fetchInterceptor<ApiResponse<HeritageDetail>>(
+    `${API_URL}/api/Heritage/id?id=${id}`,
+    {
+      method: "GET"
+    }
+  );
 
-export const fetchHeritageDetail = async (id: number): Promise<HeritageDetail> => {
-  const response = await fetch(`${API_URL}/api/Heritage/heritage/id?id=${id}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch heritage detail (status: ${response.status})`);
-  }
-  return response.json();
+  return response.result!;
 };
 
-export const deleteHeritage = async (id: number): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/Heritage/heritage/delete?id=${id}`, {
-    method: "DELETE",
-  });
+export const deleteHeritage = async (id: number): Promise<ApiResponse<void>> => {
+  const response = await fetchInterceptor<void>(
+    `${API_URL}/api/Heritage/delete?id=${id}`,
+    {
+      method: "DELETE"
+    }
+  );
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Xoá di sản thất bại");
+  if (response.code !== 200) {
+    throw new Error(response.message || "Xoá di sản thất bại");
   }
+
+  return response;
 };
+
+
+
+
+
+
 
 
