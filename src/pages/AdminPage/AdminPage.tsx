@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import UserManagement from "../../components/Admin/UserManagement";
 import CategoryManagement from "../../components/Admin/CategoryManagement";
+import TagManagement from "../../components/Admin/TagManagement";
 import HeritageManagement from "../../components/Admin/HeritageManagement";
 import FileManagement from "../../components/Admin/FileManagement";
 import ApprovalManagement from "../../components/Admin/ApprovalManagement";
@@ -26,6 +27,7 @@ const HeritageAdminPanel: React.FC = () => {
   const tabs = [
     { id: "users", label: "Quản lý người dùng", icon: Users, component: UserManagement },
     { id: "categories", label: "Quản lý danh mục", icon: List, component: CategoryManagement },
+    { id: "tags", label: "Quản lý thể loại", icon: List, component: TagManagement },
     { id: "heritage", label: "Quản lý di sản", icon: MapPin, component: HeritageManagement },
     { id: "files", label: "Quản lý tệp tin", icon: FileText, component: FileManagement },
     { id: "approvals", label: "Quản lý phê duyệt", icon: CheckSquare, component: ApprovalManagement },
@@ -34,13 +36,14 @@ const HeritageAdminPanel: React.FC = () => {
   const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || UserManagement;
 
   // Sync dark mode with <html> class
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
+useEffect(() => {
+  if (darkMode) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+}, [darkMode]);
+
 
   return (
     <div className="h-screen flex bg-gray-100 dark:bg-gray-900">

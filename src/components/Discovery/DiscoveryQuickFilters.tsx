@@ -1,40 +1,65 @@
 import React, { useState } from "react";
 import { HeritageSearchRequest } from "../../types/heritage";
 import { CalendarType, SortBy } from "../../types/enum";
+import { Province } from "../../types/location";
+import { Category } from "../../types/category";
+import { Tag } from "../../types/tag";
 import { Search } from "lucide-react";
-
+import PortalModal from "../Layouts/PortalModal"
 interface DiscoveryQuickFiltersProps {
   filters: HeritageSearchRequest;
   onFiltersChange: (filters: Partial<HeritageSearchRequest>) => void;
+  view: "grid" | "map"; 
+  locations?: Province[];
+  categories?: Category[];
+  tags: Tag[];
 }
 
-const CATEGORIES = [
-  { id: 1, name: "Lễ hội", icon: "🎉" },
-  { id: 2, name: "Biểu diễn", icon: "🎪" },
-  { id: 3, name: "Âm nhạc", icon: "🎵" },
-  { id: 4, name: "Thủ công", icon: "🏺" },
-  { id: 5, name: "Ẩm thực", icon: "🍲" },
-];
+const MultiSelectModal: React.FC<{
+  open: boolean;
+  title: string;
+  items: { key: string | number; label: string; selected: boolean }[];
+  onToggle: (key: string | number) => void;
+  onClose: () => void;
+}> = ({ open, title, items, onToggle, onClose }) => (
+  <PortalModal
+  open={open}
+  onClose={onClose}
+  size="sm"
+  contentClassName="bg-white rounded-2xl p-4 shadow-xl"
+>
+    <div className="bg-white shadow-lg p-4 rounded-xl w-80">
+      <h5 className="font-medium mb-2">{title}</h5>
+      <div className="flex flex-wrap gap-2">
+        {items.map((it) => (
+          <button
+            key={it.key}
+            onClick={() => onToggle(it.key)}
+            className={`px-3 py-1 rounded-2xl text-sm border ${
+              it.selected
+                ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+                : "bg-white text-gray-700 border-yellow-300"
+            }`}
+          >
+            {it.label}
+            {it.selected && <span className="ml-1">✕</span>}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 text-right">
+        <button onClick={onClose} className="px-3 py-1 bg-yellow-600 text-white rounded-lg">OK</button>
+      </div>
+    </div>
+  </PortalModal>
+);
 
-const TAGS = [
-  { id: 1, name: "Lễ hội mùa xuân" },
-  { id: 2, name: "Văn hóa dân gian" },
-  { id: 3, name: "Nghệ thuật truyền thống" },
-  { id: 4, name: "Lễ hội tôn giáo" },
-  { id: 5, name: "Trang phục truyền thống" },
-];
-
-const LOCATIONS = [
-  { id: 1, name: "Hà Nội" },
-  { id: 2, name: "Huế" },
-  { id: 3, name: "Đà Nẵng" },
-  { id: 4, name: "TP. Hồ Chí Minh" },
-  { id: 5, name: "Quảng Ninh" },
-];
 
 const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
   filters,
   onFiltersChange,
+  locations,
+  categories,
+  tags
 }) => {
   const [showTagsPopup, setShowTagsPopup] = useState(false);
   const [showCategoriesPopup, setShowCategoriesPopup] = useState(false);
@@ -43,40 +68,56 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
 
   const currentCalendar = filters.calendarType ?? CalendarType.SOLAR;
 
-  const toggleArrayValue = (
-    key: "categoryIds" | "tagIds" | "locationIds",
-    value: number
-  ) => {
-    const current = filters[key] || [];
-    const exists = current.includes(value);
-    const updated = exists ? current.filter((v) => v !== value) : [...current, value];
+  type FilterKey = "categoryIds" | "tagIds" | "locations";
+
+const toggleArrayValue = (key: FilterKey, value: number | string) => {
+  if (key === "locations" && typeof value === "string") {
+    const current: string[] = filters.locations || [];
+    const updated = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    onFiltersChange({ locations: updated });
+  } else {
+    const current: number[] = (filters[key] as number[]) || [];
+    const updated = current.includes(value as number)
+      ? current.filter((v) => v !== value)
+      : [...current, value as number];
     onFiltersChange({ [key]: updated });
-  };
+  }
+};
+
+
+
 
   const clearDateFilters = () => {
-    onFiltersChange({
-      startDay: undefined,
-      startMonth: undefined,
-      endDay: undefined,
-      endMonth: undefined,
-      calendarType: CalendarType.SOLAR, 
-    });
-  };
+  onFiltersChange({
+    ...filters,
+    startDay: undefined,
+    startMonth: undefined,
+    endDay: undefined,
+    endMonth: undefined,
+    calendarType: CalendarType.SOLAR,
+    page: filters.page ?? 1, // giữ nguyên page
+  });
+};
 
-  const clearAllFilters = () => {
-    onFiltersChange({
-      keyword: undefined,
-      categoryIds: [],
-      tagIds: [],
-      locationIds: [],
-      startDay: undefined,
-      startMonth: undefined,
-      endDay: undefined,
-      endMonth: undefined,
-      calendarType: CalendarType.SOLAR,
-      sortBy: SortBy.NameAsc,
-    });
-  };
+const clearAllFilters = () => {
+  onFiltersChange({
+    ...filters,
+    keyword: undefined,
+    categoryIds: [],
+    tagIds: [],
+    locations: [],
+    startDay: undefined,
+    startMonth: undefined,
+    endDay: undefined,
+    endMonth: undefined,
+    calendarType: CalendarType.SOLAR,
+    sortBy: SortBy.NameAsc,
+    page: filters.page ?? 1, // giữ nguyên page
+  });
+};
+
 
   const handleDateChange = (field: keyof typeof filters, value?: number) => {
     const newFilters = { ...filters, [field]: value };
@@ -133,42 +174,44 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
       {expanded && (
         <>
           {/* Categories */}
-          <div>
-            <h4 className="font-medium mb-2">Danh mục</h4>
-            <div className="flex flex-wrap gap-2">
-              {(filters.categoryIds?.length
-                ? CATEGORIES.filter((c) => filters.categoryIds?.includes(c.id))
-                : CATEGORIES.slice(0, 3)
-              ).map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => toggleArrayValue("categoryIds", cat.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border transition ${
-                    filters.categoryIds?.includes(cat.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
-                  }`}
-                >
-                  {cat.icon} {cat.name}
-                  {filters.categoryIds?.includes(cat.id) && <span className="ml-1">✕</span>}
-                </button>
-              ))}
-              <button
-                onClick={() => setShowCategoriesPopup(true)}
-                className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
-              >
-                + Thêm
-              </button>
-            </div>
-          </div>
+
+<div>
+  <h4 className="font-medium mb-2">Danh mục</h4>
+  <div className="flex flex-wrap gap-2">
+    {(filters.categoryIds?.length
+      ? (categories || []).filter((c) => filters.categoryIds?.includes(c.id))
+      : (categories || []).slice(0, 3)
+    ).map((cat) => (
+      <button
+        key={cat.id}
+        onClick={() => toggleArrayValue("categoryIds", cat.id)}
+        className={`px-3 py-1 rounded-2xl text-sm border transition ${
+          filters.categoryIds?.includes(cat.id)
+            ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+            : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
+        }`}
+      >
+        {cat.name} {/* Nếu muốn icon thì cần bổ sung từ API */}
+        {filters.categoryIds?.includes(cat.id) && <span className="ml-1">✕</span>}
+      </button>
+    ))}
+    <button
+      onClick={() => setShowCategoriesPopup(true)}
+      className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
+    >
+      + Thêm
+    </button>
+  </div>
+</div>
+
 
           {/* Tags */}
           <div>
             <h4 className="font-medium mb-2">Tags</h4>
             <div className="flex flex-wrap gap-2">
               {(filters.tagIds?.length
-                ? TAGS.filter((t) => filters.tagIds?.includes(t.id))
-                : TAGS.slice(0, 3)
+                ? (tags || []).filter((t) => filters.tagIds?.includes(t.id))
+                : (tags || []).slice(0, 3)
               ).map((tag) => (
                 <button
                   key={tag.id}
@@ -192,35 +235,36 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
             </div>
           </div>
 
-          {/* Locations */}
-          <div>
-            <h4 className="font-medium mb-2">Địa phương</h4>
-            <div className="flex flex-wrap gap-2">
-              {(filters.locationIds?.length
-                ? LOCATIONS.filter((l) => filters.locationIds?.includes(l.id))
-                : LOCATIONS.slice(0, 3)
-              ).map((loc) => (
-                <button
-                  key={loc.id}
-                  onClick={() => toggleArrayValue("locationIds", loc.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border transition ${
-                    filters.locationIds?.includes(loc.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
-                  }`}
-                >
-                  {loc.name}
-                  {filters.locationIds?.includes(loc.id) && <span className="ml-1">✕</span>}
-                </button>
-              ))}
-              <button
-                onClick={() => setShowLocationsPopup(true)}
-                className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
-              >
-                + Thêm
-              </button>
-            </div>
-          </div>
+         {/* Locations */}
+<div>
+  <h4 className="font-medium mb-2">Địa phương</h4>
+  <div className="flex flex-wrap gap-2">
+    {(filters.locations?.length
+      ? locations?.filter((l) => filters.locations?.includes(l.name))
+      : locations?.slice(0, 3)
+    )?.map((loc) => (
+      <button
+        key={loc.name}
+        onClick={() => toggleArrayValue("locations", loc.name)}
+        className={`px-3 py-1 rounded-2xl text-sm border transition ${
+          filters.locations?.includes(loc.name)
+            ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+            : "bg-white text-gray-700 border-yellow-300 hover:bg-yellow-50"
+        }`}
+      >
+        {loc.name}
+        {filters.locations?.includes(loc.name) && <span className="ml-1">✕</span>}
+      </button>
+    ))}
+    <button
+      onClick={() => setShowLocationsPopup(true)}
+      className="px-3 py-1 rounded-2xl border text-sm bg-white hover:bg-yellow-50"
+    >
+      + Thêm
+    </button>
+  </div>
+</div>
+
 
           {/* Date range + Calendar type */}
           <div>
@@ -367,100 +411,43 @@ const DiscoveryQuickFilters: React.FC<DiscoveryQuickFiltersProps> = ({
 
 
       {/* Popup chọn nhiều Category */}
-      {showCategoriesPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white shadow-lg p-4 rounded-xl w-80">
-            <h5 className="font-medium mb-2">Chọn nhiều danh mục</h5>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => toggleArrayValue("categoryIds", cat.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    filters.categoryIds?.includes(cat.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300"
-                  }`}
-                >
-                  {cat.icon} {cat.name}
-                </button>
-              ))}
-            </div>
-            <div className="mt-3 text-right">
-              <button
-                onClick={() => setShowCategoriesPopup(false)}
-                className="px-3 py-1 bg-yellow-600 text-white rounded-lg"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <MultiSelectModal
+  open={showCategoriesPopup}
+  title="Chọn nhiều danh mục"
+  items={(categories || []).map(c => ({
+    key: c.id,
+    label: c.name,
+    selected: !!filters.categoryIds?.includes(c.id)
+  }))}
+  onToggle={(key) => toggleArrayValue("categoryIds", key as number)}
+  onClose={() => setShowCategoriesPopup(false)}
+/>
 
-      {/* Popup chọn nhiều Tag */}
-      {showTagsPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white shadow-lg p-4 rounded-xl w-80">
-            <h5 className="font-medium mb-2">Chọn nhiều Tag</h5>
-            <div className="flex flex-wrap gap-2">
-              {TAGS.map((tag) => (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleArrayValue("tagIds", tag.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    filters.tagIds?.includes(tag.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300"
-                  }`}
-                >
-                  {tag.name}
-                </button>
-              ))}
-            </div>
-            <div className="mt-3 text-right">
-              <button
-                onClick={() => setShowTagsPopup(false)}
-                className="px-3 py-1 bg-yellow-600 text-white rounded-lg"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+<MultiSelectModal
+  open={showTagsPopup}
+  title="Chọn nhiều Tag"
+  items={(tags || []).map(t => ({
+    key: t.id,
+    label: t.name,
+    selected: !!filters.tagIds?.includes(t.id)
+  }))}
+  onToggle={(key) => toggleArrayValue("tagIds", key as number)}
+  onClose={() => setShowTagsPopup(false)}
+/>
 
-      {/* Popup chọn nhiều Location */}
-      {showLocationsPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white shadow-lg p-4 rounded-xl w-80">
-            <h5 className="font-medium mb-2">Chọn nhiều địa phương</h5>
-            <div className="flex flex-wrap gap-2">
-              {LOCATIONS.map((loc) => (
-                <button
-                  key={loc.id}
-                  onClick={() => toggleArrayValue("locationIds", loc.id)}
-                  className={`px-3 py-1 rounded-2xl text-sm border ${
-                    filters.locationIds?.includes(loc.id)
-                      ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
-                      : "bg-white text-gray-700 border-yellow-300"
-                  }`}
-                >
-                  {loc.name}
-                </button>
-              ))}
-            </div>
-            <div className="mt-3 text-right">
-              <button
-                onClick={() => setShowLocationsPopup(false)}
-                className="px-3 py-1 bg-yellow-600 text-white rounded-lg"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+<MultiSelectModal
+  open={showLocationsPopup}
+  title="Chọn nhiều địa phương"
+  items={(locations || []).map(l => ({
+    key: l.name,
+    label: l.name,
+    selected: !!filters.locations?.includes(l.name)
+  }))}
+  onToggle={(key) => toggleArrayValue("locations", key as string)}
+  onClose={() => setShowLocationsPopup(false)}
+/>
+
+
     </div>
   );
 };

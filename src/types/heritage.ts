@@ -24,7 +24,7 @@ export interface HeritageSearchRequest {
 
   categoryIds?: number[];
   tagIds?: number[];
-  locationIds?: number[];
+  locations?: string[];
 
   lat?: number;
   lng?: number;
@@ -79,13 +79,28 @@ export interface HeritageSearchResponse {
   id: number;
   name: string;
   description: string;
+  categoryIds: number;
   categoryName: string;
   mapUrl: string;
   isFeatured: boolean;
   heritageOccurrences: HeritageOccurrence[];
   media: HeritageMedia[];
   heritageTags: string[]; 
+  heritageTagIds: number[];
   heritageLocations: HeritageLocation[]; 
   nameUnsigned: string;
   descriptionUnsigned: string;
+}
+
+
+export interface HeritageDescriptionBlock {
+  type: "paragraph" | "list";
+  content?: string;
+  items?: string[];
+}
+export interface HeritageDescription {
+  history: HeritageDescriptionBlock[];
+  rituals: HeritageDescriptionBlock[];
+  values: HeritageDescriptionBlock[];
+  preservation: HeritageDescriptionBlock[];
 }

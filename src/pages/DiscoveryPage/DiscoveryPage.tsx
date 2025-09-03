@@ -1,60 +1,132 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import DiscoveryGoogleMapsView from "../../components/Discovery/DiscoveryGoogleMapsView";
 import DiscoveryHeritageGrid from "../../components/Discovery/DiscoveryHeritageGrid";
 import DiscoveryQuickFilters from "../../components/Discovery/DiscoveryQuickFilters";
 import DiscoveryUpcomingEvents from "../../components/Discovery/DiscoveryUpcomingEvents";
 import DiscoveryViewToggle from "../../components/Discovery/DiscoveryViewToggle";
-import { Heritage, HeritageSearchResponse } from "../../types/heritage";
-import { HeritageLocationResponse } from "../../types/heritageLocation";
-import { getHeritages } from "../../services/heritageLocationService";
-import { useDiscoveryFilters } from "../../hooks/useDiscoveryFilters";
 import Pagination from "../../components/Layouts/Pagination";
-
+import { HeritageSearchRequest } from "../../types/heritage";
+import { useDiscoveryFilters } from "../../hooks/useDiscoveryFilters";
+import { Province } from "../../types/location";
+import { Category } from "../../types/category";
+import { Tag } from "../../types/tag";
+import { fetchProvinces } from "../../services/locationSerivce";
+import { fetchCategories } from "../../services/categoryService";
+import { fetchTags } from "../../services/tagService";
 const DiscoveryPage: React.FC = () => {
   const {
     heritages,
     loading,
-    error,
     filters,
     totalPages,
     totalElements,
     onFiltersChange,
     onPageChange,
+    fetchHeritagesDirect
   } = useDiscoveryFilters();
 
   const [view, setView] = useState<"grid" | "map">("grid");
-  const [mapHeritages, setMapHeritages] = useState<HeritageLocationResponse[]>([]);
-  const [mapLoading, setMapLoading] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  // ✅ Lấy map data khi chuyển sang Map view
-  // useEffect(() => {
-  //   const fetchMapData = async () => {
-  //     try {
-  //       setMapLoading(true);
-  //       setMapError(null);
+  // State chuyển transition
+  const [displayedHeritages, setDisplayedHeritages] = useState(heritages);
+  const [isPending, startTransition] = useTransition();
 
-  //       const response = await getHeritages();
-  //       if (!response) throw new Error("No response received from API");
-  //       if (response.code !== 200) throw new Error(`API error: ${response.message}`);      
-  //       setMapHeritages(response.result ?? []);
-  //     } catch (error) {
-  //       setMapError(error instanceof Error ? error.message : "Unknown error occurred");
-  //       setMapHeritages([]);
-  //     } finally {
-  //       setMapLoading(false);
-  //     }
-  //   };
+  // Map mode: paged (theo phân trang) / all (tất cả)
+  const [mapMode, setMapMode] = useState<"paged" | "all">("paged");
+  const [allHeritagesForMap, setAllHeritagesForMap] = useState<any[]>([]);
 
-  //   if (view === "map") {
-  //     fetchMapData();
-  //   }
-  // }, [view]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  // Đồng bộ khi heritages thay đổi
+  useEffect(() => {
+    startTransition(() => setDisplayedHeritages(heritages));
+    if (mapMode === "paged") setAllHeritagesForMap(heritages);
+  }, [heritages, mapMode]);
+
+  // Lấy vị trí hiện tại người dùng
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) =>
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        }),
+      () => setUserLocation(null)
+    );
+  }, []);
+
+  useEffect(() => {
+    const loadProvinces = async () => {
+      try {
+        const res = await fetchProvinces();
+        setProvinces(res);
+      } catch (err) {
+        console.error("Không thể tải provinces:", err);
+      }
+    };
+    loadProvinces();
+    const loadCategories = async () => {
+      try {
+        const res = await fetchCategories();
+        setCategories(res.result || []);
+      } catch (err) {
+        console.error("Không thể tải provinces:", err);
+      }
+    };
+    loadCategories();
+    const loadTags = async () => {
+      try {
+        const res = await fetchTags();
+        setTags(res.result || []);
+      } catch (err) {
+        console.error("Không thể tải provinces:", err);
+      }
+    };
+    loadTags();
+  }, []);
+
+  // Handle filter cho map
+  const onFiltersChangeForMap = (changes: Partial<HeritageSearchRequest>) => {
+    const newFilters = { ...filters, ...changes, page: 0 };
+    onFiltersChange(newFilters, true);
+    if (mapMode === "paged") {
+      fetchHeritagesDirect(newFilters).then((res) => setAllHeritagesForMap(res));
+    }
+  };
+
+  // Hiển thị tất cả map
+  const showAllOnMap = async () => {
+    setMapMode("all");
+    try {
+      const res = await fetchHeritagesDirect({ ...filters, page: 0, pageSize: 10000 });
+      setAllHeritagesForMap(res);
+    } catch (err) {
+      console.error("Không thể tải tất cả dữ liệu map:", err);
+    }
+  };
+
+  // Quay lại chế độ phân trang
+  const backToPagedMap = () => {
+    setMapMode("paged");
+    setAllHeritagesForMap(displayedHeritages);
+  };
+
+  const updatedFiltersHeritages = (filters: HeritageSearchRequest) => {
+  if (mapMode === "all") {
+    // fetch lại toàn bộ map theo filter mới
+    fetchHeritagesDirect({ ...filters, page: 0, pageSize: 10000 })
+      .then((res) => setAllHeritagesForMap(res));
+  }
+  return mapMode === "paged" ? displayedHeritages : allHeritagesForMap;
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 mt-16">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Khám phá{" "}
@@ -63,83 +135,85 @@ const DiscoveryPage: React.FC = () => {
             </span>{" "}
             Việt Nam
           </h1>
-          <p className="text-gray-600">Hành trình khám phá những giá trị văn hóa truyền thống</p>
+          <p className="text-gray-600">
+            Hành trình khám phá những giá trị văn hóa truyền thống
+          </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:flex-1">       
+          <div className="lg:flex-1">
             <div className="mb-4">
               <DiscoveryQuickFilters
                 filters={filters}
-                onFiltersChange={(changes) => onFiltersChange(changes, true)}
+                onFiltersChange={(changes) => {
+                  const updatedFilters = {
+                    ...filters,
+                    ...changes,
+                    page: mapMode === "all" ? filters.page : 1,
+                  };
+                  onFiltersChange(updatedFilters, true);
+                  setAllHeritagesForMap(updatedFiltersHeritages(updatedFilters));
+                }}
+                view={view}
+                locations={provinces} 
+                categories={categories}
+                tags={tags}
               />
+
+
             </div>
 
-            {/* View Toggle nằm dưới, bên phải */}
             <div className="flex justify-end mb-6">
               <DiscoveryViewToggle view={view} onViewChange={setView} />
             </div>
 
-            {/* Heritage Count */}
-            {view === "grid" && (<p className="text-sm text-gray-600 mb-4">
-              Tìm thấy{" "}
-              <span className="font-medium">
-                {totalElements}
-              </span>{" "}
-              di sản văn hóa
-            </p>)}
-
-            {/* Error UI */}
-            {mapError && view === "map" && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <div className="flex items-center">
-                  <div className="text-red-400 mr-2">⚠️</div>
-                  <div>
-                    <h4 className="text-red-800 font-medium">Lỗi tải dữ liệu</h4>
-                    <p className="text-red-600 text-sm">{mapError}</p>
-                    <button
-                      onClick={() => {
-                        setMapError(null);
-                        setView("grid");
-                        setTimeout(() => setView("map"), 100);
-                      }}
-                      className="text-red-700 underline text-sm mt-1 hover:text-red-800"
-                    >
-                      Thử lại
-                    </button>
-                  </div>
-                </div>
-              </div>
+            {view === "grid" && (
+              <p className="text-sm text-gray-600 mb-4">
+                Tìm thấy <span className="font-medium">{totalElements}</span> di sản văn hóa
+              </p>
             )}
 
             {/* Grid / Map */}
             {view === "grid" ? (
-              loading ? (
-                <div className="h-96 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-700"></div>
-                </div>
-              ) : (
-                <DiscoveryHeritageGrid heritages={heritages || []} />
-              )
-            ) : loading ? (
-              <div className="h-96 flex flex-col items-center justify-center bg-gray-50 rounded-lg">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-700 mb-4"></div>
-                <p className="text-gray-600">Đang tải dữ liệu bản đồ...</p>
-              </div>
+              <DiscoveryHeritageGrid heritages={displayedHeritages || []} />
             ) : (
-               <DiscoveryGoogleMapsView 
-                heritages={heritages}
-                onFiltersChange={onFiltersChange}
-                isLoading={loading} // ✅ Truyền loading state từ hook
-              />
+              <>
+                <div className="relative z-0 mb-2 flex gap-2 justify-end">
+                  {mapMode === "paged" ? (
+                    <button
+                      onClick={showAllOnMap}
+                      className="bg-white rounded-lg shadow px-4 py-2 text-sm border font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border z-[1000]">
+                   
+                      Hiển thị tất cả
+                    </button>
+                  ) : (
+                    <button
+                      onClick={backToPagedMap}
+                      className="bg-white rounded-lg shadow px-4 py-2 text-sm border font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border z-[1000]"
+                    >
+                      Quay lại phân trang
+                    </button>
+                  )}
+                </div>
+                <DiscoveryGoogleMapsView
+                  heritages={allHeritagesForMap}
+                  userLocation={userLocation}
+                  onFiltersChange={mapMode === "paged" ? onFiltersChangeForMap : undefined}
+                />
+              </>
             )}
 
-            {/* Pagination */}
+            {isPending && (
+              <div className="text-center text-sm text-gray-500 mt-2">
+                Đang tải dữ liệu mới...
+              </div>
+            )}
+
             {view === "grid" && totalPages > 1 && (
               <Pagination
                 currentPage={filters.page ?? 1}
                 totalPages={totalPages}
-                onPageChange={(page) => onPageChange(page)}
+                onPageChange={onPageChange}
                 itemsPerPage={filters.pageSize ?? 12}
                 totalItems={totalElements}
               />
@@ -150,26 +224,6 @@ const DiscoveryPage: React.FC = () => {
           <div className="lg:w-80">
             <div className="sticky top-6 space-y-4">
               <DiscoveryUpcomingEvents />
-              <div className="bg-gradient-to-r from-yellow-100 to-red-100 rounded-xl p-4">
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-lg font-bold text-yellow-700">500+</div>
-                    <div className="text-xs text-gray-600">Di sản</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-red-700">50+</div>
-                    <div className="text-xs text-gray-600">VR Tours</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-green-700">10K+</div>
-                    <div className="text-xs text-gray-600">Người dùng</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-orange-700">98%</div>
-                    <div className="text-xs text-gray-600">Hài lòng</div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
