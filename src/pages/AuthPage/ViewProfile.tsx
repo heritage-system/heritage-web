@@ -331,6 +331,16 @@ const ViewProfile: React.FC = () => {
               </div>
             </div>
           )}
+          {currentTab === "favorites" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-purple-700">
+                  Di sản yêu thích
+                </h2>
+              </div>
+              <FavoriteHeritageList />
+            </div>
+          )}
           {currentTab === "heritage" && (
             <div className="bg-purple-50 rounded-2xl p-4">
               <h2 className="text-lg font-bold text-purple-700 mb-4">
