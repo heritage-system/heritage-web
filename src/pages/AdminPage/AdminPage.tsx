@@ -36,13 +36,14 @@ const HeritageAdminPanel: React.FC = () => {
   const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || UserManagement;
 
   // Sync dark mode with <html> class
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
+useEffect(() => {
+  if (darkMode) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+}, [darkMode]);
+
 
   return (
     <div className="h-screen flex bg-gray-100 dark:bg-gray-900">
