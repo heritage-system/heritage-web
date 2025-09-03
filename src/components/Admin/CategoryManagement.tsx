@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Edit, Eye, Plus, Trash2, X } from "lucide-react";
 import Pagination from "../Layouts/Pagination";
 import { CategorySearchResponse  } from "../../types/category";
@@ -124,7 +124,7 @@ const CategoryManagement: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
 // Fetch Categories from backend
-const loadCategories = async () => {
+const loadCategories = useCallback(async () => {
   setLoading(true);
   const res = await searchCategories({
     keyword: searchTerm,
@@ -134,21 +134,17 @@ const loadCategories = async () => {
 
   if (res.code === 200 && res.result) {
     setCategories(res.result.items || [] );
-
-    // đồng bộ pagination từ API
     setCurrentPage(res.result.currentPages ?? 1);
     setTotalPages(res.result.totalPages ?? 1);
-    // setItemsPerPage(res.result.pageSizes ?? 10);
   }
 
   setLoading(false);
-};
+}, [searchTerm, currentPage, itemsPerPage]); // <-- now stable
 
-
-
- useEffect(() => { 
+useEffect(() => { 
   loadCategories();
-}, [searchTerm, currentPage, itemsPerPage]);
+}, [loadCategories]);
+
 
 
   // Handlers
@@ -331,7 +327,6 @@ const clearSearch = () => {
     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên Category</th>
     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th> {/* <-- new */}
     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người tạo</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cập nhật</th>
     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng di tích</th>
     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
@@ -353,7 +348,6 @@ const clearSearch = () => {
         <td className="px-6 py-4">{Category.name}</td>
         <td className="px-6 py-4">{Category.description}</td> {/* <-- new */}
         <td className="px-6 py-4">{Category.createByEmail}</td>
-        <td className="px-6 py-4">{new Date(Category.createdAt).toLocaleString()}</td>
         <td className="px-6 py-4">{new Date(Category.updatedAt).toLocaleString()}</td>
         <td className="px-6 py-4">{Category.count}</td>
         <td className="px-6 py-4 text-right space-x-2">
@@ -388,8 +382,19 @@ const clearSearch = () => {
             >
               <X size={18} />
             </button>
-            <h3 className="text-lg font-bold mb-2">{selectedCategory.name}</h3>
-            <p>ID: {selectedCategory.id}</p>
+             <h3 className="text-lg font-bold mb-2">{selectedCategory.name}</h3>
+<p className="mb-2">ID: {selectedCategory.id}</p>
+<p className="mb-2">Tên : {selectedCategory.name} </p>
+<p className="mb-2">Miêu tả : {selectedCategory.description} </p>
+<p className="mb-2">ID người tạo : {selectedCategory.createdBy}  </p>
+<p className="mb-2">Tạo bởi : {selectedCategory.createByName}  </p>
+<p className="mb-2">Email người tạo : {selectedCategory.createByEmail} </p>
+<p className="mb-2">Ngày tạo : {selectedCategory.createdAt}</p>
+<p className="mb-2">ID người cập nhật : {selectedCategory.updatedBy}  </p>
+<p className="mb-2">Cập nhật bởi : {selectedCategory.updatedByName}</p>
+<p className="mb-2">Email người cập nhật : {selectedCategory.updatedByEmail} </p>
+<p className="mb-2">Ngày cập nhật : {selectedCategory.updatedAt}</p>
+<p className="mb-2">Số lượng di sản : {selectedCategory.count}</p>
           </div>
         </div>
       )}
@@ -397,7 +402,7 @@ const clearSearch = () => {
       {/* ---- Modal: Add/Edit Form ---- */}
       {showForm && (
         <CategoryForm
-          Category={selectedCategory}
+          category={selectedCategory}
           onSave={saveCategory}
           onClose={() => setShowForm(false)}
         />
@@ -431,33 +436,34 @@ const clearSearch = () => {
   );
 };
 // ---- Category Form Component ----
+// ---- Category Form Component ----
 const CategoryForm: React.FC<{
-  Category: CategorySearchResponse | null;
-  onSave: (Category: CategorySearchResponse) => void;
+  category: CategorySearchResponse | null;
+  onSave: (category: CategorySearchResponse) => void;
   onClose: () => void;
-}> = ({ Category, onSave, onClose }) => {
- const [form, setForm] = useState<CategorySearchResponse>(
-  Category || {
-    id: 0,
-    name: "",
-    description: "",           // <-- add this
-    nameUnsigned: "",
-    descriptionUnsigned: "",   // <-- add this
-    createdBy: "",
-    createdAt: "",
-    updatedAt: "",
-    count: 0,
-  }
-);
+}> = ({ category, onSave, onClose }) => {
+  const [form, setForm] = useState<{ name: string; description: string }>({
+    name: category?.name || "",
+    description: category?.description || "",
+  });
 
-
-  const handleChange = (field: keyof CategorySearchResponse, value: any) => {
+  const handleChange = (field: "name" | "description", value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(form);
+    onSave({
+      id: category?.id ?? 0, // 0 means new
+      name: form.name,
+      description: form.description,
+      nameUnsigned: "",
+      descriptionUnsigned: "",
+      createdBy: "",
+      createdAt: "",
+      updatedAt: "",
+      count: 0,
+    });
   };
 
   return (
@@ -466,6 +472,7 @@ const CategoryForm: React.FC<{
         onSubmit={handleSubmit}
         className="bg-white rounded-lg p-6 w-96 space-y-4 relative"
       >
+        {/* Close button */}
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-black"
           onClick={onClose}
@@ -474,84 +481,34 @@ const CategoryForm: React.FC<{
           <X size={18} />
         </button>
 
-        <h3 className="text-lg font-bold">{Category ? "Chỉnh sửa Category" : "Thêm Category"}</h3>
+        <h3 className="text-lg font-bold">
+          {category ? "Chỉnh sửa Category" : "Thêm Category"}
+        </h3>
 
-        {/* Editable name */}
-<div>
-  <label className="block text-sm font-medium">Tên</label>
-  <input
-    type="text"
-    value={form.name}
-    onChange={(e) => handleChange("name", e.target.value)}
-    className="mt-1 w-full border rounded-md px-3 py-2"
-    required
-  />
-</div>
+        {/* Name input */}
+        <div>
+          <label className="block text-sm font-medium">Tên</label>
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+            className="mt-1 w-full border rounded-md px-3 py-2"
+            required
+          />
+        </div>
 
-{/* Editable description */}
-<div>
-  <label className="block text-sm font-medium">Mô tả</label>
-  <textarea
-    value={form.description}
-    onChange={(e) => handleChange("description", e.target.value)}
-    className="mt-1 w-full border rounded-md px-3 py-2"
-    required
-  />
-</div>
+        {/* Description input */}
+        <div>
+          <label className="block text-sm font-medium">Mô tả</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+            className="mt-1 w-full border rounded-md px-3 py-2"
+            required
+          />
+        </div>
 
-        {/* Read-only fields if editing */}
-        {Category && (
-          <>
-            <div>
-              <label className="block text-sm font-medium">Tên không dấu</label>
-              <input
-                type="text"
-                value={form.nameUnsigned}
-                readOnly
-                className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Người tạo</label>
-              <input
-                type="text"
-                value={form.createdBy}
-                readOnly
-                className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm font-medium">Ngày tạo</label>
-                <input
-                  type="text"
-                  value={new Date(form.createdAt).toLocaleString()}
-                  readOnly
-                  className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Cập nhật</label>
-                <input
-                  type="text"
-                  value={new Date(form.updatedAt).toLocaleString()}
-                  readOnly
-                  className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Số di tích liên kết</label>
-              <input
-                type="number"
-                value={form.count}
-                readOnly
-                className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-              />
-            </div>
-          </>
-        )}
-
+        {/* Buttons */}
         <div className="flex justify-end gap-2">
           <button
             type="button"
@@ -571,5 +528,6 @@ const CategoryForm: React.FC<{
     </div>
   );
 };
+
 
 export default CategoryManagement;

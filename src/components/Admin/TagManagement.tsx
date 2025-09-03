@@ -311,7 +311,6 @@ const clearSearch = () => {
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên tag</th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người tạo</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cập nhật</th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng di tích</th>
         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
@@ -332,7 +331,6 @@ const clearSearch = () => {
             <td className="px-6 py-4">{tag.id}</td>
             <td className="px-6 py-4">{tag.name}</td>
             <td className="px-6 py-4">{tag.createByEmail}</td>
-            <td className="px-6 py-4">{new Date(tag.createdAt).toLocaleString()}</td>
             <td className="px-6 py-4">{new Date(tag.updatedAt).toLocaleString()}</td>
             <td className="px-6 py-4">{tag.count}</td>
             <td className="px-6 py-4 text-right space-x-2">
@@ -367,7 +365,18 @@ const clearSearch = () => {
               <X size={18} />
             </button>
             <h3 className="text-lg font-bold mb-2">{selectedTag.name}</h3>
-            <p>ID: {selectedTag.id}</p>
+<p className="mb-2">ID: {selectedTag.id}</p>
+<p className="mb-2">Tên : {selectedTag.name} </p>
+<p className="mb-2">ID người tạo : {selectedTag.createdBy}  </p>
+<p className="mb-2">Tạo bởi : {selectedTag.createByName}  </p>
+<p className="mb-2">Email người tạo : {selectedTag.createByEmail} </p>
+<p className="mb-2">Ngày tạo : {selectedTag.createdAt}</p>
+<p className="mb-2">ID người cập nhật : {selectedTag.updatedBy}  </p>
+<p className="mb-2">Cập nhật bởi : {selectedTag.updatedByName}</p>
+<p className="mb-2">Email người cập nhật : {selectedTag.updatedByEmail} </p>
+<p className="mb-2">Ngày cập nhật : {selectedTag.updatedAt}</p>
+<p className="mb-2">Số lượng di sản : {selectedTag.count}</p>
+            
           </div>
         </div>
       )}
@@ -411,30 +420,28 @@ const clearSearch = () => {
 // ---- Tag Form Component ----
 const TagForm: React.FC<{
   tag: TagSearchResponse | null;
-  onSave: (tag: TagSearchResponse) => void;
+onSave: (tag: TagSearchResponse) => void;
   onClose: () => void;
 }> = ({ tag, onSave, onClose }) => {
-  const [form, setForm] = useState<TagSearchResponse>(
-  tag || {
-    id: 0,
-    name: "",
-    nameUnsigned: "",
-    createdBy: "",
-    createdAt: "",
-    updatedAt: "",
-    updatedBy: "",   // ✅ add this
-    count: 0,
-  }
-);
+  const [form, setForm] = useState<{ name: string }>({
+    name: tag?.name || "",
+  });
 
-
-  const handleChange = (field: keyof TagSearchResponse, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (value: string) => {
+    setForm({ name: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(form);
+    onSave({
+      id: tag?.id ?? 0, // 0 => new
+      name: form.name,
+      nameUnsigned: "",
+      createdBy: "",
+      createdAt: "",
+      updatedAt: "",
+      count: 0
+    });
   };
 
   return (
@@ -443,6 +450,7 @@ const TagForm: React.FC<{
         onSubmit={handleSubmit}
         className="bg-white rounded-lg p-6 w-96 space-y-4 relative"
       >
+        {/* Close button */}
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-black"
           onClick={onClose}
@@ -451,73 +459,23 @@ const TagForm: React.FC<{
           <X size={18} />
         </button>
 
-        <h3 className="text-lg font-bold">{tag ? "Chỉnh sửa Tag" : "Thêm Tag"}</h3>
+        <h3 className="text-lg font-bold">
+          {tag ? "Chỉnh sửa Tag" : "Thêm Tag"}
+        </h3>
 
-        {/* Editable name */}
+        {/* Only name input */}
         <div>
           <label className="block text-sm font-medium">Tên</label>
           <input
             type="text"
             value={form.name}
-            onChange={(e) => handleChange("name", e.target.value)}
+            onChange={(e) => handleChange(e.target.value)}
             className="mt-1 w-full border rounded-md px-3 py-2"
             required
           />
         </div>
 
-        {/* Read-only fields if editing */}
-        {tag && (
-          <>
-            <div>
-              <label className="block text-sm font-medium">Tên không dấu</label>
-              <input
-                type="text"
-                value={form.nameUnsigned}
-                readOnly
-                className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Người tạo</label>
-              <input
-                type="text"
-                value={form.createdBy}
-                readOnly
-                className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm font-medium">Ngày tạo</label>
-                <input
-                  type="text"
-                  value={new Date(form.createdAt).toLocaleString()}
-                  readOnly
-                  className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Cập nhật</label>
-                <input
-                  type="text"
-                  value={new Date(form.updatedAt).toLocaleString()}
-                  readOnly
-                  className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Số di tích liên kết</label>
-              <input
-                type="number"
-                value={form.count}
-                readOnly
-                className="mt-1 w-full border rounded-md px-3 py-2 bg-gray-100"
-              />
-            </div>
-          </>
-        )}
-
+        {/* Buttons */}
         <div className="flex justify-end gap-2">
           <button
             type="button"
@@ -537,5 +495,6 @@ const TagForm: React.FC<{
     </div>
   );
 };
+
 
 export default TagManagement;

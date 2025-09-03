@@ -24,7 +24,7 @@ export interface CategorySearchResponse {
   createByEmail?: string;
   updatedBy?: string;
   updatedByName?: string;
-  updateByEmail?: string;
+  updatedByEmail?: string;
   createdAt: string;
   updatedAt: string;
   count: number;

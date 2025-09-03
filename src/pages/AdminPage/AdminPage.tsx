@@ -50,14 +50,15 @@ const HeritageAdminPanel: React.FC<HeritageAdminPanelProps> = ({ children }) => 
   }, [activeTab]);
 
   // Đồng bộ dark mode với <html> class
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+useEffect(() => {
+  if (darkMode) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
     localStorage.setItem("darkMode", darkMode.toString());
-  }, [darkMode]);
+}, [darkMode]);
+
 
   return (
     <div className="h-screen flex bg-gray-100 dark:bg-gray-900">
