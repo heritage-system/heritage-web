@@ -121,7 +121,7 @@ const HeritageDetailPage: React.FC = () => {
         onBookmark={handleBookmark}
         quickIntro={quickIntro}
       />
-
+<HeritageEditor/>
       <div className="mx-auto max-w-6xl px-4 py-6 grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <HeritageContentTabs
