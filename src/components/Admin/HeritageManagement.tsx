@@ -11,7 +11,7 @@ import {
   BarChart3,
   X
 } from 'lucide-react';
-import Pagination from './Pagination';
+import Pagination from '../Layouts/Pagination';
 import SearchFilter from './SearchFilter';
 
 interface Heritage {

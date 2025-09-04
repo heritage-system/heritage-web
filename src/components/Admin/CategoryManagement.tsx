@@ -1,17 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { Edit, Eye, Plus, Trash2, X, Folder, CheckCircle, XCircle, Layers } from 'lucide-react';
-import Pagination from './Pagination';
-import SearchFilter from './SearchFilter';
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { Edit, Eye, Plus, Trash2, X } from "lucide-react";
+import Pagination from "../Layouts/Pagination";
+import { CategorySearchResponse  } from "../../types/category";
+import { toast } from 'react-hot-toast';
+import { searchCategories, createCategory, updateCategory, deleteCategory } from "../../services/categoryService";
 
 // ---- Types ----
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  itemCount: number;
-  status: 'active' | 'inactive';
-}
-
 interface TableColumn<T> {
   key: keyof T;
   label: string;
@@ -28,7 +22,7 @@ interface TableProps<T> {
 }
 
 // ---- Generic Table ----
-function DataTable<T extends { id: string }>({
+function DataTable<T extends { id: number }>({
   data,
   columns,
   onEdit,
@@ -113,85 +107,45 @@ function DataTable<T extends { id: string }>({
   );
 }
 
-// ---- Category Management ----
+// ---- Main Category Management ----
 const CategoryManagement: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([
-    {
-      id: '1',
-      name: 'Di tích lịch sử',
-      description: 'Các di tích có giá trị lịch sử',
-      itemCount: 45,
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Di sản văn hóa phi vật thể',
-      description: 'Các giá trị văn hóa truyền thống',
-      itemCount: 32,
-      status: 'active',
-    },
-    {
-      id: '3',
-      name: 'Cảnh quan văn hóa',
-      description: 'Các khu vực cảnh quan đặc sắc',
-      itemCount: 18,
-      status: 'inactive',
-    },
-  ]);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [Categories, setCategories] = useState<CategorySearchResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Modal state
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategorySearchResponse | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showView, setShowView] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const filteredCategories = useMemo(() => {
-    return categories.filter((category) => {
-      const matchesSearch =
-        category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = !statusFilter || category.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [categories, searchTerm, statusFilter]);
+// Fetch Categories from backend
+const loadCategories = useCallback(async () => {
+  setLoading(true);
+  const res = await searchCategories({
+    keyword: searchTerm,
+    page: currentPage,  
+    pageSize: itemsPerPage,
+  });
 
-  const paginatedCategories = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredCategories.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredCategories, currentPage, itemsPerPage]);
+  if (res.code === 200 && res.result) {
+    setCategories(res.result.items || [] );
+    setCurrentPage(res.result.currentPages ?? 1);
+    setTotalPages(res.result.totalPages ?? 1);
+  }
 
-  const columns: TableColumn<Category>[] = [
-    { key: 'name', label: 'Tên danh mục' },
-    { key: 'description', label: 'Mô tả' },
-    { key: 'itemCount', label: 'Số lượng' },
-    {
-      key: 'status',
-      label: 'Trạng thái',
-      render: (status: string) => (
-        <span
-          className={`px-2 py-1 text-xs rounded-full ${
-            status === 'active'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
-          }`}
-        >
-          {status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-        </span>
-      ),
-    },
-  ];
+  setLoading(false);
+}, [searchTerm, currentPage, itemsPerPage]); // <-- now stable
 
-  // ---- Stats ----
-  const totalCategories = categories.length;
-  const activeCategories = categories.filter((c) => c.status === 'active').length;
-  const inactiveCategories = categories.filter((c) => c.status === 'inactive').length;
-  const totalItems = categories.reduce((sum, c) => sum + c.itemCount, 0);
+useEffect(() => { 
+  loadCategories();
+}, [loadCategories]);
+
+
 
   // Handlers
   const handleAdd = () => {
@@ -199,115 +153,223 @@ const CategoryManagement: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleEdit = (cat: Category) => {
-    setSelectedCategory(cat);
+  const handleEdit = (Category: CategorySearchResponse) => {
+    setSelectedCategory(Category);
     setShowForm(true);
   };
 
-  const handleView = (cat: Category) => {
-    setSelectedCategory(cat);
+  const handleView = (Category: CategorySearchResponse) => {
+    setSelectedCategory(Category);
     setShowView(true);
   };
 
-  const handleDelete = (cat: Category) => {
-    setSelectedCategory(cat);
+  const handleDelete = (Category: CategorySearchResponse) => {
+    setSelectedCategory(Category);
     setShowConfirmDelete(true);
   };
+const confirmDelete = async () => {
+  if (!selectedCategory) return;
 
-  const confirmDelete = () => {
-    if (selectedCategory) {
-      setCategories((prev) => prev.filter((c) => c.id !== selectedCategory.id));
-    }
-    setShowConfirmDelete(false);
-  };
-
-  const saveCategory = (cat: Category) => {
-    if (selectedCategory) {
-      setCategories((prev) =>
-        prev.map((c) => (c.id === selectedCategory.id ? cat : c))
-      );
+  try {
+      const res = await deleteCategory(selectedCategory.id);
+    if (res.code === 200) {
+      toast.success('Xóa Category thành công!', {
+        duration: 2000,
+        position: 'top-right',
+        style: { background: '#059669', color: '#fff' },
+      });
+      await loadCategories();
     } else {
-      setCategories((prev) => [...prev, { ...cat, id: Date.now().toString() }]);
+      toast.error(`Xóa thất bại: ${res.message}`, {
+        duration: 5000,
+        position: 'top-right',
+        style: { background: '#DC2626', color: '#fff' },
+      });
     }
-    setShowForm(false);
-  };
+  } catch (error) {
+    toast.error('Xóa thất bại. Vui lòng thử lại!', {
+      duration: 5000,
+      position: 'top-right',
+      style: { background: '#DC2626', color: '#fff' },
+    });
+  }
 
-  const statusOptions = [
-    { label: 'Tất cả trạng thái', value: '' },
-    { label: 'Hoạt động', value: 'active' },
-    { label: 'Không hoạt động', value: 'inactive' },
-  ];
+  setShowConfirmDelete(false);
+};
 
-  return (
+const saveCategory = async (Category: CategorySearchResponse) => {
+  try {
+    let res;
+    if (selectedCategory) {
+      res = await updateCategory({
+        id: selectedCategory.id,
+        name: Category.name,
+        description: Category.description || ""
+      });
+    } else {
+      res = await createCategory({
+        name: Category.name,
+        description: Category.description || ""
+      });
+    }
+
+    if (res.code === 200) {
+      toast.success(selectedCategory ? 'Cập nhật Category thành công!' : 'Thêm Category thành công!', {
+        duration: 2000,
+        position: 'top-right',
+        style: { background: '#059669', color: '#fff' },
+      });
+      await loadCategories();
+      setShowForm(false);
+    } else {
+      toast.error(`Thao tác thất bại: ${res.message}`, {
+        duration: 5000,
+        position: 'top-right',
+        style: { background: '#DC2626', color: '#fff' },
+      });
+    }
+
+  } catch (error) {
+    toast.error('Thao tác thất bại. Vui lòng thử lại!', {
+      duration: 5000,
+      position: 'top-right',
+      style: { background: '#DC2626', color: '#fff' },
+    });
+  }
+};
+
+
+
+const clearSearch = () => {
+  setSearchTerm("");
+  setCurrentPage(1);
+  toast('Tìm kiếm đã được xóa.', {
+    duration: 1500,
+    position: 'top-right',
+    style: { background: '#059669', color: '#fff' },
+  });
+};
+  
+   return (
     <div>
+        <div className="flex items-center gap-4 mb-4">
+  <div className="flex items-center gap-2">
+    <label>Trang:</label>
+    <input
+      type="number"
+      min={1}
+      max={totalPages}
+      value={currentPage}
+      onChange={(e) => {
+        const page = Math.max(1, Math.min(totalPages, Number(e.target.value)));
+        setCurrentPage(page);
+      }}
+      className="border px-2 py-1 rounded-md w-16"
+    />
+    / {totalPages}
+  </div>
+
+  <div className="flex items-center gap-2">
+    <label>Số mục / trang:</label>
+    <input
+      type="number"
+      min={1}
+      value={itemsPerPage}
+      onChange={(e) => {
+        const pageSize = Math.max(1, Number(e.target.value));
+        setCurrentPage(1); // reset page
+        setItemsPerPage(pageSize);
+      }}
+      className="border px-2 py-1 rounded-md w-16"
+    />
+  </div>
+</div>
+
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Quản lý danh mục</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Quản lý Category</h2>
         <button
           onClick={handleAdd}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus size={16} />
-          Thêm danh mục
+          Thêm Category
         </button>
       </div>
 
-      {/* ---- Stats Cards ---- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="p-4 bg-white shadow rounded-lg flex items-center gap-3">
-          <Folder className="text-blue-600" size={28} />
-          <div>
-            <p className="text-sm text-gray-500">Tổng số danh mục</p>
-            <p className="text-xl font-bold">{totalCategories}</p>
-          </div>
-        </div>
-        <div className="p-4 bg-white shadow rounded-lg flex items-center gap-3">
-          <CheckCircle className="text-green-600" size={28} />
-          <div>
-            <p className="text-sm text-gray-500">Danh mục hoạt động</p>
-            <p className="text-xl font-bold">{activeCategories}</p>
-          </div>
-        </div>
-        <div className="p-4 bg-white shadow rounded-lg flex items-center gap-3">
-          <XCircle className="text-red-600" size={28} />
-          <div>
-            <p className="text-sm text-gray-500">Danh mục không hoạt động</p>
-            <p className="text-xl font-bold">{inactiveCategories}</p>
-          </div>
-        </div>
-        <div className="p-4 bg-white shadow rounded-lg flex items-center gap-3">
-          <Layers className="text-purple-600" size={28} />
-          <div>
-            <p className="text-sm text-gray-500">Tổng số item</p>
-            <p className="text-xl font-bold">{totalItems}</p>
-          </div>
-        </div>
+      {/* 🔎 Search with clear button */}
+      <div className="flex items-center gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Tìm kiếm Category..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded-md w-64"
+        />
+        {searchTerm && (
+          <button
+            onClick={clearSearch}
+            className="px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 flex items-center gap-1"
+          >
+            <X size={14} /> Xóa
+          </button>
+        )}
       </div>
 
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        filters={[
-          { label: 'Trạng thái', value: 'status', options: statusOptions },
-        ]}
-        onFilterChange={(key, value) => {
-          if (key === 'status') setStatusFilter(value);
-        }}
-      />
+   {/* Table */}
+<div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+  <table className="min-w-full divide-y divide-gray-300">
+   <thead className="bg-gray-50">
+  <tr>
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên Category</th>
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th> {/* <-- new */}
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người tạo</th>
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cập nhật</th>
+    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng di tích</th>
+    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+  </tr>
+</thead>
+<tbody className="bg-white divide-y divide-gray-200">
+  {loading ? (
+    <tr>
+      <td colSpan={8} className="p-4 text-center text-gray-500">Đang tải...</td>
+    </tr>
+  ) : Categories.length === 0 ? (
+    <tr>
+      <td colSpan={8} className="p-4 text-center text-gray-500">Không có dữ liệu</td>
+    </tr>
+  ) : (
+    Categories.map((Category) => (
+      <tr key={Category.id} className="hover:bg-gray-50">
+        <td className="px-6 py-4">{Category.id}</td>
+        <td className="px-6 py-4">{Category.name}</td>
+        <td className="px-6 py-4">{Category.description}</td> {/* <-- new */}
+        <td className="px-6 py-4">{Category.createByEmail}</td>
+        <td className="px-6 py-4">{new Date(Category.updatedAt).toLocaleString()}</td>
+        <td className="px-6 py-4">{Category.count}</td>
+        <td className="px-6 py-4 text-right space-x-2">
+          <button onClick={() => handleView(Category)} className="text-blue-600 hover:text-blue-900"><Eye size={16} /></button>
+          <button onClick={() => handleEdit(Category)} className="text-indigo-600 hover:text-indigo-900"><Edit size={16} /></button>
+          <button onClick={() => handleDelete(Category)} className="text-red-600 hover:text-red-900"><Trash2 size={16} /></button>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
 
-      <DataTable
-        data={paginatedCategories}
-        columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onView={handleView}
-      />
+  </table>
+</div>
+
 
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.ceil(filteredCategories.length / itemsPerPage)}
+        totalPages={totalPages}
         onPageChange={setCurrentPage}
         itemsPerPage={itemsPerPage}
-        totalItems={filteredCategories.length}
+        totalItems={0}
       />
 
       {/* ---- Modal: View ---- */}
@@ -320,19 +382,19 @@ const CategoryManagement: React.FC = () => {
             >
               <X size={18} />
             </button>
-            <h3 className="text-lg font-bold mb-2">{selectedCategory.name}</h3>
-            <p className="text-sm text-gray-600 mb-2">
-              {selectedCategory.description}
-            </p>
-            <p>
-              <strong>Số lượng:</strong> {selectedCategory.itemCount}
-            </p>
-            <p>
-              <strong>Trạng thái:</strong>{' '}
-              {selectedCategory.status === 'active'
-                ? 'Hoạt động'
-                : 'Không hoạt động'}
-            </p>
+             <h3 className="text-lg font-bold mb-2">{selectedCategory.name}</h3>
+<p className="mb-2">ID: {selectedCategory.id}</p>
+<p className="mb-2">Tên : {selectedCategory.name} </p>
+<p className="mb-2">Miêu tả : {selectedCategory.description} </p>
+<p className="mb-2">ID người tạo : {selectedCategory.createdBy}  </p>
+<p className="mb-2">Tạo bởi : {selectedCategory.createByName}  </p>
+<p className="mb-2">Email người tạo : {selectedCategory.createByEmail} </p>
+<p className="mb-2">Ngày tạo : {selectedCategory.createdAt}</p>
+<p className="mb-2">ID người cập nhật : {selectedCategory.updatedBy}  </p>
+<p className="mb-2">Cập nhật bởi : {selectedCategory.updatedByName}</p>
+<p className="mb-2">Email người cập nhật : {selectedCategory.updatedByEmail} </p>
+<p className="mb-2">Ngày cập nhật : {selectedCategory.updatedAt}</p>
+<p className="mb-2">Số lượng di sản : {selectedCategory.count}</p>
           </div>
         </div>
       )}
@@ -351,8 +413,7 @@ const CategoryManagement: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 w-96 text-center">
             <p>
-              Bạn có chắc chắn muốn xóa{' '}
-              <strong>{selectedCategory.name}</strong>?
+              Bạn có chắc chắn muốn xóa <strong>{selectedCategory.name}</strong>?
             </p>
             <div className="mt-4 flex justify-center gap-4">
               <button
@@ -374,30 +435,35 @@ const CategoryManagement: React.FC = () => {
     </div>
   );
 };
-
+// ---- Category Form Component ----
 // ---- Category Form Component ----
 const CategoryForm: React.FC<{
-  category: Category | null;
-  onSave: (cat: Category) => void;
+  category: CategorySearchResponse | null;
+  onSave: (category: CategorySearchResponse) => void;
   onClose: () => void;
 }> = ({ category, onSave, onClose }) => {
-  const [form, setForm] = useState<Category>(
-    category || {
-      id: '',
-      name: '',
-      description: '',
-      itemCount: 0,
-      status: 'active',
-    }
-  );
+  const [form, setForm] = useState<{ name: string; description: string }>({
+    name: category?.name || "",
+    description: category?.description || "",
+  });
 
-  const handleChange = (field: keyof Category, value: any) => {
+  const handleChange = (field: "name" | "description", value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(form);
+    onSave({
+      id: category?.id ?? 0, // 0 means new
+      name: form.name,
+      description: form.description,
+      nameUnsigned: "",
+      descriptionUnsigned: "",
+      createdBy: "",
+      createdAt: "",
+      updatedAt: "",
+      count: 0,
+    });
   };
 
   return (
@@ -406,6 +472,7 @@ const CategoryForm: React.FC<{
         onSubmit={handleSubmit}
         className="bg-white rounded-lg p-6 w-96 space-y-4 relative"
       >
+        {/* Close button */}
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-black"
           onClick={onClose}
@@ -413,49 +480,35 @@ const CategoryForm: React.FC<{
         >
           <X size={18} />
         </button>
+
         <h3 className="text-lg font-bold">
-          {category ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}
+          {category ? "Chỉnh sửa Category" : "Thêm Category"}
         </h3>
+
+        {/* Name input */}
         <div>
           <label className="block text-sm font-medium">Tên</label>
           <input
             type="text"
             value={form.name}
-            onChange={(e) => handleChange('name', e.target.value)}
+            onChange={(e) => handleChange("name", e.target.value)}
             className="mt-1 w-full border rounded-md px-3 py-2"
             required
           />
         </div>
+
+        {/* Description input */}
         <div>
           <label className="block text-sm font-medium">Mô tả</label>
           <textarea
             value={form.description}
-            onChange={(e) => handleChange('description', e.target.value)}
+            onChange={(e) => handleChange("description", e.target.value)}
             className="mt-1 w-full border rounded-md px-3 py-2"
             required
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium">Số lượng</label>
-          <input
-            type="number"
-            value={form.itemCount}
-            onChange={(e) => handleChange('itemCount', Number(e.target.value))}
-            className="mt-1 w-full border rounded-md px-3 py-2"
-            min={0}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Trạng thái</label>
-          <select
-            value={form.status}
-            onChange={(e) => handleChange('status', e.target.value as any)}
-            className="mt-1 w-full border rounded-md px-3 py-2"
-          >
-            <option value="active">Hoạt động</option>
-            <option value="inactive">Không hoạt động</option>
-          </select>
-        </div>
+
+        {/* Buttons */}
         <div className="flex justify-end gap-2">
           <button
             type="button"
@@ -475,5 +528,6 @@ const CategoryForm: React.FC<{
     </div>
   );
 };
+
 
 export default CategoryManagement;

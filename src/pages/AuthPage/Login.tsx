@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser, SignInWithGoogle } from "../../services/authService";
+import { loginUser} from "../../services/authService"; 
 import { getRedirectPath } from "../../utils/Authorities";
 import toast, { Toaster } from 'react-hot-toast';
 import { SignInRequest } from "../../types/auth";
@@ -30,18 +30,29 @@ const Login: React.FC = () => {
 
       const response = await loginUser(request);
 
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
+      if(response.code === 200){
+        localStorage.setItem("accessToken", response.result!.accessToken);
+        localStorage.setItem("refreshToken", response.result!.refreshToken);
 
-      toast.success('Đăng nhập thành công! Chào mừng bạn trở lại!', {
-        duration: 1000,
+        toast.success('Đăng nhập thành công! Chào mừng bạn trở lại!', {
+          duration: 1000,
+          position: 'top-right',
+          style: { background: '#059669', color: '#fff' },
+          iconTheme: { primary: '#fff', secondary: '#059669' },
+        });
+        authLogin(response);
+        const redirectPath = getRedirectPath(response.result!.userType);
+        setTimeout(() => navigate(redirectPath), 500);
+      }
+      else{
+        toast.error(response.message ||'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!', {
+        duration: 5000,
         position: 'top-right',
-        style: { background: '#059669', color: '#fff' },
-        iconTheme: { primary: '#fff', secondary: '#059669' },
+        style: { background: '#DC2626', color: '#fff' },
+        iconTheme: { primary: '#fff', secondary: '#DC2626' },
       });
-      authLogin(response);
-      const redirectPath = getRedirectPath(response.userType);
-      setTimeout(() => navigate(redirectPath), 500);
+      }
+      
     } catch (error) {
       toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!', {
         duration: 5000,

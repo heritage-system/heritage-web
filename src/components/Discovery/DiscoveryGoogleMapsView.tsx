@@ -1,63 +1,233 @@
-import { Map } from 'lucide-react';
-import { Heritage  } from '../../types/heritage';
-
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap ,Circle} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { HeritageSearchResponse, HeritageLocation, HeritageSearchRequest } from "../../types/heritage";
+import { mapViewStorage } from "../../utils/tokenStorage";
+import DiscoveryHeritageCard from "./DiscoveryHeritageCard";
+import { MapPin } from 'lucide-react';
+import MarkerClusterGroup from "react-leaflet-markercluster";
+import 'leaflet/dist/leaflet.css'
+import 'react-leaflet-markercluster/styles'
 interface DiscoveryGoogleMapsViewProps {
-  heritages: Heritage[];
+  heritages: HeritageSearchResponse[];
+  userLocation?: { lat: number; lng: number } | null;
+  onFiltersChange?: (changes: Partial<HeritageSearchRequest>) => void;
 }
-// Google Maps Component
-const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({ heritages }) => {
+
+const defaultIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+L.Marker.prototype.options.icon = defaultIcon;
+
+const userIcon = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+  iconSize: [30, 30],
+  iconAnchor: [15, 30],
+  popupAnchor: [0, -30],
+});
+
+const MapController: React.FC<{
+  mapRef: React.MutableRefObject<L.Map | null>;
+  onBoundsChange: (bounds: L.LatLngBounds) => void;
+  activeMarkerId: string | null;
+}> = ({ mapRef, onBoundsChange, activeMarkerId }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    mapRef.current = map;
+
+    let timeout: NodeJS.Timeout;
+    const handleMoveEnd = () => {
+      if (activeMarkerId) return; // popup đang mở → skip update
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        const bounds = map.getBounds();
+        onBoundsChange(bounds);
+      }, 150); // debounce 150ms
+    };
+
+    map.on("moveend", handleMoveEnd);
+    return () => {
+      clearTimeout(timeout);
+      map.off("moveend", handleMoveEnd);
+    };
+  }, [map, mapRef, onBoundsChange, activeMarkerId]);
+
+  return null;
+};
+
+const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({
+  heritages,
+  userLocation: userLocationFromProps,
+  onFiltersChange
+}) => {
+  const mapRef = useRef<L.Map | null>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [visibleBounds, setVisibleBounds] = useState<L.LatLngBounds | null>(null);
+  const cachedRef = useRef<HeritageSearchResponse[]>([]);
+  const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
+
+  // Cập nhật cache nếu heritages thay đổi
+  useEffect(() => {
+    if (JSON.stringify(cachedRef.current) !== JSON.stringify(heritages)) {
+      cachedRef.current = heritages;
+      if (mapRef.current) setVisibleBounds(mapRef.current.getBounds());
+    }
+  }, [heritages]);
+
+  const initialView = (() => {
+    const saved = mapViewStorage.load();
+    if (saved) return saved;
+    if (userLocationFromProps) return { center: [userLocationFromProps.lat, userLocationFromProps.lng] as L.LatLngTuple, zoom: 8 };
+    return { center: [14.0583, 108.2772] as L.LatLngTuple, zoom: 6 };
+  })();
+
+  const userLatLng = userLocationFromProps ? new L.LatLng(userLocationFromProps.lat, userLocationFromProps.lng) : null;
+
+  const filteredHeritages = cachedRef.current.filter(h =>
+    h.heritageLocations.some(loc => visibleBounds ? visibleBounds.contains([loc.latitude, loc.longitude]) : true)
+  );
+
+  const formatLocation = (loc: HeritageLocation) =>
+    [loc.province, loc.district, loc.ward, loc.addressDetail].filter(Boolean).join(", ");
+
+  const [showHeritageList, setShowHeritageList] = useState(false);
+  const [expandedHeritageIds, setExpandedHeritageIds] = useState<number[]>([]);
+  const toggleExpand = (id: number) =>
+    setExpandedHeritageIds(prev => prev.includes(id) ? prev.filter(hid => hid !== id) : [...prev, id]);
+
+  
+
   return (
     <div className="bg-white rounded-xl border overflow-hidden">
-      <div className="h-96 bg-gradient-to-br from-yellow-100 to-red-100 relative">
-        {/* Simulated Google Maps */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <Map className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600">Google Maps Integration</p>
-            <p className="text-sm text-gray-500">Hiển thị {heritages.length} địa điểm di sản</p>
-          </div>
-        </div>
-        
-        {/* Sample map markers */}
-     <div className="absolute top-20 left-20 w-6 h-6 bg-yellow-700 rounded-full flex items-center justify-center shadow-lg">
-    <div className="w-2 h-2 bg-white rounded-full"></div>
-    </div>
-    <div className="absolute top-32 right-32 w-6 h-6 bg-red-700 rounded-full flex items-center justify-center shadow-lg">
-      <div className="w-2 h-2 bg-white rounded-full"></div>
-    </div>
-    <div className="absolute bottom-20 left-1/3 w-6 h-6 bg-orange-700 rounded-full flex items-center justify-center shadow-lg">
-      <div className="w-2 h-2 bg-white rounded-full"></div>
-    </div>
-        
-        {/* Map controls */}
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2">
-          <button className="block w-8 h-8 text-gray-600 hover:bg-gray-100 rounded mb-1">+</button>
-          <button className="block w-8 h-8 text-gray-600 hover:bg-gray-100 rounded">-</button>
-        </div>
-      </div>
-      
-      {/* Map Legend */}
-      <div className="p-4 border-t">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-             <div className="w-3 h-3 bg-yellow-700 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-600">Lễ hội</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-red-700 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-600">Biểu diễn</span>
-            </div>
-            <div className="flex items-center">
-            <div className="w-3 h-3 bg-orange-700 rounded-full mr-2"></div> 
-              <span className="text-sm text-gray-600">Thủ công</span>
-            </div>
-          </div>
-          <button className="text-purple-600 text-sm hover:underline">
-            Xem danh sách
+      <div className=" z-0 h-96 relative">
+        <MapContainer
+          center={initialView.center}
+          zoom={initialView.zoom}
+          maxZoom={15}
+          minZoom={5}
+          maxBounds={[[-90, -180], [90, 180]]}
+          maxBoundsViscosity={0.5}
+          style={{ height: "100%", width: "100%" }}
+          scrollWheelZoom
+          whenReady={() => {
+            setMapReady(true);
+            if (mapRef.current) setVisibleBounds(mapRef.current.getBounds());
+          }}
+        >
+          <MapController mapRef={mapRef} onBoundsChange={setVisibleBounds} activeMarkerId={activeMarkerId} />
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
+
+   <MarkerClusterGroup
+  key={filteredHeritages.map(h => h.id).join("-")} // mỗi lần filter thay đổi → cluster reset
+>
+  {filteredHeritages.map(h =>
+    h.heritageLocations.map(loc => {
+      const markerId = `${h.id}-${loc.id}`;
+      return (
+        <Marker
+          key={markerId}
+          position={[loc.latitude, loc.longitude]}
+          ref={(ref) => {
+            if (ref && activeMarkerId === markerId) {
+              setTimeout(() => ref.openPopup(), 100); // đợi cluster zoom xong
+            }
+          }}
+          eventHandlers={{
+            popupopen: () => setActiveMarkerId(markerId),
+            popupclose: () => setActiveMarkerId(null),
+          }}
+        >
+          <Popup>
+            <DiscoveryHeritageCard key={h.id} heritage={h} />
+          </Popup>
+        </Marker>
+      );
+    })
+  )}
+</MarkerClusterGroup>
+
+
+          {mapReady && userLatLng && (
+            <Marker position={[userLatLng.lat, userLatLng.lng]} icon={userIcon}>
+              <Popup>Bạn đang ở đây 📍</Popup>
+            </Marker>
+          )}
+        </MapContainer>
+
+        <button
+          onClick={() => setShowHeritageList(true)}
+          className="absolute top-4 right-4 bg-white rounded-lg shadow-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border border-gray-200 z-[1000]"
+        >
+          Danh sách ({filteredHeritages.length})
+        </button>
+
+        {userLatLng && mapReady && (
+          <button
+            onClick={() => mapRef.current?.setView(userLatLng, 9)}
+            className="absolute bottom-4 right-4 bg-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center text-xl hover:bg-gray-100 border z-[1000]"
+          >
+            <MapPin/>
           </button>
-        </div>
+        )}
       </div>
+
+      {showHeritageList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]">
+          <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-bold text-gray-900">
+                Danh sách Di sản ({filteredHeritages.length})
+              </h2>
+              <button
+                onClick={() => setShowHeritageList(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[60vh] p-4 space-y-4">
+              {filteredHeritages.length > 0 ? (
+                filteredHeritages.map(h => (
+                  <div key={h.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <h3 className="font-semibold text-gray-900 mb-2">{h.name}</h3>
+                    {h.description && <p className="text-sm text-gray-700 mb-3 leading-relaxed">{h.description}</p>}
+                    {h.heritageLocations.length > 0 && (
+                      <div className="text-xs text-gray-500">
+                        {(expandedHeritageIds.includes(h.id) ? h.heritageLocations : h.heritageLocations.slice(0, 1)).map((loc, idx) => (
+                          <p key={idx} className="mb-1">📍 {formatLocation(loc)}</p>
+                        ))}
+                        {h.heritageLocations.length > 1 && (
+                          <button className="text-blue-600 text-xs font-medium hover:underline" onClick={() => toggleExpand(h.id)}>
+                            {expandedHeritageIds.includes(h.id) ? "Thu gọn" : "Xem thêm..."}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 py-8">Không có di sản nào hiển thị</p>
+              )}
+            </div>
+            <div className="border-t p-4 bg-gray-50">
+              <button
+                onClick={() => setShowHeritageList(false)}
+                className="w-full bg-gradient-to-r from-yellow-700 to-red-700 text-white py-2 rounded-lg"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,9 +1,9 @@
 import DiscoveryHeritageCard from "./DiscoveryHeritageCard";
-import { Heritage } from "../../types/heritage";
+import { HeritageSearchResponse } from "../../types/heritage";
 
 // Heritage Grid Component
 interface DiscoveryHeritageGridProps {
-  heritages: Heritage[];
+  heritages: HeritageSearchResponse[];
 }
 
 const DiscoveryHeritageGrid: React.FC<DiscoveryHeritageGridProps> = ({ heritages }) => {
