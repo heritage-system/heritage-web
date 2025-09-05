@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { FavoriteHeritage } from "../../types/favorite";
-import { getFavorites } from "../../services/favoriteService";
+import { getFavorites, removeFavorite } from "../../services/favoriteService";
 import { authToast } from "../../utils/authToast";
-import FavoriteButton from "../Heritage/FavoriteButton";
+import { useNavigate } from "react-router-dom";
+import Pagination from "../Layouts/Pagination";
 
 interface FavoriteHeritageListProps {
   onRefresh?: () => void;
@@ -13,13 +14,31 @@ const FavoriteHeritageList: React.FC<FavoriteHeritageListProps> = ({
 }) => {
   const [favorites, setFavorites] = useState<FavoriteHeritage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [removingId, setRemovingId] = useState<number | null>(null);
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const navigate = useNavigate();
 
-  const fetchFavorites = async () => {
+  const fetchFavorites = async (
+    searchName?: string,
+    pageArg?: number,
+    pageSizeArg?: number
+  ) => {
     try {
       setLoading(true);
-      const response = await getFavorites();
+      const response = await getFavorites(
+        pageArg ?? page,
+        pageSizeArg ?? pageSize,
+        searchName && searchName.trim() !== "" ? searchName : undefined
+      );
       if (response.code === 200 && response.result) {
         setFavorites(response.result.items);
+        setTotalPages(response.result.totalPages);
+        setTotalElements(response.result.totalElements);
       } else {
         authToast.error("Không thể tải danh sách yêu thích");
       }
@@ -30,24 +49,50 @@ const FavoriteHeritageList: React.FC<FavoriteHeritageListProps> = ({
     }
   };
 
-  const handleFavoriteToggle = (heritageId: number, isFavorite: boolean) => {
-    if (!isFavorite) {
-      // Item was removed from favorites, update the local state
-      setFavorites((prev) =>
-        prev.filter((fav) => fav.heritageId !== heritageId)
-      );
-      onRefresh?.();
+  const handleRemoveFavorite = async (heritageId: number) => {
+    try {
+      setRemovingId(heritageId);
+      const response = await removeFavorite(heritageId);
+      if (response.code === 200) {
+        setFavorites((prev) =>
+          prev.filter((fav) => fav.heritageId !== heritageId)
+        );
+        authToast.success("Đã xóa khỏi danh sách yêu thích");
+        onRefresh?.();
+      } else {
+        authToast.error("Không thể xóa khỏi danh sách yêu thích");
+      }
+    } catch (error) {
+      authToast.error("Có lỗi xảy ra khi xóa khỏi danh sách yêu thích");
+    } finally {
+      setRemovingId(null);
     }
-  };
-
-  const handleRefresh = () => {
-    fetchFavorites();
-    authToast.info("Đang tải lại danh sách yêu thích...");
   };
 
   useEffect(() => {
     fetchFavorites();
   }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Refetch when debounced search changes
+  useEffect(() => {
+    setPage(1);
+    fetchFavorites(debouncedSearch, 1);
+  }, [debouncedSearch]);
+
+  // Refetch when paging changes
+  useEffect(() => {
+    fetchFavorites(debouncedSearch, page, pageSize);
+  }, [page, pageSize]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   if (loading) {
     return (
@@ -62,80 +107,112 @@ const FavoriteHeritageList: React.FC<FavoriteHeritageListProps> = ({
       <div className="text-center py-8">
         <div className="text-gray-400 text-lg mb-2">💔</div>
         <div className="text-gray-500">Chưa có di sản yêu thích nào</div>
-        <div className="text-sm text-gray-400 mt-1 mb-4">
+        <div className="text-sm text-gray-400 mt-1">
           Hãy khám phá và thêm di sản vào danh sách yêu thích của bạn
         </div>
-        <button
-          onClick={handleRefresh}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-        >
-          🔄 Tải lại
-        </button>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* Header with refresh button */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">
-            Tổng cộng: {favorites.length} di sản yêu thích
-          </span>
-        </div>
-        <button
-          onClick={handleRefresh}
-          className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
-          title="Tải lại danh sách"
-        >
-          🔄 Tải lại
-        </button>
+    <div className="space-y-4">
+      {/* Search bar */}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Tìm theo tên di sản..."
+          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch("")}
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+          >
+            Xóa
+          </button>
+        )}
       </div>
 
-      {/* Favorites list */}
-      <div className="space-y-4">
-        {favorites.map((favorite) => (
-          <div
-            key={favorite.heritageId}
-            className="bg-white rounded-xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow"
+      {/* Page size selector */}
+      <div className="flex items-center gap-2 mb-4">
+        <label className="flex items-center gap-1 text-sm text-gray-600">
+          Hiển thị
+          <select
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="border rounded px-2 py-1"
           >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-gray-800 text-lg">
-                    {favorite.heritageName}
-                  </h3>
-                  <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full">
-                    {favorite.categoryName}
-                  </span>
-                  {favorite.isFeatured && (
-                    <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">
-                      ⭐ Nổi bật
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-600 text-sm line-clamp-2 mb-2">
-                  {favorite.heritageDescription}
-                </p>
-                <div className="text-xs text-gray-400">
-                  Đã thêm vào{" "}
-                  {new Date(favorite.createdAt).toLocaleDateString("vi-VN")}
-                </div>
-              </div>
-              <FavoriteButton
-                heritageId={favorite.heritageId}
-                isFavorite={true}
-                onToggle={(isFavorite) =>
-                  handleFavoriteToggle(favorite.heritageId, isFavorite)
-                }
-                size="md"
-                className="ml-4"
-              />
-            </div>
-          </div>
-        ))}
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+          </select>
+          mỗi trang
+        </label>
       </div>
+
+      {favorites.map((favorite) => (
+        <div
+          key={favorite.heritageId}
+          className="bg-white rounded-xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => navigate(`/heritagedetail/${favorite.heritageId}`)}
+        >
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="font-semibold text-gray-800 text-lg">
+                  {favorite.heritageName}
+                </h3>
+                <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full">
+                  {favorite.categoryName}
+                </span>
+              </div>
+              {/* Description removed */}
+              <div className="text-xs text-gray-400">
+                Đã thêm vào{" "}
+                {new Date(favorite.createdAt).toLocaleDateString("vi-VN")}
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveFavorite(favorite.heritageId);
+              }}
+              disabled={removingId === favorite.heritageId}
+              className="ml-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+              title="Xóa khỏi danh sách yêu thích"
+            >
+              {removingId === favorite.heritageId ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Pagination component */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        itemsPerPage={pageSize}
+        totalItems={totalElements}
+      />
     </div>
   );
 };

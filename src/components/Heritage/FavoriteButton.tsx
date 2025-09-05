@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { addToFavorites, removeFromFavorites } from "../../utils/favoriteUtils";
+import React, { useEffect, useState } from "react";
+import { addToFavorites, removeFromFavorites } from "../../hooks/useFavorite";
+import { getFavorites } from "../../services/favoriteService";
 
 interface FavoriteButtonProps {
   heritageId: number;
-  isFavorite: boolean;
+  isFavorite?: boolean;
   onToggle?: (isFavorite: boolean) => void;
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -16,8 +17,43 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   size = "md",
   className = "",
 }) => {
-  const [favorite, setFavorite] = useState<boolean>(isFavorite);
+  const [favorite, setFavorite] = useState<boolean>(!!isFavorite);
   const [loading, setLoading] = useState<boolean>(false);
+
+  // Auto-load favorite state if not provided (uses paginated FavoriteListResponse)
+  useEffect(() => {
+    let isMounted = true;
+    const load = async () => {
+      if (typeof isFavorite === "boolean") return;
+      try {
+        let page = 1;
+        const pageSize = 50;
+        let found = false;
+        // Loop pages until found or all pages checked
+        while (!found) {
+          const res = await getFavorites(page, pageSize);
+          const paged = res?.result;
+          const items: any[] = Array.isArray(paged?.items)
+            ? (paged!.items as any[])
+            : [];
+          if (items.some((f: any) => f.heritageId === heritageId)) {
+            found = true;
+            break;
+          }
+          const totalPages = paged?.totalPages ?? page;
+          if (page >= totalPages) break;
+          page += 1;
+        }
+        if (isMounted) setFavorite(found);
+      } catch {
+        // silently ignore; keep default false
+      }
+    };
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [heritageId, isFavorite]);
 
   const sizeClasses = {
     sm: "w-6 h-6",
