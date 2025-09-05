@@ -42,7 +42,7 @@ export const createCategory = async (data: { name: string; description: string }
     `${API_URL}/api/v1/Category`,
     {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data as any,
       headers: { "Content-Type": "application/json" },
     }
   );
@@ -56,7 +56,7 @@ export const updateCategory = async (data: { id: number; name: string; descripti
     `${API_URL}/api/v1/Category`,
     {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: data as any,
       headers: { "Content-Type": "application/json" },
     }
   );
@@ -70,7 +70,7 @@ export const deleteCategory = async (id: number) => {
     `${API_URL}/api/v1/Category`,
     {
       method: "DELETE",
-      body: JSON.stringify({ id }),
+      body: {id} as any,
       headers: { "Content-Type": "application/json" },
     }
   );

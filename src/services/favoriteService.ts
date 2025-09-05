@@ -31,7 +31,7 @@ export const addFavorite = async (request: AddFavoriteRequest): Promise<ApiRespo
     `${API_URL}/api/v1/favorites`,
     {
       method: "POST",
-      body: JSON.stringify(request),
+      body: request as any,
     }
   );
 
@@ -43,7 +43,7 @@ export const removeFavorite = async (heritageId: number): Promise<ApiResponse<bo
     `${API_URL}/api/v1/favorites`,
     {
       method: "DELETE",
-      body: JSON.stringify({ heritageId }),
+      body: { heritageId } as any, 
     }
   );
 
