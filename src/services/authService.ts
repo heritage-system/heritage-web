@@ -8,7 +8,7 @@ export const loginUser = async (request: SignInRequest): Promise<ApiResponse<Sig
     `${API_URL}/api/v1/auth/sign-in`,
     {
       method: "POST",
-      body: JSON.stringify(request),
+      body: request as any,
     }
   );
 
@@ -50,7 +50,7 @@ export const forgotPassword = async (
     `${API_URL}/api/v1/auth/forgot-password`,
     {
       method: "POST",
-      body: JSON.stringify(request),
+      body: request as any,
     }
   );
 
@@ -65,7 +65,7 @@ export const resetPassword = async (
     `${API_URL}/api/v1/auth/reset-password`,
     {
       method: "POST",
-      body: JSON.stringify(request),
+      body: request as any,
     }
   );
 

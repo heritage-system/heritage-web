@@ -3,7 +3,8 @@ import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import Cropper from "react-easy-crop";
 import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
-
+import { uploadImage } from "../../services/uploadService";
+import toast from 'react-hot-toast';
 if (typeof window !== "undefined") {
   // @ts-ignore
   window.Quill = Quill;
@@ -157,7 +158,13 @@ const isBlobUrl = (u?: string) => !!u && u.startsWith("blob:");
 const deepClone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
 
 // Tạo handler có "đường dây nóng" để báo về file tạm
-function makeImageHandler(onBlobPicked: (blobUrl: string, file: File) => void) {
+// Tạo handler có hash-dedupe
+function makeImageHandler(
+  onBlobPicked: (blobUrl: string, file: File, hash: string) => void
+) {
+  // Map sống trong phiên editor: hash -> blobUrl (tái sử dụng)
+  const hashToBlobUrlRef = { current: new Map<string, string>() };
+
   return function thisImageHandler(this: any) {
     const q: Quill = this.quill;
     const input = document.createElement("input");
@@ -168,26 +175,23 @@ function makeImageHandler(onBlobPicked: (blobUrl: string, file: File) => void) {
       const file = (input.files ?? [])[0];
       if (!file) return;
 
-      // Tối ưu ảnh trước khi hiển thị
-      //const optimized = await downscaleImage(file);
-      
-      // Tạo blob URL chỉ để xem tại chỗ
-      const blobUrl = URL.createObjectURL(file);
-      console.log("Tạo blob URL:", blobUrl);
-      
-      // Vị trí hiện tại
+      // 1) Tính hash nội dung
+      const hash = await computeFileHash(file);
+
+      // 2) Nếu đã có hash → dùng lại blobUrl cũ; ngược lại tạo blobUrl mới
+      const existed = hashToBlobUrlRef.current.get(hash);
+      const blobUrl = existed ?? URL.createObjectURL(file);
+      if (!existed) {
+        hashToBlobUrlRef.current.set(hash, blobUrl);
+      }
+
+      // 3) Chèn ảnh
       const sel = q.getSelection(true);
       const at = sel?.index ?? 0;
-
-      // Chèn ảnh với object chứa blob URL
       q.insertEmbed(at, "image", blobUrl as unknown as string, "user");
-
-
-      // Đặt caret và căn giữa
       q.setSelection(at + 1, 0);
       q.formatLine(at + 1, 1, { align: "center" });
 
-      // Căn giữa <img> trong DOM
       setTimeout(() => {
         const editor = q.root as HTMLElement;
         const imgs = editor.querySelectorAll("img");
@@ -198,13 +202,14 @@ function makeImageHandler(onBlobPicked: (blobUrl: string, file: File) => void) {
         }
       }, 0);
 
-      // Báo cho component cha biết blob URL và file tương ứng
-      onBlobPicked(blobUrl, file);
+      // 4) Báo ngược lên cha kèm hash
+      onBlobPicked(blobUrl, file, hash);
     };
 
     input.click();
   };
 }
+
 
 function collectImageUrlsFromDelta(deltaOps: any[]): Set<string> {
   const urls = new Set<string>();
@@ -218,25 +223,32 @@ function collectImageUrlsFromDelta(deltaOps: any[]): Set<string> {
 }
 
 
-// Mock uploader lên Cloudinary (chỉ gọi khi submit)
 async function uploadToCloudinary(file: File): Promise<string> {
   console.log("Uploading to Cloudinary:", file.name);
-  
-  // Trong thực tế, bạn sẽ POST đến Cloudinary API
-  // const formData = new FormData();
-  // formData.append('file', file);
-  // formData.append('upload_preset', 'your_preset');
-  // const response = await fetch('https://api.cloudinary.com/v1_1/your_cloud/image/upload', {
-  //   method: 'POST',
-  //   body: formData
-  // });
-  // const data = await response.json();
-  // return data.secure_url;
 
-  // Mock delay để simulate upload
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return `https://res.cloudinary.com/demo/image/upload/w_600/${Date.now()}.jpg`;
+  const response = await uploadImage(file);
+
+  if (response?.code === 200 && response.result) {
+    return response.result;
+  }
+
+  toast.error( "Lưu ảnh thất bại!", {
+    duration: 5000,
+    position: "top-right",
+    style: { background: "#DC2626", color: "#fff" },
+    iconTheme: { primary: "#fff", secondary: "#DC2626" },
+  });
+
+  return "";
 }
+
+async function computeFileHash(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  const bytes = new Uint8Array(digest);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 
 // -----------------------------
 // CoverUploader with crop
@@ -371,7 +383,7 @@ const CoverUploader: React.FC<CoverUploaderProps> = ({ value, onChange }) => {
 interface RichTextEditorProps {
   initialDelta?: any;
   onChange?: (html: string, delta: any) => void;
-  onTempImage?: (blobUrl: string, file: File) => void;
+  onTempImage?: (blobUrl: string, file: File, hash: string) => void;
   onImagesChanged?: (urls: Set<string>) => void;
 }
 
@@ -399,9 +411,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ initialDelta, onChange,
             ["clean"],
           ],
           handlers: {
-            image: makeImageHandler((blobUrl, file) => {
-              console.log("Editor nhận blob URL:", blobUrl);
-              onTempImage?.(blobUrl, file);
+            image: makeImageHandler((blobUrl, file, hash) => {
+              onTempImage?.(blobUrl, file, hash); // 🔁 truyền hash lên cha
             }),
             caption: thisCaptionHandler,
           },
@@ -439,15 +450,26 @@ const ContributionFormPage: React.FC = () => {
   const [html, setHtml] = useState("");
   const [delta, setDelta] = useState<any>(null);
   const [saving, setSaving] = useState(false);
-  const [blobMap, setBlobMap] = useState<Map<string, File>>(new Map()); // Map blob URLs to Files
+  const [blobMap, setBlobMap] = useState<Map<string, { file: File; hash: string }>>(new Map());
+// hash -> primary blobUrl (để biết blobUrl đã có cho hash đó)
+const hashToBlobUrlRef = useRef<Map<string, string>>(new Map()); // Map blob URLs to Files
 
   const canSubmit = useMemo(() => title.trim().length > 0 && delta, [title, delta]);
 
   // Handler khi có ảnh tạm từ editor
-  const handleTempImage = (blobUrl: string, file: File) => {
-    console.log("Form nhận temp image:", blobUrl, file.name);
-    setBlobMap(prev => new Map(prev).set(blobUrl, file));
-  };
+  const handleTempImage = (blobUrl: string, file: File, hash: string) => {
+  // Nếu hash đã có → đặt blobUrl về blob cũ (đề phòng child tạo blob mới)
+  const existed = hashToBlobUrlRef.current.get(hash);
+  const finalBlobUrl = existed ?? blobUrl;
+  if (!existed) hashToBlobUrlRef.current.set(hash, finalBlobUrl);
+
+  setBlobMap(prev => {
+    const next = new Map(prev);
+    next.set(finalBlobUrl, { file, hash });
+    return next;
+  });
+};
+
 
   // Handler khi có cover tạm
   const handleCoverChange = (url: string, file?: File) => {
@@ -478,66 +500,63 @@ const ContributionFormPage: React.FC = () => {
       console.log("📝 Processing", ops.length, "operations");
 
       // 3. Cache để không upload cùng 1 blob nhiều lần
-      const uploadedMap = new Map<string, string>();
-      let uploadCount = 0;
+     const uploadedByHash = new Map<string, string>(); // hash -> cloudUrl
+let uploadCount = 0;
 
       // 4. Duyệt qua tất cả ops và upload images
       for (let i = 0; i < ops.length; i++) {
-        const op = ops[i];
-        
-        // Check nếu là image object
-        if (op?.insert?.image && typeof op.insert.image === "object") {
-          const imgUrl = op.insert.image.url;
-          if (!imgUrl || !isBlobUrl(imgUrl)) continue;
+  const op = ops[i];
 
-          // Nếu blob này đã upload trước đó → lấy lại
-          if (uploadedMap.has(imgUrl)) {
-            op.insert.image = { url: uploadedMap.get(imgUrl) };
-            continue;
-          }
+  // Trường hợp { image: { url } }
+  if (op?.insert?.image && typeof op.insert.image === "object") {
+    const imgUrl: string | undefined = op.insert.image.url;
+    if (!imgUrl || !isBlobUrl(imgUrl)) continue;
 
-          // Tìm file gốc từ blobMap
-          const file = blobMap.get(imgUrl);
-          if (!file) {
-            console.warn("⚠️ Không tìm thấy File cho blob URL:", imgUrl);
-            continue;
-          }
+    const info = blobMap.get(imgUrl);
+    if (!info) {
+      console.warn("⚠️ Không tìm thấy File cho blob URL:", imgUrl);
+      continue;
+    }
+    const { file, hash } = info;
 
-          console.log(`📤 Uploading image ${++uploadCount}:`, file.name);
-          const cloudUrl = await uploadToCloudinary(file);
-          console.log("✅ Image uploaded:", cloudUrl);
+    // Nếu đã upload hash này → dùng lại
+    if (uploadedByHash.has(hash)) {
+      op.insert.image = { url: uploadedByHash.get(hash)! };
+      continue;
+    }
 
-          // Thay thế trong op
-          op.insert.image = { url: cloudUrl };
-          uploadedMap.set(imgUrl, cloudUrl);
-          URL.revokeObjectURL(imgUrl);
-        }
-        
-        // Check nếu là image string (fallback)
-        else if (typeof op?.insert?.image === "string") {
-          const imgUrl = op.insert.image;
-          if (!isBlobUrl(imgUrl)) continue;
+    // Upload mới
+    const cloudUrl = await uploadToCloudinary(file);
+    uploadedByHash.set(hash, cloudUrl);
+    op.insert.image = { url: cloudUrl };
+    uploadCount++;
+    URL.revokeObjectURL(imgUrl);
+  }
 
-          if (uploadedMap.has(imgUrl)) {
-            op.insert.image = uploadedMap.get(imgUrl);
-            continue;
-          }
+  // Trường hợp image là string src
+  else if (typeof op?.insert?.image === "string") {
+    const imgUrl: string = op.insert.image;
+    if (!isBlobUrl(imgUrl)) continue;
 
-          const file = blobMap.get(imgUrl);
-          if (!file) {
-            console.warn("⚠️ Không tìm thấy File cho blob URL:", imgUrl);
-            continue;
-          }
+    const info = blobMap.get(imgUrl);
+    if (!info) {
+      console.warn("⚠️ Không tìm thấy File cho blob URL:", imgUrl);
+      continue;
+    }
+    const { file, hash } = info;
 
-          console.log(`📤 Uploading image ${++uploadCount} (string):`, file.name);
-          const cloudUrl = await uploadToCloudinary(file);
-          console.log("✅ Image uploaded:", cloudUrl);
-          
-          op.insert.image = cloudUrl;
-          uploadedMap.set(imgUrl, cloudUrl);
-          URL.revokeObjectURL(imgUrl);
-        }
-      }
+    if (uploadedByHash.has(hash)) {
+      op.insert.image = uploadedByHash.get(hash)!;
+      continue;
+    }
+
+    const cloudUrl = await uploadToCloudinary(file);
+    uploadedByHash.set(hash, cloudUrl);
+    op.insert.image = cloudUrl;
+    uploadCount++;
+    URL.revokeObjectURL(imgUrl);
+  }
+}
 
       // 5. Tạo HTML cuối cùng từ delta đã upload
       const finalHtml = htmlFromDeltaWithImgAlign(newDelta.ops);
@@ -549,7 +568,7 @@ const ContributionFormPage: React.FC = () => {
         contentHtml: finalHtml,
         contentDelta: newDelta,
         metadata: {
-          totalImages: uploadedMap.size,
+          totalImages: uploadedByHash.size,
           uploadTimestamp: new Date().toISOString(),
           originalBlobCount: blobMap.size
         }
@@ -616,13 +635,11 @@ const ContributionFormPage: React.FC = () => {
           <label className="block text-sm font-medium mb-2">Nội dung</label>
           <div className="rounded-xl border overflow-hidden">
             <RichTextEditor
-              initialDelta={delta}
-              onChange={(h, d) => {
-                setHtml(h);
-                setDelta(d);
-              }}
-              onTempImage={handleTempImage}
-            />
+  initialDelta={delta}
+  onChange={(h, d) => { setHtml(h); setDelta(d); }}
+  onTempImage={handleTempImage}
+/>
+
           </div>
           <p className="text-xs text-gray-500 mt-2">
             Ảnh sẽ được lưu tạm thời và upload lên Cloudinary khi đăng bài.

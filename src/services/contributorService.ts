@@ -20,7 +20,7 @@ export const createContributor = async (
     `${API_URL}/api/v1/contributors`,
     {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data as any,
     }
   );
 };
@@ -34,7 +34,7 @@ export const updateContributor = async (
     `${API_URL}/api/v1/contributors/${id}`,
     {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: data as any,
     }
   );
 };

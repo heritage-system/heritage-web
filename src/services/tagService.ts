@@ -12,7 +12,7 @@ export const createTag = async (
 ): Promise<ApiResponse<Tag>> => {
   return await fetchInterceptor<Tag>(`${API_URL}/api/v1/Tags`, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: data as any,
   });
 };
 
@@ -22,7 +22,7 @@ export const updateTag = async (
 ): Promise<ApiResponse<Tag>> => {
   return await fetchInterceptor<Tag>(`${API_URL}/api/v1/Tags`, {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: data as any,
   });
 };
 
@@ -32,7 +32,7 @@ export const deleteTag = async (
 ): Promise<ApiResponse<null>> => {
   return await fetchInterceptor<null>(`${API_URL}/api/v1/Tags`, {
     method: "DELETE",
-    body: JSON.stringify(data),
+    body: data as any,
   });
 };
 
