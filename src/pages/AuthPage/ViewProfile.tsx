@@ -1,6 +1,8 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getProfile, updateProfile } from "../../services/userService"; 
+import FavoriteHeritageList from "../../components/Auth/FavoriteHeritageList";
+
+import { getProfile, updateProfile } from "../../services/userService";
 import { UpdateProfileResponse, UpdateProfileRequest } from "../../types/user";
 
 interface HeritageItem {
@@ -60,6 +62,7 @@ const mockContributions: ContributionItem[] = [
 
 const MENU: MenuItem[] = [
   { key: "profile", label: "Thông tin cá nhân", icon: "👤" },
+  { key: "favorites", label: "Di sản yêu thích", icon: "❤️" },
   { key: "heritage", label: "Di sản đã tương tác", icon: "🏛️" },
   { key: "events", label: "Sự kiện đã tham gia", icon: "🎉" },
   { key: "quiz", label: "Lịch sử quiz", icon: "📝" },
@@ -78,7 +81,8 @@ const ViewProfile: React.FC = () => {
     description: "",
     type: "Bài viết",
   });
-  const [contributions, setContributions] = useState<ContributionItem[]>(mockContributions);
+  const [contributions, setContributions] =
+    useState<ContributionItem[]>(mockContributions);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -209,7 +213,9 @@ const ViewProfile: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
                 {/* Tên đăng nhập */}
                 <div>
-                  <span className="block text-xs text-gray-500">Tên đăng nhập</span>
+                  <span className="block text-xs text-gray-500">
+                    Tên đăng nhập
+                  </span>
                   {editMode ? (
                     <input
                       type="text"
@@ -305,14 +311,19 @@ const ViewProfile: React.FC = () => {
                       type="date"
                       value={formData.dateOfBirth?.split("T")[0] || ""}
                       onChange={(e) =>
-                        setFormData({ ...formData, dateOfBirth: e.target.value })
+                        setFormData({
+                          ...formData,
+                          dateOfBirth: e.target.value,
+                        })
                       }
                       className="w-full px-3 py-1 border rounded-xl"
                     />
                   ) : (
                     <span className="block bg-white rounded-xl px-3 py-1">
                       {profile.dateOfBirth
-                        ? new Date(profile.dateOfBirth).toLocaleDateString("vi-VN")
+                        ? new Date(profile.dateOfBirth).toLocaleDateString(
+                            "vi-VN"
+                          )
                         : ""}
                     </span>
                   )}
@@ -320,9 +331,21 @@ const ViewProfile: React.FC = () => {
               </div>
             </div>
           )}
+          {currentTab === "favorites" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-purple-700">
+                  Di sản yêu thích
+                </h2>
+              </div>
+              <FavoriteHeritageList />
+            </div>
+          )}
           {currentTab === "heritage" && (
             <div className="bg-purple-50 rounded-2xl p-4">
-              <h2 className="text-lg font-bold text-purple-700 mb-4">Di sản đã tương tác</h2>
+              <h2 className="text-lg font-bold text-purple-700 mb-4">
+                Di sản đã tương tác
+              </h2>
               <ul>
                 {mockHeritage.map((item, idx) => (
                   <li
@@ -336,14 +359,18 @@ const ViewProfile: React.FC = () => {
                   </li>
                 ))}
                 {mockHeritage.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                  <div className="text-gray-400 text-center">
+                    Chưa có dữ liệu
+                  </div>
                 )}
               </ul>
             </div>
           )}
           {currentTab === "events" && (
             <div className="bg-purple-50 rounded-2xl p-4">
-              <h2 className="text-lg font-bold text-purple-700 mb-4">Sự kiện đã tham gia</h2>
+              <h2 className="text-lg font-bold text-purple-700 mb-4">
+                Sự kiện đã tham gia
+              </h2>
               <ul>
                 {mockEvents.map((item, idx) => (
                   <li
@@ -355,14 +382,18 @@ const ViewProfile: React.FC = () => {
                   </li>
                 ))}
                 {mockEvents.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                  <div className="text-gray-400 text-center">
+                    Chưa có dữ liệu
+                  </div>
                 )}
               </ul>
             </div>
           )}
           {currentTab === "quiz" && (
             <div className="bg-purple-50 rounded-2xl p-4">
-              <h2 className="text-lg font-bold text-purple-700 mb-4">Lịch sử quiz</h2>
+              <h2 className="text-lg font-bold text-purple-700 mb-4">
+                Lịch sử quiz
+              </h2>
               <ul>
                 {mockQuiz.map((item, idx) => (
                   <li
@@ -376,7 +407,9 @@ const ViewProfile: React.FC = () => {
                   </li>
                 ))}
                 {mockQuiz.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                  <div className="text-gray-400 text-center">
+                    Chưa có dữ liệu
+                  </div>
                 )}
               </ul>
             </div>
@@ -384,7 +417,9 @@ const ViewProfile: React.FC = () => {
           {currentTab === "contributions" && (
             <div className="bg-purple-50 rounded-2xl p-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-purple-700">Đóng góp đã gửi</h2>
+                <h2 className="text-lg font-bold text-purple-700">
+                  Đóng góp đã gửi
+                </h2>
                 <button
                   onClick={() => handleMenuChange("add-contribution")}
                   className="px-3 py-1 text-sm bg-purple-600 text-white rounded-xl hover:bg-purple-700"
@@ -413,14 +448,18 @@ const ViewProfile: React.FC = () => {
                   </li>
                 ))}
                 {contributions.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
+                  <div className="text-gray-400 text-center">
+                    Chưa có dữ liệu
+                  </div>
                 )}
               </ul>
             </div>
           )}
           {currentTab === "add-contribution" && (
             <div className="bg-purple-50 rounded-2xl p-4">
-              <h2 className="text-lg font-bold text-purple-700 mb-4">Thêm đóng góp di sản</h2>
+              <h2 className="text-lg font-bold text-purple-700 mb-4">
+                Thêm đóng góp di sản
+              </h2>
               <div className="grid grid-cols-1 gap-4 text-sm text-gray-700">
                 <div>
                   <span className="block text-xs text-gray-500">Tiêu đề</span>
@@ -434,7 +473,9 @@ const ViewProfile: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <span className="block text-xs text-gray-500">Loại đóng góp</span>
+                  <span className="block text-xs text-gray-500">
+                    Loại đóng góp
+                  </span>
                   <select
                     name="type"
                     value={contributionForm.type}
