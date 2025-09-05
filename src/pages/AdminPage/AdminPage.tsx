@@ -18,6 +18,7 @@ import TagManagement from "../../components/Admin/TagManagement";
 import HeritageManagement from "../../components/Admin/HeritageManagement";
 import FileManagement from "../../components/Admin/FileManagement";
 import ApprovalManagement from "../../components/Admin/ApprovalManagement";
+import ReportManagement from "../../components/Admin/ReportManagement";
 
 interface HeritageAdminPanelProps {
   children?: React.ReactNode;
@@ -40,6 +41,7 @@ const HeritageAdminPanel: React.FC<HeritageAdminPanelProps> = ({ children }) => 
     { id: "heritage", label: "Quản lý di sản", icon: MapPin, component: HeritageManagement },
     { id: "files", label: "Quản lý tệp tin", icon: FileText, component: FileManagement },
     { id: "approvals", label: "Quản lý phê duyệt", icon: CheckSquare, component: ApprovalManagement },
+    { id: "reports", label: "Quản lý báo cáo", icon: Bell, component: ReportManagement },
   ];
 
   const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || UserManagement;

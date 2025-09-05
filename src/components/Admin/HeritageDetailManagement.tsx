@@ -433,27 +433,6 @@ const HeritageDetailPage: React.FC = () => {
                     
                   />
                   <DetailRow
-                    icon={<Globe className="w-4 h-4 text-blue-500" />}
-                    label="Bản đồ"
-                    value={
-                      heritage.mapUrl ? (
-                        <a
-                          href={heritage.mapUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all font-medium"
-                        >
-                          <Map size={14} />
-                          Xem trên bản đồ
-                          <ExternalLink size={12} />
-                        </a>
-                      ) : (
-                        <span className="text-gray-400">Chưa có liên kết</span>
-                      )
-                    }
-                    
-                  />
-                  <DetailRow
                     icon={<Clock className="w-4 h-4 text-gray-500" />}
                     label="Tạo lúc"
                     value={new Date(heritage.createdAt).toLocaleString('vi-VN')}
@@ -559,43 +538,44 @@ const HeritageDetailPage: React.FC = () => {
                         {heritage.locations.map((loc, i) => {
                           const line = [loc.addressDetail, loc.ward, loc.district, loc.province].filter(Boolean).join(", ");
                           const coords = loc.latitude && loc.longitude ? `${loc.latitude},${loc.longitude}` : null;
-                          const mapsHref = coords
-                            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coords)}`
-                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(line)}`;
                           
                           return (
                             <div key={i} className="relative group">
-                              <div className="p-5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 hover:shadow-lg transition-all duration-300">
-                                <div className="flex items-start gap-3">
-                                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                    <MapPinned className="w-5 h-5 text-green-600" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                      {line || "Địa chỉ không xác định"}
-                                    </div>
-                                    {coords && (
-                                      <div className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-600 rounded px-2 py-1 font-mono mb-3">
-                                        {loc.latitude}, {loc.longitude}
-                                      </div>
-                                    )}
-                                    <a 
-                                      href={mapsHref} 
-                                      target="_blank" 
-                                      rel="noreferrer" 
-                                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline transition-all"
-                                    >
-                                      <Globe size={14} />
-                                      Mở Google Maps
-                                      <ExternalLink size={12} />
-                                    </a>
-                                  </div>
-                                  <button className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                    <MoreVertical size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
+  <div className="p-5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 hover:shadow-lg transition-all duration-300">
+    <div className="flex items-start gap-3">
+      {/* Icon */}
+      <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+        <MapPinned className="w-5 h-5 text-green-600" />
+      </div>
+
+      {/* Nội dung */}
+      <div className="flex-1">
+        {/* Địa chỉ */}
+        <div className="font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          {line || "Địa chỉ không xác định"}
+        </div>
+
+        {/* Chi tiết thông tin */}
+        <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+          <li><span className="font-medium text-gray-800 dark:text-gray-100">Tỉnh/TP:</span> {loc.province}</li>
+          <li><span className="font-medium text-gray-800 dark:text-gray-100">Quận/Huyện:</span> {loc.district}</li>
+          <li className="flex items-center gap-2">
+            <span className="font-medium text-gray-800 dark:text-gray-100">Tọa độ:</span>
+            <span className="font-mono bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded text-xs">
+              {loc.latitude}, {loc.longitude}
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      {/* Menu button */}
+      <button className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <MoreVertical size={16} />
+      </button>
+    </div>
+  </div>
+</div>
+
                           );
                         })}
                       </div>
@@ -765,51 +745,59 @@ const HeritageDetailPage: React.FC = () => {
   {/* Content */}
   {expandedSections.occurrences && (
     <div className="p-6 transition-all duration-300">
-      {heritage.occurrences && heritage.occurrences.length > 0 ? (
-        <div className="space-y-4">
-          {heritage.occurrences.map((o) => (
-            <div
-              key={o.id}
-              className="relative group"
-            >
-              <div className="p-5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gradient-to-br from-orange-50 via-white to-yellow-50 dark:from-orange-900/20 dark:via-gray-800 dark:to-yellow-900/20 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-white dark:bg-gray-700 border-2 border-orange-200 dark:border-orange-600 shadow-md rounded-xl px-4 py-3 text-center min-w-[80px]">
-                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{o.startDay}</div>
-                    <div className="text-xs uppercase text-gray-500 font-medium">Th.{o.startMonth}</div>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
-                      {o.occurrenceType === "EXACTDATE" ? "Ngày cố định" : o.occurrenceType}
-                    </h4>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      <Pill color="orange" size="sm">
-                        {o.calendarType === "LUNAR" ? "Âm lịch" : "Dương lịch"}
-                      </Pill>
-                      <Pill color="blue" size="sm">
-                        {o.frequency === "ANNUAL" ? "Hằng năm" : o.frequency}
-                      </Pill>
-                    </div>
-                  </div>
+  {heritage.occurrences && heritage.occurrences.length > 0 ? (
+    <div className="space-y-4">
+      {heritage.occurrences.map((o) => (
+        <div key={o.id} className="relative group">
+          <div className="p-5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gradient-to-br from-orange-50 via-white to-yellow-50 dark:from-orange-900/20 dark:via-gray-800 dark:to-yellow-900/20 hover:shadow-lg transition-all duration-300">
+            
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="bg-white dark:bg-gray-700 border-2 border-orange-200 dark:border-orange-600 shadow-md rounded-xl px-4 py-3 text-center min-w-[80px]">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{o.startDay}</div>
+                <div className="text-xs uppercase text-gray-500 font-medium">Th.{o.startMonth}</div>
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                  {o.occurrenceType === "EXACTDATE" ? "Ngày cố định" : "Khoảng thời gian"}
+                </h4>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  {o.startDay}/{o.startMonth} - {o.endDay}/{o.endMonth}
                 </div>
-                {o.description && (
-                  <div className="mt-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-lg border border-orange-100 dark:border-orange-800">
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {o.description}
-                    </p>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <Pill color="orange" size="sm">
+                    {o.calendarType === "LUNAR" ? "Âm lịch" : "Dương lịch"}
+                  </Pill>
+                  <Pill color="blue" size="sm">
+                    {o.frequency === "ANNUAL" ? "Hằng năm" : o.frequency}
+                  </Pill>
+                </div>
+              </div>
+              <div className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+                ID #{o.id}
               </div>
             </div>
-          ))}
+
+            {/* Mô tả (chỉ in description) */}
+            {o.description && (
+              <div className="mt-3 p-3 bg-white/70 dark:bg-gray-700/50 rounded-lg border border-orange-100 dark:border-orange-800">
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                  {o.description}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="text-center py-8">
-          <CalendarDays className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <p className="text-gray-500 italic">Chưa có thông tin sự kiện</p>
-        </div>
-      )}
+      ))}
     </div>
+  ) : (
+    <div className="text-center py-8">
+      <CalendarDays className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+      <p className="text-gray-500 italic">Chưa có thông tin sự kiện</p>
+    </div>
+  )}
+</div>
+
   )}
 </div>
 

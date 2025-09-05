@@ -20,6 +20,8 @@ import ViewProfile from './pages/AuthPage/ViewProfile';
 import CallbackGoogle from './pages/oauth2/callback/google/page';
 import AdminPage from './pages/AdminPage/AdminPage';
 import HeritageDetailManagement from './components/Admin/HeritageDetailManagement';
+import ReportManagement from './components/Admin/ReportManagement';
+import ReportDetailManagement from './components/Admin/ReportDetailManagement';
 
 const App: React.FC = () => {
   return (
@@ -42,6 +44,8 @@ const App: React.FC = () => {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/heritage/:id" element={<HeritageDetailManagement />} />
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
+        <Route path="/admin/reports" element={<ReportManagement />} />
+        <Route path="/reports/:id" element={<ReportDetailManagement />} />
 
 
       </Routes>
