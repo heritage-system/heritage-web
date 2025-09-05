@@ -7,11 +7,11 @@ import {
   ChevronLeft,
   Bookmark,
   Share2,
-  Heart,
   Tag,
   Image as ImageIcon,
 } from "lucide-react";
-import { HeritageSearchResponse } from '../../types/heritage';
+import { HeritageSearchResponse } from "../../types/heritage";
+import FavoriteButton from "../Heritage/FavoriteButton";
 
 interface Props {
   heritage: HeritageSearchResponse;
@@ -56,9 +56,13 @@ export const HeritageHero: React.FC<Props> = ({
     addressDetail?: string;
   }) => {
     if (!loc) return "Không xác định";
-    
-    const parts = [loc.province,loc.district, loc.ward,loc.addressDetail ]
-      .filter((x) => x && x.trim() !== "");
+
+    const parts = [
+      loc.province,
+      loc.district,
+      loc.ward,
+      loc.addressDetail,
+    ].filter((x) => x && x.trim() !== "");
 
     return parts.length > 0 ? parts.join(", ") : "Không xác định";
   };
@@ -68,11 +72,14 @@ export const HeritageHero: React.FC<Props> = ({
       {/* <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/10 pointer-events-none rounded-b-3xl"/> */}
       <div className=" md:h-[360px] w-full overflow-hidden rounded-b-3xl">
         {heroImage ? (
-          <img src={heroImage} alt={heritage.name}
-               className="w-full h-full object-cover" />
+          <img
+            src={heroImage}
+            alt={heritage.name}
+            className="w-full h-full object-cover"
+          />
         ) : (
           <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <ImageIcon className="w-10 h-10 text-gray-400"/>
+            <ImageIcon className="w-10 h-10 text-gray-400" />
           </div>
         )}
       </div>
@@ -105,28 +112,34 @@ export const HeritageHero: React.FC<Props> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: .4 }}
+        transition={{ duration: 0.4 }}
         className="-mt-16 md:-mt-12 relative"
       >
         <div className="mx-auto max-w-6xl px-4">
           <div className="bg-white rounded-2xl shadow-sm border p-5 md:p-6">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{heritage.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  {heritage.name}
+                </h1>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
                   {firstLoc && (
                     <Pill>
-                      <MapPin className="w-4 h-4"/> {formatLocation(firstLoc)}
+                      <MapPin className="w-4 h-4" /> {formatLocation(firstLoc)}
                     </Pill>
                   )}
                   {firstOcc && (
                     <Pill>
-                      <Calendar className="w-4 h-4"/>
-                      {firstOcc.startDay}/{firstOcc.startMonth} ({calendarLabel[firstOcc.calendarTypeName] || firstOcc.calendarTypeName})
+                      <Calendar className="w-4 h-4" />
+                      {firstOcc.startDay}/{firstOcc.startMonth} (
+                      {calendarLabel[firstOcc.calendarTypeName] ||
+                        firstOcc.calendarTypeName}
+                      )
                     </Pill>
                   )}
                   <Pill>
-                    <Users className="w-4 h-4"/> {heritage.categoryName || "Danh mục"}
+                    <Users className="w-4 h-4" />{" "}
+                    {heritage.categoryName || "Danh mục"}
                   </Pill>
                   {heritage.isFeatured && <Pill>⭐ Nổi bật</Pill>}
                 </div>
@@ -135,28 +148,23 @@ export const HeritageHero: React.FC<Props> = ({
                 {heritage.heritageTags?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {heritage.heritageTags.map((t, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 text-xs bg-yellow-50 text-yellow-800 px-2 py-1 rounded-full border border-yellow-100">
-                        <Tag className="w-3 h-3"/> {t}
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 text-xs bg-yellow-50 text-yellow-800 px-2 py-1 rounded-full border border-yellow-100"
+                      >
+                        <Tag className="w-3 h-3" /> {t}
                       </span>
                     ))}
                   </div>
                 )}
               </div>
 
-              <button
-                onClick={onLike}
-                className={`self-start inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition ${liked?"bg-red-50 border-red-200 text-red-600":"bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}
-              >
-                <Heart className={`w-5 h-5 ${liked?"fill-current":""}`}/>
-                {liked?"Đã thích":"Yêu thích"}
-              </button>
+              <FavoriteButton heritageId={heritage.id} size="md" />
             </div>
 
             {/* Quick intro */}
             {heritage.description && (
-              <p className="mt-3 text-gray-700 leading-relaxed">
-                {quickIntro}
-              </p>
+              <p className="mt-3 text-gray-700 leading-relaxed">{quickIntro}</p>
             )}
           </div>
         </div>

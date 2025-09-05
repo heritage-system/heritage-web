@@ -22,7 +22,7 @@ import AdminPage from './pages/AdminPage/AdminPage';
 import HeritageDetailManagement from './components/Admin/HeritageDetailManagement';
 import ReportManagement from './components/Admin/ReportManagement';
 import ReportDetailManagement from './components/Admin/ReportDetailManagement';
-
+import ContributionFormPage from './pages/ContributionPage/ContributionFormPage';
 const App: React.FC = () => {
   return (
     <Router>
@@ -40,6 +40,7 @@ const App: React.FC = () => {
         <Route path="/heritagedetail/:id" element={<MainLayout><HeritageDetailPage /></MainLayout>} />
         <Route path="/quizdetailview" element={<MainLayout><QuizDetailView /></MainLayout>} />
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
+        <Route path="/contribution-form" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/heritage/:id" element={<HeritageDetailManagement />} />

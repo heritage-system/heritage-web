@@ -18,6 +18,7 @@ import TagManagement from "../../components/Admin/TagManagement";
 import HeritageManagement from "../../components/Admin/HeritageManagement";
 import FileManagement from "../../components/Admin/FileManagement";
 import ApprovalManagement from "../../components/Admin/ApprovalManagement";
+import ContributorManagement from "../../components/Admin/ContributorManagement";
 import ReportManagement from "../../components/Admin/ReportManagement";
 
 interface HeritageAdminPanelProps {
@@ -38,6 +39,7 @@ const HeritageAdminPanel: React.FC<HeritageAdminPanelProps> = ({ children }) => 
     { id: "users", label: "Quản lý người dùng", icon: Users, component: UserManagement },
     { id: "categories", label: "Quản lý danh mục", icon: List, component: CategoryManagement },
     { id: "tags", label: "Quản lý thể loại", icon: List, component: TagManagement },
+    { id: "contributors", label: "Quản lý người đóng góp", icon: List, component: ContributorManagement },
     { id: "heritage", label: "Quản lý di sản", icon: MapPin, component: HeritageManagement },
     { id: "files", label: "Quản lý tệp tin", icon: FileText, component: FileManagement },
     { id: "approvals", label: "Quản lý phê duyệt", icon: CheckSquare, component: ApprovalManagement },

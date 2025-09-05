@@ -12,7 +12,7 @@ import { fetchInterceptor } from "../utils/interceptor";
 export const registration = async (data: UserCreationRequest): Promise<ApiResponse<UserCreationResponse>> => {
     const response = await fetchInterceptor(`${API_URL}/api/v1/users`, {
         method: "POST",
-        body: JSON.stringify(data)
+        body: data as any,
     })
 
     //const result: ApiResponse<UserCreationResponse> = await response.json();
@@ -35,7 +35,7 @@ export const updateProfile = async (
     `${API_URL}/api/v1/users/profile`,
     {
       method: "PUT",
-      body: JSON.stringify(request),
+      body: request as any,
     }
   );
 };
