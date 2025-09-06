@@ -23,6 +23,7 @@ import HeritageDetailManagement from './components/Admin/HeritageDetailManagemen
 import ReportManagement from './components/Admin/ReportManagement';
 import ReportDetailManagement from './components/Admin/ReportDetailManagement';
 import ContributionFormPage from './pages/ContributionPage/ContributionFormPage';
+import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 const App: React.FC = () => {
   return (
     <Router>
@@ -47,6 +48,7 @@ const App: React.FC = () => {
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
         <Route path="/admin/reports" element={<ReportManagement />} />
         <Route path="/reports/:id" element={<ReportDetailManagement />} />
+        <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
 
 
       </Routes>

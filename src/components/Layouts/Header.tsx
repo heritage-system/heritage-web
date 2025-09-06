@@ -64,7 +64,9 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             { label: 'Khám phá', path: '/DiscoveryPage' },
             { label: 'VR Tours', path: '/VRToursPage' },
             { label: 'Học tập', path: '/QuizzPage' },
-            { label: 'Cộng đồng', path: '/CommunityPage' }          
+            { label: 'Cộng đồng', path: '/CommunityPage' },     
+            { label: 'Bài viết', path: '/contributions' }        
+            
           ].map((item, idx) => (
             <Link
               key={idx}
