@@ -1,31 +1,37 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Swal from "sweetalert2"; 
-
+import toast from 'react-hot-toast';
+import { ForgotPasswordRequest } from "../../types/auth";
+import { forgotPassword} from "../../services/authService";
 const ForgotPassword: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
+  const [form, setForm] = useState<ForgotPasswordRequest>({ email: ""});
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // TODO: Xử lý gửi email đặt lại mật khẩu ở đây
-    Swal.fire({
-      icon: "success",
-      title: "Thành công!",
-      text: "Đã gửi hướng dẫn đặt lại mật khẩu tới email của bạn!",
-      confirmButtonText: "OK",
-      timer: 2000,
-      timerProgressBar: true,
-      position: "top-end",
-    }).then(() => {
-      navigate("/reset-password");
-    });
-  };
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  try {
+      const res = await forgotPassword(form); 
+
+      if (res.code === 200) {
+        toast.success("Đã gửi hướng dẫn đặt lại mật khẩu tới email của bạn!");
+        setTimeout(() => {
+          toast.dismiss();        
+          navigate("/reset-password", { state: { emailForm: form } });
+
+        }, 1000);
+      } else {
+        toast.error(res.message || "Gửi email thất bại!");
+      }
+    } catch (err) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
+  };
   return (
     <div className="relative w-full min-h-screen">
       <div
@@ -58,7 +64,7 @@ const ForgotPassword: React.FC = () => {
               name="email"
               type="email"
               placeholder="example@email.com"
-              value={email}
+              value={form.email}
               onChange={handleChange}
               className="mb-6 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
               required

@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback ,useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { SignInWithGoogle } from '../../../../services/authService';
@@ -17,88 +17,58 @@ function CallbackGoogle() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string>('');
-  const [hasAttempted, setHasAttempted] = useState(false);
+  const hasAttemptedRef = useRef(false); // dùng ref thay vì state
 
   const { login: authLogin } = useAuth();
 
   const handleSendCode = useCallback(async (code: string) => {
-    if (isLoading && hasAttempted) return;
-    setHasAttempted(true);
+    if (hasAttemptedRef.current) return;
+    hasAttemptedRef.current = true;
 
     try {
       const data = await SignInWithGoogle(code);
-      if (data.result && data.result.accessToken) {
+      if (data.code === 200) {
         localStorage.setItem('accessToken', data.result.accessToken);
         localStorage.setItem('refreshToken', data.result.refreshToken);
         authLogin(data.result);
-
-        toast.success('Đăng nhập Google thành công! 🎉', {
-          duration: 3000,
-          position: 'top-right',
-        });
-
+    
         setTimeout(() => {
+          toast.dismiss();
           navigate('/');
         }, 1500);
       } else {
-        console.error('Auth response:', data);
         setError('Không thể xử lý phản hồi từ Google. Vui lòng thử lại sau.');
       }
-    } catch (error: unknown) {
-      console.error('Google auth error:', error);
-      let errorMessage = 'Lỗi không xác định';
-      let extractedCode = '';
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        const statusMatch = error.message.match(/status:?\s*(\d{3})/i);
-        if (statusMatch) {
-          extractedCode = statusMatch[1];
-        }
-      }
-
-      if (extractedCode === '401') {
-        setError('Phiên xác thực đã hết hạn. Vui lòng đăng nhập lại.');
-        setErrorCode('401');
-      } else if (extractedCode === '403') {
-        setError('Tài khoản Google của bạn không có quyền truy cập ứng dụng này.');
-        setErrorCode('403');
-      } else if (extractedCode === '500') {
-        setError('Máy chủ đang bảo trì. Vui lòng thử lại sau vài phút.');
-        setErrorCode('500');
-      } else {
-        setError(`Lỗi xác thực Google: ${errorMessage}`);
-        setErrorCode(extractedCode || 'UNKNOWN');
-      }
+    } catch (err) {
+      setError('Có lỗi xảy ra khi xác thực Google.');
     } finally {
       setIsLoading(false);
     }
-  }, [navigate, authLogin, isLoading, hasAttempted]);
+  }, [navigate, authLogin]);
 
   const handleRetry = useCallback(() => {
     if (code) {
       setError(null);
       setErrorCode('');
       setIsLoading(true);
-      setHasAttempted(false);
+      hasAttemptedRef.current = false;
       toast.loading('Đang thử lại xác thực...', { duration: 2000 });
       handleSendCode(code);
     }
   }, [code, handleSendCode]);
 
-  const handleGoHome = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
-
   useEffect(() => {
-    if (code && !hasAttempted) {
+    if (code) {
       handleSendCode(code);
-    } else if (!code) {
+    } else {
       setError('Không tìm thấy mã xác thực. Vui lòng thử đăng nhập lại.');
       setErrorCode('AUTH_CODE_MISSING');
       setIsLoading(false);
     }
-  }, [code, handleSendCode, hasAttempted]);
+  }, [code, handleSendCode]);
+    const handleGoHome = useCallback(() => {
+    navigate('/');
+    }, [navigate]);
 
   return (
     <AuthCallbackLayout

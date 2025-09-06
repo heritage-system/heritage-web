@@ -1,18 +1,15 @@
 export interface UserCreationRequest {
     email: string;
-    phone: string;
+    username: string;
     password: string;
-    firstName: string;
-    lastName: string;
-    dob: string;
+    fullName: string;   
+   
 }
 
 export interface UserCreationResponse {
     email: string;
-    phone: string;
-    firstName: string;
-    lastName: string;
-    dob: string;
+    username: string;   
+    fullName: string; 
     userType: string;
 }
 
@@ -80,4 +77,24 @@ export interface AppointmentSummary {
   reasonForVisit: string;
   consultationFee: number;
   totalFee: number;
+}
+
+export interface UpdateProfileRequest {
+  fullName?: string;
+  email?: string;
+  userName?: string;
+  phone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  avatarUrl?: string;
+}
+
+export interface UpdateProfileResponse {
+  userName: string;
+  email: string;
+  fullName: string;
+  phone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  avatarUrl?: string;
 }

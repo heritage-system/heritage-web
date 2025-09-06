@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+   
     "target": "ES6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -15,7 +16,8 @@
     "baseUrl": "src",
     "paths": {
       "@/*": ["*"]
-    }
+    },
+    "types": ["react", "react-dom"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
