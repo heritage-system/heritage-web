@@ -38,19 +38,19 @@ async function refreshAccessToken(): Promise<boolean> {
   if (!accessToken) return false;
 
   try {
+    const refreshToken = tokenStorage.getRefreshToken();
+
     const response = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(refreshToken), 
     });
-
     if (!response.ok) throw new Error('Refresh failed');
 
     const data = await response.json().catch(() => null);
-    // tuỳ cấu trúc BE của anh, em giữ nguyên:
+ 
     tokenStorage.setAccessToken(data?.data?.accessToken ?? data?.result ?? data?.accessToken);
+    tokenStorage.setRefreshToken(data?.data?.refreshToken ?? data?.result ?? data?.refreshToken)
     return true;
   } catch {
     return false;
@@ -96,6 +96,7 @@ export const fetchInterceptor = async <T = any>(
   if (!isPublic) {
     const token = tokenStorage.getAccessToken();
     if (token) headers.set('Authorization', `Bearer ${token}`);
+    console.log("Lan 1:" + token)
   }
 
   const requestOptions: RequestInit = {
@@ -115,9 +116,12 @@ export const fetchInterceptor = async <T = any>(
         await refreshingPromise;
         const newToken = tokenStorage.getAccessToken();
         if (newToken) headers.set('Authorization', `Bearer ${newToken}`);
+        console.log("Lan 2:" + newToken)
         response = await fetch(url, { ...requestOptions, headers });
+
       } catch (error) {
         console.error('Token refresh failed:', error);
+        
         window.location.href = '/login';
         return { code: 401, message: 'Unauthorized' };
       }
