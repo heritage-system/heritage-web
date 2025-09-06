@@ -1,6 +1,6 @@
 import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
-import { HeritageSearchRequest, HeritageSearchResponse } from "../types/heritage";
+import { HeritageSearchRequest, HeritageSearchResponse, HeritageAdmin, HeritageDetail} from "../types/heritage";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 
@@ -27,6 +27,7 @@ export const searchHeritage = async (
 
   return response;
 };
+
 export const getHeritageDetail = async (id: number): Promise<ApiResponse<HeritageSearchResponse>> => {
   const queryString = new URLSearchParams({ id: id.toString() });
 
@@ -37,4 +38,65 @@ export const getHeritageDetail = async (id: number): Promise<ApiResponse<Heritag
     }
   );
 };
+
+
+export async function fetchHeritages(params: {
+  page: number;
+  pageSize: number;
+  keyword?: string;
+  categoryId?: string;
+  tagId?: string;
+}): Promise<ApiResponse<PageResponse<HeritageAdmin>>> {
+  const query = new URLSearchParams({
+    page: params.page.toString(),
+    pageSize: params.pageSize.toString(),
+    keyword: params.keyword || "",
+    categoryId: params.categoryId || "",
+    tagId: params.tagId || "",
+  });
+
+  const response = await fetchInterceptor<PageResponse<HeritageAdmin>>(
+    `${API_URL}/api/Heritage/all?${query}`,
+    {
+      method: "GET"
+    }
+  );
+
+  return response;
+}
+
+export const fetchHeritageDetail = async (
+  id: number
+): Promise<ApiResponse<HeritageDetail>> => {
+  const response = await fetchInterceptor<ApiResponse<HeritageDetail>>(
+    `${API_URL}/api/Heritage/id?id=${id}`,
+    {
+      method: "GET"
+    }
+  );
+
+  return response.result!;
+};
+
+export const deleteHeritage = async (id: number): Promise<ApiResponse<void>> => {
+  const response = await fetchInterceptor<void>(
+    `${API_URL}/api/Heritage/delete?id=${id}`,
+    {
+      method: "DELETE"
+    }
+  );
+
+  if (response.code !== 200) {
+    throw new Error(response.message || "Xoá di sản thất bại");
+  }
+
+  return response;
+};
+
+
+
+
+
+
+
 
