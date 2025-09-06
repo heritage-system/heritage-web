@@ -62,18 +62,10 @@ function DataTable<T extends { id: number }>({
                       className="text-blue-600 hover:text-blue-900"
                       title="Xem"
                     >
-                      <Eye size={16} />
-                    </button>
-                  )}
-                  {onAnswer && (
-                    <button
-                      onClick={() => onAnswer(item)}
-                      className="text-green-600 hover:text-green-900"
-                      title="Trả lời"
-                    >
                       <MessageSquare size={16} />
                     </button>
                   )}
+                  
                 </div>
               </td>
             </tr>
