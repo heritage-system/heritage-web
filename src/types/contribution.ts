@@ -1,4 +1,5 @@
 import { ContributionStatus} from "./enum";
+
 export interface ContributionCreateRequest {
   title: string,
   content: string,
