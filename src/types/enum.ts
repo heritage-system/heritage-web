@@ -23,3 +23,9 @@ export enum ContributorStatus {
   ACTIVE = "ACTIVE",
   SUSPENDED = "SUSPENDED",
 }
+
+export enum ContributionStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
