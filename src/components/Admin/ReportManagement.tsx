@@ -1,17 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Eye, Trash2, AlertTriangle, X, Filter, MessageSquare } from "lucide-react";
+import { Eye, AlertTriangle, X, MessageSquare } from "lucide-react";
 import Pagination from "../Layouts/Pagination";
 import SearchFilter from "./SearchFilter";
 import { TableProps, ReportItem, TableColumn } from "../../types/report";
-import { fetchReports, deleteReport, answerReport } from "../../services/reportService";
+import { fetchReports, answerReport } from "../../services/reportService";
 import { useNavigate } from "react-router-dom";
 
-// ===================== Generic DataTable =====================
 function DataTable<T extends { id: number }>({
   data,
   columns,
   onView,
-  onDelete,
   onAnswer,
   loading = false,
 }: TableProps<T> & { onAnswer?: (item: T) => void }) {
@@ -59,18 +57,21 @@ function DataTable<T extends { id: number }>({
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex items-center justify-end space-x-2">
                   {onView && (
-                    <button onClick={() => onView(item)} className="text-blue-600 hover:text-blue-900" title="Xem">
+                    <button
+                      onClick={() => onView(item)}
+                      className="text-blue-600 hover:text-blue-900"
+                      title="Xem"
+                    >
                       <Eye size={16} />
                     </button>
                   )}
                   {onAnswer && (
-                    <button onClick={() => onAnswer(item)} className="text-green-600 hover:text-green-900" title="Trả lời">
+                    <button
+                      onClick={() => onAnswer(item)}
+                      className="text-green-600 hover:text-green-900"
+                      title="Trả lời"
+                    >
                       <MessageSquare size={16} />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button onClick={() => onDelete(item)} className="text-red-600 hover:text-red-900" title="Xóa">
-                      <Trash2 size={16} />
                     </button>
                   )}
                 </div>
@@ -94,29 +95,55 @@ const ReportManagement: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const itemsPerPage = 10;
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<
+    "PENDING" | "ANSWERED" | "CANCEL"
+  >("PENDING");
+
+  // ✅ State để lưu tổng số báo cáo theo từng trạng thái
+  const [statusCounts, setStatusCounts] = useState({
+    PENDING: 0,
+    ANSWERED: 0,
+    CANCEL: 0,
+  });
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await fetchReports({ page: currentPage, pageSize: itemsPerPage, keyword: searchTerm });
+        const res = await fetchReports({
+          page: currentPage,
+          pageSize: itemsPerPage,
+          keyword: searchTerm,
+          startDate,
+          endDate,
+          status: statusFilter,
+        });
         const result = res.result;
         setReports(result?.items || []);
         setTotalPages(result?.totalPages || 1);
         setTotalElements(result?.totalElements || 0);
+
+        const [pendingRes, answeredRes, cancelRes] = await Promise.all([
+          fetchReports({ page: 1, pageSize: 10, status: "PENDING" }),
+          fetchReports({ page: 1, pageSize: 10, status: "ANSWERED" }),
+          fetchReports({ page: 1, pageSize: 10, status: "CANCEL" }),
+        ]);
+
+        setStatusCounts({
+          PENDING: pendingRes.result?.totalElements || 0,
+          ANSWERED: answeredRes.result?.totalElements || 0,
+          CANCEL: cancelRes.result?.totalElements || 0,
+        });
       } finally {
         setLoading(false);
       }
     };
+
     load();
-  }, [currentPage, itemsPerPage, searchTerm]);
+  }, [currentPage, searchTerm, startDate, endDate, statusFilter]);
 
-  // Stats
-  const stats = useMemo(() => {
-    return { total: totalElements };
-  }, [totalElements]);
-
-  // Columns
   const columns: TableColumn<ReportItem>[] = [
     { key: "id", label: "ID" },
     { key: "userName", label: "User Name" },
@@ -124,8 +151,11 @@ const ReportManagement: React.FC = () => {
     {
       key: "reason",
       label: "Lý do",
-      render: (v: string) => (v && v.length > 40 ? <span title={v}>{v.slice(0, 40)}...</span> : v),
+      render: (v: string) =>
+        v && v.length > 40 ? <span title={v}>{v.slice(0, 40)}...</span> : v,
     },
+    { key: "status", label: "Trạng thái",
+    render: (v: string) => statusLabels[v as keyof typeof statusLabels] || v },
     {
       key: "createdAt",
       label: "Ngày tạo",
@@ -133,25 +163,36 @@ const ReportManagement: React.FC = () => {
     },
   ];
 
-  // Handlers
-  const handleView = (item: ReportItem) => setViewReport(item);
-  const handleDelete = (item: ReportItem) => setConfirmDelete(item);
+  const statusLabels: Record<string, string> = {
+  PENDING: "Đang chờ",
+  ANSWERED: "Đã trả lời",
+  CANCEL: "Đã hủy",
+};
+
+
   const handleAnswer = (item: ReportItem) => setSelectedReport(item);
   const navigate = useNavigate();
 
   const [viewReport, setViewReport] = useState<ReportItem | null>(null);
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
   const [answerText, setAnswerText] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState<ReportItem | null>(null);
 
   const handleSubmitAnswer = async () => {
     if (!selectedReport || !answerText.trim()) return;
     try {
-      await answerReport({ reportId: selectedReport.id, answer: answerText.trim() });
+      await answerReport({
+        reportId: selectedReport.id,
+        answer: answerText.trim(),
+      });
       setSelectedReport(null);
       setAnswerText("");
       // Refresh the list after answering
-      const res = await fetchReports({ page: currentPage, pageSize: itemsPerPage, keyword: searchTerm });
+      const res = await fetchReports({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        keyword: searchTerm,
+        status: statusFilter,
+      });
       const result = res.result;
       setReports(result?.items || []);
       setTotalPages(result?.totalPages || 1);
@@ -161,56 +202,109 @@ const ReportManagement: React.FC = () => {
     }
   };
 
-  const confirmDeleteAction = async () => {
-    if (!confirmDelete) return;
-    try {
-      await deleteReport(confirmDelete.id);
-      const res = await fetchReports({ page: currentPage, pageSize: itemsPerPage, keyword: searchTerm });
-      const result = res.result;
-      setReports(result?.items || []);
-      setTotalPages(result?.totalPages || 1);
-      setTotalElements(result?.totalElements || 0);
-    } finally {
-      setConfirmDelete(null);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Quản lý báo cáo</h2>
-        <div className="flex items-center gap-2">
-          <button className="px-3 py-2 rounded-md border bg-white hover:bg-gray-50 flex items-center gap-2">
-            <Filter size={16} />
-            Bộ lọc nâng cao
-          </button>
-        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border bg-white p-4 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-slate-50 text-slate-600">
-            <AlertTriangle size={20} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { key: "PENDING", label: "Đang chờ", color: "bg-yellow-100 text-yellow-700" },
+          { key: "ANSWERED", label: "Đã trả lời", color: "bg-green-100 text-green-700" },
+          { key: "CANCEL", label: "Đã hủy", color: "bg-red-100 text-red-700" },
+        ].map((item) => (
+          <div
+            key={item.key}
+            className="rounded-xl border bg-white p-4 flex items-center gap-3"
+          >
+            <div className={`p-2 rounded-lg ${item.color}`}>
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">{item.label}</p>
+              <p className="text-xl font-semibold">
+                {statusCounts[item.key as keyof typeof statusCounts]}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">Tổng báo cáo</p>
-            <p className="text-xl font-semibold">{stats.total}</p>
+        ))}
+      </div>
+
+      {/* Search + Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 pl-4 pr-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Ô tìm kiếm */}
+          <div className="flex-1 pt-5">
+            <SearchFilter
+              searchTerm={searchTerm}
+              onSearchChange={(v) => {
+                setSearchTerm(v);
+                setCurrentPage(1);
+              }}
+              filters={[]}
+              onFilterChange={() => {}}
+            />
+          </div>
+
+          {/* Bộ lọc ngày + Nút Xóa */}
+          <div className="flex items-center gap-3">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Từ ngày"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Đến ngày"
+            />
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setStartDate("");
+                setEndDate("");
+                setCurrentPage(1);
+              }}
+              className="h-10 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              Xóa bộ lọc
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Search + Filters */}
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={(v) => {
-          setSearchTerm(v);
-          setCurrentPage(1);
-        }}
-        filters={[]}
-        onFilterChange={() => {}}
-      />
+      <div className="flex gap-2 border-b border-gray-200 mb-6">
+        {[
+          { key: "PENDING", label: "Đang chờ", icon: <AlertTriangle className="w-4 h-4" /> },
+          { key: "ANSWERED", label: "Đã trả lời", icon: <MessageSquare className="w-4 h-4" /> },
+          { key: "CANCEL", label: "Đã hủy", icon: <X className="w-4 h-4" /> },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => {
+              setStatusFilter(tab.key as "PENDING" | "ANSWERED" | "CANCEL");
+              setCurrentPage(1);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium text-sm transition-all duration-200
+              ${
+                statusFilter === tab.key
+                  ? "bg-blue-50 text-blue-600 border-b-2 border-blue-500 shadow-inner"
+                  : "text-gray-500 hover:text-blue-600 hover:bg-gray-50"
+              }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
 
       {/* Table */}
       <DataTable<ReportItem>
@@ -218,7 +312,6 @@ const ReportManagement: React.FC = () => {
         columns={columns}
         loading={loading}
         onView={(item) => navigate(`/reports/${item.id}`)}
-        onDelete={handleDelete}
         onAnswer={handleAnswer}
       />
 
@@ -235,7 +328,10 @@ const ReportManagement: React.FC = () => {
       {viewReport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onClick={() => setViewReport(null)}>
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+              onClick={() => setViewReport(null)}
+            >
               <X size={20} />
             </button>
             <h3 className="text-xl font-bold mb-2">Chi tiết báo cáo</h3>
@@ -256,15 +352,31 @@ const ReportManagement: React.FC = () => {
               </div>
               <div>
                 <p className="text-gray-500">Lý do</p>
-                <p className="font-medium whitespace-pre-wrap">{viewReport.reason || "(không có)"}</p>
+                <p className="font-medium whitespace-pre-wrap">
+                  {viewReport.reason || "(không có)"}
+                </p>
               </div>
               <div>
+                <p className="text-gray-500">Trạng thái</p>
+                <p className="font-medium whitespace-pre-wrap">
+                  {statusLabels[viewReport.status as keyof typeof statusLabels] || "(không có)"}
+                </p>
+              </div>
+
+              <div>
                 <p className="text-gray-500">Ngày tạo</p>
-                <p className="font-medium">{new Date(viewReport.createdAt).toLocaleString()}</p>
+                <p className="font-medium">
+                  {new Date(viewReport.createdAt).toLocaleString()}
+                </p>
               </div>
             </div>
             <div className="flex justify-end mt-6">
-              <button onClick={() => setViewReport(null)} className="px-4 py-2 border rounded-md">Đóng</button>
+              <button
+                onClick={() => setViewReport(null)}
+                className="px-4 py-2 border rounded-md"
+              >
+                Đóng
+              </button>
             </div>
           </div>
         </div>
@@ -276,7 +388,8 @@ const ReportManagement: React.FC = () => {
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
             <h3 className="text-lg font-semibold mb-2">Trả lời báo cáo</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Báo cáo từ người dùng <b>{selectedReport.userId}</b> về di sản: <b>{selectedReport.heritageName}</b>
+              Báo cáo từ người dùng <b>{selectedReport.userName}</b> về di sản:{" "}
+              <b>{selectedReport.heritageName}</b>
             </p>
             <textarea
               value={answerText}
@@ -285,27 +398,18 @@ const ReportManagement: React.FC = () => {
               placeholder="Nhập câu trả lời..."
             />
             <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setSelectedReport(null)} className="px-4 py-2 border rounded-md">Hủy</button>
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="px-4 py-2 border rounded-md"
+              >
+                Hủy
+              </button>
               <button
                 onClick={handleSubmitAnswer}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
               >
                 Gửi trả lời
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Delete */}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold mb-2">Xóa báo cáo</h3>
-            <p className="text-sm text-gray-600">Bạn có chắc muốn xóa báo cáo: "{confirmDelete.reason}"? Hành động này không thể hoàn tác.</p>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 border rounded-md">Hủy</button>
-              <button onClick={confirmDeleteAction} className="px-4 py-2 bg-red-600 text-white rounded-md">Xóa</button>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchRepliesByReportId, getReportById } from "../../services/reportService";
+import { fetchRepliesByReportId, getReportById, answerReport } from "../../services/reportService";
 import { Report, ReportReply } from "../../types/report";
 import { useParams } from "react-router-dom";
 import HeritageAdminPanel from "../../pages/AdminPage/AdminPage";
@@ -59,7 +59,17 @@ const ReportDetailManagement: React.FC = () => {
     if (!newMessage.trim() || sendingMessage) return;
     setSendingMessage(true);
     try {
-      setNewMessage("");
+      const payload = { reportId, answer: newMessage.trim() };
+
+      const response = await answerReport(payload);
+
+      if (response.code === 200) {
+        const replyRes = await fetchRepliesByReportId(reportId);
+        setReplies(replyRes.result || []);
+        setNewMessage("");
+      } else {
+        console.error("Gửi phản hồi thất bại:", response.message || "Có lỗi xảy ra");
+      }
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -124,16 +134,18 @@ const ReportDetailManagement: React.FC = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Basic Info */}
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100 w-full">
                     <User className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-blue-900 mb-1">Người báo cáo</p>
                       <p className="text-lg font-semibold text-gray-900">{report?.userName || "Không xác định"}</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-100">
+                  <div
+                    onClick={() => report?.heritageId && navigate(`/admin/heritage/${report.heritageId}`)}
+                    className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-100 w-full cursor-pointer hover:bg-green-100 transition"
+                  >
                     <Building2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-green-900 mb-1">Di sản được báo cáo</p>
@@ -141,9 +153,8 @@ const ReportDetailManagement: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
                 {/* Reason - Highlighted */}
-                <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-6">
+                <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-6 col-span-full">
                   <div className="flex items-start gap-3 mb-4">
                     <Quote className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
                     <div>
@@ -319,6 +330,7 @@ const ReportDetailManagement: React.FC = () => {
                       )}
                       Gửi phản hồi
                     </button>
+
                   </div>
                 </div>
               </div>

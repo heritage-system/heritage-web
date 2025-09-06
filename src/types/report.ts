@@ -6,12 +6,18 @@ export interface Report {
   createdAt: string;
   heritageName?: string; 
   userName?: string;
+  startDate?: string; 
+  endDate?: string;
+  status?: string;
 }
 
 export interface ReportSearchRequest {
   keyword?: string; 
   page?: number;
   pageSize?: number;
+  startDate?: string; 
+  endDate?: string;
+  status?: string;
 }
 
 export interface ReportItem {
@@ -22,6 +28,7 @@ export interface ReportItem {
   reason: string;
   createdAt: string;
   userName?: string;
+  status?: string;
 }
 
 

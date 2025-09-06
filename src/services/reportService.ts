@@ -7,16 +7,18 @@ import { Report, ReportSearchRequest, ReportReply } from "../types/report";
 
 export async function fetchReports(params: ReportSearchRequest): Promise<ApiResponse<PageResponse<Report>>> {
   const query = new URLSearchParams();
+
   if (params.page != null) query.append("page", String(params.page));
   if (params.pageSize != null) query.append("pageSize", String(params.pageSize));
   if (params.keyword) query.append("keyword", params.keyword);
-
+  if (params.startDate) query.append("startDate", params.startDate); 
+  if (params.endDate) query.append("endDate", params.endDate); 
+  if (params.status) query.append("status", params.status); 
   return await fetchInterceptor<PageResponse<Report>>(
     `${API_URL}/api/Report/all?${query.toString()}`,
     { method: "GET" }
   );
 }
-
 
 export async function getReportById(id: number): Promise<ApiResponse<Report>> {
   return await fetchInterceptor<Report>(
@@ -25,47 +27,22 @@ export async function getReportById(id: number): Promise<ApiResponse<Report>> {
   );
 }
 
-export async function deleteReport(id: number): Promise<ApiResponse<void>> {
-  const res = await fetchInterceptor<void>(
-    `${API_URL}/api/Report/delete?id=${id}`,
-    { method: "DELETE" }
-  );
-
-  return res;
-}
-
 export async function createReport(data: { userId: number; heritageId: number; reason: string }): Promise<ApiResponse<Report>> {
   return await fetchInterceptor<Report>(
     `${API_URL}/api/Report/create`,
     {
       method: "POST",
-      body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" },
+      body: data as any,
     }
   );
 }
 
-export async function answerReport(payload: { reportId: number; answer: string }): Promise<ApiResponse<void>> {
+export async function answerReport(data: { reportId: number; answer: string }): Promise<ApiResponse<void>> {
   return await fetchInterceptor<void>(
     `${API_URL}/api/Report/answer`,
     {
       method: "POST",
-      body: JSON.stringify(payload),
-      headers: { "Content-Type": "application/json", Accept: "text/plain" },
-    }
-  );
-}
-
-export async function updateReport(
-  id: number,
-  data: Partial<{ userId: number; heritageId: number; reason: string }>
-): Promise<ApiResponse<Report>> {
-  return await fetchInterceptor<Report>(
-    `${API_URL}/api/Report/update?id=${id}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" },
+      body: data as any,
     }
   );
 }
