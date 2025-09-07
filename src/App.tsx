@@ -19,7 +19,11 @@ import { Toaster } from 'react-hot-toast';
 import ViewProfile from './pages/AuthPage/ViewProfile';
 import CallbackGoogle from './pages/oauth2/callback/google/page';
 import AdminPage from './pages/AdminPage/AdminPage';
+import HeritageDetailManagement from './components/Admin/HeritageDetailManagement';
+import ReportManagement from './components/Admin/ReportManagement';
+import ReportDetailManagement from './components/Admin/ReportDetailManagement';
 import ContributionFormPage from './pages/ContributionPage/ContributionFormPage';
+import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 const App: React.FC = () => {
   return (
     <Router>
@@ -40,9 +44,16 @@ const App: React.FC = () => {
         <Route path="/contribution-form" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/heritage/:id" element={<HeritageDetailManagement />} />
+        <Route path="/heritage/:id" element={<HeritageDetailPage />} />
+        <Route path="/admin/reports" element={<ReportManagement />} />
+        <Route path="/reports/:id" element={<ReportDetailManagement />} />
+        <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
+
+
       </Routes>
 
-      <ChatBoxAI />
+      {/* <ChatBoxAI /> */}
 
       <Toaster 
         position="top-right"
