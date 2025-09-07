@@ -34,30 +34,38 @@ function isPublicEndpoint(url: string): boolean {
 let refreshingPromise: Promise<boolean> | null = null;
 
 async function refreshAccessToken(): Promise<boolean> {
-  const accessToken = tokenStorage.getAccessToken();
-  if (!accessToken) return false;
-
   try {
     const refreshToken = tokenStorage.getRefreshToken();
+    if (!refreshToken) return false; 
 
-    const response = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(refreshToken), 
+    const res = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(refreshToken), // BE nhận string từ body
     });
-    if (!response.ok) throw new Error('Refresh failed');
+    if (!res.ok) throw new Error("Refresh failed");
 
-    const data = await response.json().catch(() => null);
- 
-    tokenStorage.setAccessToken(data?.data?.accessToken ?? data?.result ?? data?.accessToken);
-    tokenStorage.setRefreshToken(data?.data?.refreshToken ?? data?.result ?? data?.refreshToken)
+    const data = await res.json(); 
+    // Chuẩn response: { code, message, result: { accessToken, refreshToken, ... } }
+    const access = data?.result?.accessToken ?? data?.data?.accessToken;
+    const refresh = data?.result?.refreshToken ?? data?.data?.refreshToken;
+
+    if (typeof access !== "string" || typeof refresh !== "string") {
+      console.warn("Refresh response không đúng định dạng:", data);
+      return false;
+    }
+
+    tokenStorage.setAccessToken(access);
+    tokenStorage.setRefreshToken(refresh);
     return true;
-  } catch {
+  } catch (e) {
+    console.error("Refresh error:", e);
     return false;
   } finally {
     refreshingPromise = null;
   }
 }
+
 
 interface FetchInterceptorOptions extends RequestInit {
   skipAuth?: boolean;
