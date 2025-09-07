@@ -2,28 +2,31 @@ import React from "react";
 import PortalModal from "../Layouts/PortalModal";
 import { Review, ReviewMedia } from "../../types/review";
 import { Play, ThumbsUp } from "lucide-react";
+import { toggleLikeReview }  from "../../services/reviewService";
+import { updateReview,deleteReview  } from "../../services/reviewService";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-
   reviews: Review[];
   onSubmitReview?: (payload: {
-    rating: number;
     comment: string;
-    media?: File[];
-  }) => Promise<void> | void;
-
+    media?: { file: File; type: string }[];
+  }) => void | Promise<void>;
   onReply?: (payload: {
     parentReviewId: number;
     comment: string;
-    media?: File[];
-  }) => Promise<void> | void;
-
+    media?: { file: File; type: string }[];
+  }) => void | Promise<void>;
   currentUserName?: string;
   currentUserAvatar?: string;
 }
-
+const detectMediaType = (file: File): "IMAGE" | "VIDEO" | "DOCUMENT" => {
+  if (file.type.startsWith("image/")) return "IMAGE";
+  if (file.type.startsWith("video/")) return "VIDEO";
+  if (file.type === "application/pdf") return "DOCUMENT";
+  return "DOCUMENT";
+};
 const timeVi = (iso: string) =>
   new Date(iso).toLocaleString("vi-VN", {
     hour: "2-digit",
@@ -49,6 +52,26 @@ const isVideo = (m: ReviewMedia) => m.mediaType?.toUpperCase() === "VIDEO";
 const Img: React.FC<{ src: string; alt?: string; className?: string }> = ({ src, alt, className }) => (
   <img src={src} alt={alt} className={`w-full h-full object-cover ${className || ""}`} loading="lazy" />
 );
+const updateReviewInTree = (
+  reviews: Review[],
+  reviewId: number,
+  updater: (r: Review) => Review
+): Review[] =>
+  reviews.map(r => {
+    if (r.id === reviewId) return updater(r);
+    if (r.replies && r.replies.length > 0) {
+      return { ...r, replies: updateReviewInTree(r.replies, reviewId, updater) };
+    }
+    return r;
+  });
+const deleteReviewInTree = (reviews: Review[], reviewId: number): Review[] =>
+  reviews
+    .map(r => ({
+      ...r,
+      replies: r.replies ? deleteReviewInTree(r.replies, reviewId) : [],
+    }))
+    .filter(r => r.id !== reviewId);
+
 
 const VidThumb: React.FC<{ src: string }> = ({ src }) => (
   <div className="relative w-full h-full bg-black/80 flex items-center justify-center rounded-lg overflow-hidden">
@@ -151,42 +174,104 @@ const ReviewItem: React.FC<{
   expanded: Record<number, boolean>;
   onToggleReplies: (id: number) => void;
   onReplyClick: (review: Review) => void;
-  onLikeToggle?: (id: number) => void;        // <-- mới
-  likedByMe?: boolean;                         // <-- mới
-  likeCount?: number;                          // <-- mới
-}> = ({
-  review,
-  depth = 0,
-  expanded,
-  onToggleReplies,
-  onReplyClick,
-  onLikeToggle,
-  likedByMe,
-  likeCount,
-}) => {
+  onLikeToggle?: (id: number) => void;
+  onEditSubmit?: (id: number, comment: string) => void;
+  onDelete?: (id: number) => void; // ✅ new prop
+  currentUserName?: string;
+}> = ({ review, depth = 0, expanded, onToggleReplies, onReplyClick, onLikeToggle, onEditSubmit, onDelete, currentUserName }) => {
+
+
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editComment, setEditComment] = React.useState(review.comment);
+
   const repliesCount = review.replies?.length || 0;
   const isOpen = expanded[review.id];
-
+ const handleEditSave = () => {
+    if (editComment.trim() && onEditSubmit) {
+      onEditSubmit(review.id, editComment.trim());
+      setIsEditing(false);
+    }
+  };
 return (
-  <div className={`flex gap-3 ${depth ? "mt-2" : ""}`}>
-    <Avatar src={review.userImageUrl} name={review.username} size={34} />
-    <div className="flex-1">
-      {/* Bubble CHỈ có chữ */}
-      <div className="bg-gray-100 rounded-2xl p-3">
-        <div className="font-medium text-gray-900 mb-1">{review.username}</div>
-        <div className="text-gray-800 text-sm whitespace-pre-wrap">
-          {review.comment}
-        </div>
-      </div>
+    <div className={`flex gap-3 ${depth ? "mt-2" : ""}`}>
+      <Avatar src={review.userImageUrl} name={review.username} size={34} />
+      <div className="flex-1">
+        <div className="bg-gray-100 rounded-2xl p-3">
+          <div className="flex items-center justify-between">
+            <div className="font-medium text-gray-900 mb-1">{review.username}</div>
+           {/* {review.username.toLowerCase() === currentUserName?.toLowerCase() && !isEditing && ( */}
+              {  !isEditing && (
+  <button
+    className="text-xs text-gray-500 hover:underline"
+    onClick={() => setIsEditing(true)}
+  >
+    Chỉnh sửa
+  </button>
+)}
 
-      {/* MEDIA bên dưới, canh trái, không trong bubble */}
-      {review.reviewMedias?.length ? (
+          </div>
+
+           {isEditing ? (
+    <div className="flex gap-2 mt-1">
+      <input
+        type="text"
+        className="flex-1 border rounded px-2 py-1 text-sm"
+        value={editComment}
+        onChange={(e) => setEditComment(e.target.value)}
+      />
+      <button
+        className="text-sm px-2 py-1 bg-yellow-700 text-white rounded"
+        onClick={handleEditSave}
+      >
+        Lưu
+      </button>
+      <button
+        className="text-sm px-2 py-1 border rounded"
+        onClick={() => {
+          setIsEditing(false);
+          setEditComment(review.comment);
+        }}
+      >
+        Hủy
+      </button>
+    </div>
+  ) : (
+    <>
+      <div className="text-gray-800 text-sm whitespace-pre-wrap">{review.comment}</div>
+{/* {review.username.toLowerCase() === currentUserName?.toLowerCase() && ( */}
+      { (
+        <div className="flex gap-2 mt-1">
+          <button
+            className="text-xs text-gray-500 hover:underline"
+            onClick={() => setIsEditing(true)}
+          >
+            Chỉnh sửa
+          </button>
+     <button
+  className="text-xs text-red-500 hover:underline"
+  onClick={async () => {
+    if (!window.confirm("Bạn có chắc muốn xóa bình luận này?")) return;
+    if (onDelete) await onDelete(review.id);
+  }}
+>
+  Xóa
+</button>
+
+
+        </div>
+      )}
+    </>
+  )}
+</div>
+
+
+
+      {review.reviewMedias && review.reviewMedias.length > 0 && (
         <div className="mt-2 md:max-w-[60%]">
           <ReviewMediaList medias={review.reviewMedias} />
         </div>
-      ) : null}
+      )}
 
-      {/* Actions dưới bubble */}
       <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
         <span>{timeVi(review.createdAt)}</span>
 
@@ -196,13 +281,13 @@ return (
 
         <button
           className={`inline-flex items-center gap-1 hover:underline ${
-            likedByMe ? "text-yellow-700" : ""
+            review.likedByMe ? "text-yellow-700" : ""
           }`}
           onClick={() => onLikeToggle?.(review.id)}
-          title={likedByMe ? "Bỏ thích" : "Thích"}
+          title={review.likedByMe ? "Bỏ thích" : "Thích"}
         >
           <ThumbsUp className="w-3.5 h-3.5" />
-          <span>{typeof likeCount === "number" ? likeCount : (review.likes ?? 0)}</span>
+          <span>{review.likes ?? 0}</span>
         </button>
       </div>
 
@@ -215,44 +300,42 @@ return (
         </button>
       )}
 
-      {isOpen && repliesCount > 0 && (
-        <div className="mt-2 pl-6 border-l border-gray-200 space-y-2">
-          {review.replies!.map((r) => (
-            <ReviewItem
-              key={r.id}
-              review={r}
-              depth={depth + 1}
-              expanded={expanded}
-              onToggleReplies={onToggleReplies}
-              onReplyClick={onReplyClick}
-              onLikeToggle={onLikeToggle}
-              likedByMe={likedByMe}
-              likeCount={r.likes}
-            />
-          ))}
-        </div>
-      )}
+      {isOpen &&
+        review.replies?.map((r) => (
+          <ReviewItem
+            key={r.id}
+            review={r}
+            depth={depth + 1}
+            expanded={expanded}
+            onToggleReplies={onToggleReplies}
+            onReplyClick={onReplyClick}
+            onLikeToggle={onLikeToggle}
+            
+          />
+        ))}
     </div>
   </div>
 );
 
 };
 
+
 type MediaKind = "IMAGE" | "VIDEO";
 type MediaDraft = { file: File; url: string; kind: MediaKind };
 
 const ReviewComposer: React.FC<{
   placeholder?: string;
-  showRating?: boolean;
+ 
   currentUserName?: string;
   currentUserAvatar?: string;
   submitLabel?: string;
-  onSubmit: (data: { rating?: number; comment: string; media: File[] }) => void | Promise<void>;
-}> = ({ placeholder = "Viết cảm nhận của bạn…", showRating = false, currentUserName, currentUserAvatar, submitLabel = "Đăng", onSubmit }) => {
-  const [rating, setRating] = React.useState(5);
+  onSubmit: (data: { comment: string; media?: { file: File; type: "IMAGE" | "VIDEO" | "DOCUMENT" }[] }) => void | Promise<void>;
+}> = ({ placeholder = "Viết cảm nhận của bạn…", currentUserName, currentUserAvatar, submitLabel = "Đăng", onSubmit }) => {
+
   const [comment, setComment] = React.useState("");
   const [files, setFiles] = React.useState<MediaDraft[]>([]);
   const [loading, setLoading] = React.useState(false);
+
 
   const pickFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const list = Array.from(e.target.files || []);
@@ -277,11 +360,12 @@ const ReviewComposer: React.FC<{
     if (!comment.trim() && files.length === 0) return;
     setLoading(true);
     try {
-      await onSubmit({
-        rating: showRating ? rating : undefined,
-        comment: comment.trim(),
-        media: files.map((f) => f.file),
-      });
+     await onSubmit({
+ 
+  comment: comment.trim(),
+  media: files.map((f) => ({ file: f.file, type: detectMediaType(f.file) })),
+});
+
       setComment("");
       files.forEach((f) => URL.revokeObjectURL(f.url));
       setFiles([]);
@@ -352,35 +436,91 @@ const ReviewThreadModal: React.FC<Props> = ({
 }) => {
   const [expanded, setExpanded] = React.useState<Record<number, boolean>>({});
   const [replyingTo, setReplyingTo] = React.useState<Review | null>(null);
+const [localReviews, setLocalReviews] = React.useState<Review[]>(reviews);
+React.useEffect(() => {
+  setLocalReviews(reviews);
+}, [reviews]);
+const handleDelete = async (reviewId: number) => {
+  
 
-  // Like state (optimistic)
-  const [likedByMe, setLikedByMe] = React.useState<Set<number>>(new Set());
-  const [likeCounts, setLikeCounts] = React.useState<Map<number, number>>(
-    () =>
-      new Map(
-        reviews.map((r) => [r.id, typeof r.likes === "number" ? r.likes : 0])
-      )
-  );
+  // Save previous state for rollback
+  const previousReviews = [...localReviews];
+
+  // Optimistically remove review from UI
+  setLocalReviews(prev => deleteReviewInTree(prev, reviewId));
+
+  try {
+    const res = await deleteReview({ id: reviewId });
+
+    if (!res.result?.success) {
+      // Rollback if API failed
+      setLocalReviews(previousReviews);
+      alert(res.result?.message || "Xóa bình luận thất bại");
+    }
+  } catch (err) {
+    console.error("Error deleting review", err);
+    setLocalReviews(previousReviews);
+    alert("Có lỗi khi xóa bình luận");
+  }
+};
+
+
+const handleEditReview = async (reviewId: number, comment: string) => {
+  try {
+    // Call your API to update the review
+   await updateReview({ id: reviewId, comment }); // ✅ use `id` instead of `reviewId`
+ // ⚠ You need to implement this service
+
+    // Optimistic UI update
+    const updated = updateReviewInTree(localReviews, reviewId, (r) => ({ ...r, comment }));
+    setLocalReviews(updated);
+  } catch (err) {
+    console.error("Failed to update review", err);
+  }
+};
+
+const handleLikeToggle = async (reviewId: number) => {
+  let currentlyLiked = false;
+  let currentlyLikes = 0;
+
+  // Optimistic update
+  const updatedReviews = updateReviewInTree(localReviews, reviewId, (r) => {
+    currentlyLiked = r.likedByMe ?? false;
+    currentlyLikes = r.likes ?? 0;
+    return {
+      ...r,
+      likedByMe: !currentlyLiked,
+      likes: currentlyLiked ? Math.max(0, currentlyLikes - 1) : currentlyLikes + 1,
+    };
+  });
+  setLocalReviews(updatedReviews);
+
+  try {
+    const res = await toggleLikeReview({ reviewId, like: !currentlyLiked });
+    const { likeCount, likedByMe } = res.result || {};
+    const updatedReviewsFromServer = updateReviewInTree(localReviews, reviewId, (r) => ({
+      ...r,
+      likedByMe,
+      likes: likeCount,
+    }));
+    setLocalReviews(updatedReviewsFromServer);
+  } catch {
+    // rollback
+    const rollbackReviews = updateReviewInTree(localReviews, reviewId, (r) => ({
+      ...r,
+      likedByMe: currentlyLiked,
+      likes: currentlyLikes,
+    }));
+    setLocalReviews(rollbackReviews);
+  }
+};
+
+
 
   const toggleReplies = (id: number) =>
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const handleLikeToggle = (id: number) => {
-    setLikedByMe((prev) => {
-      const next = new Set(prev);
-      const on = next.has(id);
-      if (on) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-    setLikeCounts((prev) => {
-      const next = new Map(prev);
-      const cur = next.get(id) ?? 0;
-      next.set(id, likedByMe.has(id) ? Math.max(0, cur - 1) : cur + 1);
-      return next;
-    });
-    // TODO: gọi API like/unlike nếu cần
-  };
+ 
 
   return (
     <PortalModal
@@ -401,24 +541,25 @@ const ReviewThreadModal: React.FC<Props> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-          {reviews.length === 0 ? (
-            <div className="text-sm text-gray-600">Chưa có bình luận nào.</div>
-          ) : (
-            reviews.map((rv) => (
-              <div key={rv.id} className="pb-2 border-b last:border-b-0">
-                <ReviewItem
-                  review={rv}
-                  expanded={expanded}
-                  onToggleReplies={toggleReplies}
-                  onReplyClick={(r) => {
-                    setExpanded((prev) => ({ ...prev, [r.id]: true }));
-                    setReplyingTo(r);
-                  }}
-                  onLikeToggle={handleLikeToggle}
-                  likedByMe={likedByMe.has(rv.id)}
-                  likeCount={likeCounts.get(rv.id)}
-                />
-              </div>
+         {localReviews.length === 0 ? (
+  <div className="text-sm text-gray-600">Chưa có bình luận nào.</div>
+) : (
+             localReviews.map(rv => (
+  <div key={rv.id} className="pb-2 border-b last:border-b-0">
+<ReviewItem
+  review={rv}
+  expanded={expanded}
+  onToggleReplies={toggleReplies}
+  onReplyClick={(r) => {
+    setExpanded(prev => ({ ...prev, [r.id]: true }));
+    setReplyingTo(r);
+  }}
+  onLikeToggle={handleLikeToggle}
+  onEditSubmit={handleEditReview}
+   onDelete={handleDelete}
+  currentUserName={currentUserName} // ✅ pass it here
+/>              
+          </div>
             ))
           )}
         </div>
@@ -435,21 +576,30 @@ const ReviewThreadModal: React.FC<Props> = ({
             <div className="text-xs text-gray-500">Viết đánh giá mới cho di sản</div>
           )}
 
-          <ReviewComposer
-            showRating={!replyingTo}
-            placeholder={replyingTo ? "Viết phản hồi…" : "Chia sẻ cảm nhận của bạn…"}
-            onSubmit={async ({ rating, comment, media }) => {
-              if (replyingTo) {
-                await onReply?.({ parentReviewId: replyingTo.id, comment, media });
-                setReplyingTo(null);
-              } else {
-                await onSubmitReview?.({ rating: rating || 5, comment, media });
-              }
-            }}
-            currentUserName={currentUserName}
-            currentUserAvatar={currentUserAvatar}
-            submitLabel={replyingTo ? "Trả lời" : "Đăng đánh giá"}
-          />
+     <ReviewComposer
+
+  placeholder={replyingTo ? "Viết phản hồi…" : "Chia sẻ cảm nhận của bạn…"}
+  onSubmit={async ({ comment, media }) => {
+    if (replyingTo) {
+    await onReply?.({
+  parentReviewId: replyingTo.id,
+  comment,
+  media: media?.map((f) => ({ file: f.file, type: detectMediaType(f.file) })), // ✅ f.file
+});
+      setReplyingTo(null);
+    } else {
+     await onSubmitReview?.({
+
+  comment,
+  media: media?.map((f) => ({ file: f.file, type: detectMediaType(f.file) })), // ✅ f.file
+});
+    }
+  }}
+  currentUserName={currentUserName}
+  currentUserAvatar={currentUserAvatar}
+  submitLabel={replyingTo ? "Trả lời" : "Đăng đánh giá"}
+/>
+
         </div>
       </div>
     </PortalModal>
