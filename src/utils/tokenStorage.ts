@@ -4,7 +4,9 @@ import L from "leaflet";
 // --- Token Storage ---
 export const tokenStorage = {
   getAccessToken: () => localStorage.getItem("accessToken"),
+  getRefreshToken: () => localStorage.getItem("refreshToken"),
   setAccessToken: (token: string) => localStorage.setItem("accessToken", token),
+  setRefreshToken: (token: string) => localStorage.setItem("refreshToken", token),
   clearAccessToken: () => localStorage.removeItem("accessToken"),
 };
 
