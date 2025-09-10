@@ -8,11 +8,10 @@ import {
   ContributorResponse,
   ContributorSearchRequest,
   ContributorSearchResponse,
+  DropdownUserResponse,
 } from "../types/contributor";
 
-// ------------------ CRUD ------------------
-
-// 🔹 Create Contributor
+// Create Contributor (ADMIN)
 export const createContributor = async (
   data: ContributorCreateRequest
 ): Promise<ApiResponse<ContributorResponse>> => {
@@ -25,7 +24,7 @@ export const createContributor = async (
   );
 };
 
-// 🔹 Update Contributor
+// Update Contributor (ADMIN)
 export const updateContributor = async (
   id: number,
   data: ContributorUpdateRequest
@@ -39,17 +38,17 @@ export const updateContributor = async (
   );
 };
 
-// 🔹 Delete Contributor
-export const deleteContributor = async (
+// Disable Contributor (ADMIN)
+export const disableContributor = async (
   id: number
 ): Promise<ApiResponse<null>> => {
   return await fetchInterceptor<null>(
-    `${API_URL}/api/v1/contributors/${id}`,
-    { method: "DELETE" }
+    `${API_URL}/api/v1/contributors/${id}/disable`,
+    { method: "PUT" }
   );
 };
 
-// 🔹 Get Contributor Detail
+// Get Contributor Detail
 export const getContributorDetail = async (
   id: number
 ): Promise<ApiResponse<ContributorResponse>> => {
@@ -59,9 +58,8 @@ export const getContributorDetail = async (
   );
 };
 
-// ------------------ Search ------------------
 
-// 🔹 Search Contributors (paged)
+// Search Contributors 
 export const searchContributors = async (
   params: ContributorSearchRequest
 ): Promise<ApiResponse<PageResponse<ContributorSearchResponse>>> => {
@@ -77,6 +75,51 @@ export const searchContributors = async (
 
   return await fetchInterceptor<PageResponse<ContributorSearchResponse>>(
     `${API_URL}/api/v1/contributors/search?${query.toString()}`,
+    { method: "GET" }
+  );
+};
+
+// Apply Contributor
+export const applyContributor = async (
+  data: ContributorCreateRequest
+): Promise<ApiResponse<ContributorResponse>> => {
+  return await fetchInterceptor<ContributorResponse>(
+    `${API_URL}/api/v1/contributors/apply`,
+    {
+      method: "POST",
+      body: data as any,
+    }
+  );
+};
+
+// Approve Contributor
+export const approveContributor = async (
+  id: number
+): Promise<ApiResponse<ContributorResponse>> => {
+  return await fetchInterceptor<ContributorResponse>(
+    `${API_URL}/api/v1/contributors/${id}/approve`,
+    { method: "PUT" }
+  );
+};
+
+//Reject Contributor
+export const rejectContributor = async (
+  id: number
+): Promise<ApiResponse<ContributorResponse>> => {
+  return await fetchInterceptor<ContributorResponse>(
+    `${API_URL}/api/v1/contributors/${id}/reject`,
+    { method: "PUT" }
+  );
+};
+
+// Search dropdown users 
+export const searchDropdownUser = async (
+  keyword: string
+): Promise<ApiResponse<DropdownUserResponse[]>> => {
+  return await fetchInterceptor<DropdownUserResponse[]>(
+    `${API_URL}/api/v1/contributors/dropdown-users?keyword=${encodeURIComponent(
+      keyword
+    )}`,
     { method: "GET" }
   );
 };
