@@ -132,7 +132,9 @@ const HeritageDetailPage: React.FC = () => {
 
           <HeritageMediaGallery images={images} videos={videos} heritageName={heritage.name} />
 
-          <HeritageReviews />
+          <HeritageReviews heritageId={heritage.id} />
+
+
           <HeritageContributorPosts/>
 
           {/* Related Heritage */}
