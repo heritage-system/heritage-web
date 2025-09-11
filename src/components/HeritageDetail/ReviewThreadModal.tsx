@@ -5,22 +5,22 @@
   import { toggleLikeReview }  from "../../services/reviewService";
   import { updateReview,deleteReview  } from "../../services/reviewService";
 
-  interface Props {
-    open: boolean;
-    onClose: () => void;
-    reviews: Review[];
-    onSubmitReview?: (payload: {
-      comment: string;
-      media?: { file: File; type: string }[];
-    }) => void | Promise<void>;
-    onReply?: (payload: {
-      parentReviewId: number;
-      comment: string;
-      media?: { file: File; type: string }[];
-    }) => void | Promise<void>;
-    currentUserName?: string;
-    currentUserAvatar?: string;
-  }
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  reviews: Review[];
+  onSubmitReview?: (payload: { comment: string; media?: { file: File; type: string }[] }) => void | Promise<void>;
+  onReply?: (payload: { parentReviewId: number; comment: string; media?: { file: File; type: string }[] }) => void | Promise<void>;
+
+  // Add these two lines:
+  onDeleteReview?: (reviewId: number) => void;
+  onEditReview?: (reviewId: number, comment: string, media?: { file: File; type: string }[]) => void;
+
+  currentUserName?: string;
+  currentUserAvatar?: string;
+}
+
+
   const detectMediaType = (file: File): "IMAGE" | "VIDEO" | "DOCUMENT" => {
     if (file.type.startsWith("image/")) return "IMAGE";
     if (file.type.startsWith("video/")) return "VIDEO";
@@ -64,13 +64,15 @@
       }
       return r;
     });
-  const deleteReviewInTree = (reviews: Review[], reviewId: number): Review[] =>
-    reviews
-      .map(r => ({
-        ...r,
-        replies: r.replies ? deleteReviewInTree(r.replies, reviewId) : [],
-      }))
-      .filter(r => r.id !== reviewId);
+// recursive removal that returns a NEW array (no mutation)
+const deleteReviewInTree = (reviews: Review[], reviewId: number): Review[] =>
+  reviews
+    .filter(r => r.id !== reviewId)
+    .map(r => ({
+      ...r,
+      replies: r.replies ? deleteReviewInTree(r.replies, reviewId) : [],
+    }));
+
 
 
   const VidThumb: React.FC<{ src: string }> = ({ src }) => (
@@ -169,83 +171,97 @@
   };
 
   const ReviewItem: React.FC<{
-    review: Review;
-    depth?: number;
-    expanded: Record<number, boolean>;
-    onToggleReplies: (id: number) => void;
-    onReplyClick: (review: Review) => void;
-    onLikeToggle?: (id: number) => void;
-  onEditSubmit?: (
-    id: number,
-    comment: string,
-    media?: { file: File; type: string }[]
-  ) => void;
+  review: Review;
+  depth?: number;
+  expanded: Record<number, boolean>;
+  onToggleReplies: (id: number) => void;
+  onReplyClick: (review: Review) => void;
+  onLikeToggle?: (id: number) => void;
+  onEditSubmit?: (id: number, comment: string) => void; // 👈 only text now
+  onDelete?: (id: number) => void;
+  currentUserName?: string;
+}> = ({
+  review,
+  depth = 0,
+  expanded,
+  onToggleReplies,
+  onReplyClick,
+  onLikeToggle,
+  onEditSubmit,
+  onDelete,
+  currentUserName,
+}) => {
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editComment, setEditComment] = React.useState(review.comment);
 
-    onDelete?: (id: number) => void; // ✅ new prop
-    currentUserName?: string;
-  }> = ({ review, depth = 0, expanded, onToggleReplies, onReplyClick, onLikeToggle, onEditSubmit, onDelete, currentUserName }) => {
+  const repliesCount = review.replies?.length || 0;
+  const isOpen = expanded[review.id];
 
-
-    const [isEditing, setIsEditing] = React.useState(false);
-    const [editComment, setEditComment] = React.useState(review.comment);
-
-    const repliesCount = review.replies?.length || 0;
-    const isOpen = expanded[review.id];
-  const handleEditSave = () => {
-      if (editComment.trim() && onEditSubmit) {
-        onEditSubmit(review.id, editComment.trim());
-        setIsEditing(false);
-      }
-    };
   return (
-      <div className={`flex gap-3 ${depth ? "mt-2" : ""}`}>
-        <Avatar src={review.userImageUrl} name={review.username} size={34} />
-        <div className="flex-1">
-          <div className="bg-gray-100 rounded-2xl p-3">
-            <div className="flex items-center justify-between">
-              <div className="font-medium text-gray-900 mb-1">{review.username}</div>
-            </div>
+    <div className={`flex gap-3 ${depth ? "mt-2" : ""}`}>
+      <Avatar src={review.userImageUrl} name={review.username} size={34} />
+      <div className="flex-1">
+        <div className="bg-gray-100 rounded-2xl p-3">
+          <div className="flex items-center justify-between">
+            <div className="font-medium text-gray-900 mb-1">{review.username}</div>
+          </div>
 
           {isEditing ? (
-     <ReviewComposer
-    placeholder="Chỉnh sửa bình luận…"
-    currentUserName={currentUserName}
-    currentUserAvatar={review.userImageUrl}
-    submitLabel="Lưu"
-    initialComment={review.comment}   // ✅ preload old text
-    onSubmit={async ({ comment, media }) => {
-      await onEditSubmit?.(review.id, comment, media);
-      setIsEditing(false);
-    }}
-    />
-  ) : (
-    <>
-      <div className="text-gray-800 text-sm whitespace-pre-wrap">{review.comment}</div>
-      {review.createdByMe && (
-        <div className="flex gap-2 mt-1">
-          <button
-            className="text-xs text-gray-500 hover:underline"
-            onClick={() => setIsEditing(true)}
-          >
-            Chỉnh sửa
-          </button>
-          <button
-            className="text-xs text-red-500 hover:underline"
-            onClick={async () => {
-              if (!window.confirm("Bạn có chắc muốn xóa bình luận này?")) return;
-              if (onDelete) await onDelete(review.id);
-            }}
-          >
-            Xóa
-          </button>
+            <div className="space-y-2">
+              <textarea
+                className="w-full border rounded-2xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-600/30"
+                rows={3}
+                value={editComment}
+                onChange={(e) => setEditComment(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <button
+                  className="text-sm px-3 py-1.5 rounded-lg text-white bg-yellow-700 hover:bg-yellow-800"
+                  onClick={() => {
+                    if (editComment.trim()) {
+                      onEditSubmit?.(review.id, editComment.trim());
+                      setIsEditing(false);
+                    }
+                  }}
+                >
+                  Lưu
+                </button>
+                <button
+                  className="text-sm px-3 py-1.5 rounded-lg text-gray-600 bg-gray-200 hover:bg-gray-300"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditComment(review.comment); // reset back
+                  }}
+                >
+                  Huỷ
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="text-gray-800 text-sm whitespace-pre-wrap">{review.comment}</div>
+              {review.createdByMe && (
+                <div className="flex gap-2 mt-1">
+                  <button
+                    className="text-xs text-gray-500 hover:underline"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Chỉnh sửa
+                  </button>
+                  <button
+                    className="text-xs text-red-500 hover:underline"
+                    onClick={async () => {
+                      if (!window.confirm("Bạn có chắc muốn xóa bình luận này?")) return;
+                      if (onDelete) await onDelete(review.id);
+                    }}
+                  >
+                    Xóa
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
-    </>
-  )}
-
-  </div>
-
-
 
         {review.reviewMedias && review.reviewMedias.length > 0 && (
           <div className="mt-2 md:max-w-[60%]">
@@ -253,13 +269,12 @@
           </div>
         )}
 
+        {/* Footer actions */}
         <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-          <span>{timeVi(review.createdAt)}</span>
-
+          <span>{timeVi(review.updatedAt)}</span>
           <button className="hover:underline" onClick={() => onReplyClick(review)}>
             Trả lời
           </button>
-
           <button
             className={`inline-flex items-center gap-1 hover:underline ${
               review.likedByMe ? "text-yellow-700" : ""
@@ -291,14 +306,16 @@
               onToggleReplies={onToggleReplies}
               onReplyClick={onReplyClick}
               onLikeToggle={onLikeToggle}
-              
+              onEditSubmit={onEditSubmit}
+              onDelete={onDelete}
+              currentUserName={currentUserName}
             />
           ))}
       </div>
     </div>
   );
+};
 
-  };
 
 
   type MediaKind = "IMAGE" | "VIDEO";
@@ -416,63 +433,67 @@
     onReply,
     currentUserName,
     currentUserAvatar,
+     onDeleteReview, // add this
+  onEditReview,
   }) => {
     const [expanded, setExpanded] = React.useState<Record<number, boolean>>({});
     const [replyingTo, setReplyingTo] = React.useState<Review | null>(null);
   const [localReviews, setLocalReviews] = React.useState<Review[]>(reviews);
-  React.useEffect(() => {
-    setLocalReviews(reviews);
-  }, [reviews]);
-  const handleDelete = async (reviewId: number) => {
-    
+React.useEffect(() => {
+  setLocalReviews(reviews);
+}, [reviews]);
+  
+// in ReviewThreadModal
+const handleDelete = async (reviewId: number) => {
+  // optimistic remove in modal UI
+  const previous = [...localReviews];
+  setLocalReviews(prev => deleteReviewInTree(prev, reviewId));
 
-    // Save previous state for rollback
-    const previousReviews = [...localReviews];
+  try {
+    // delegate actual deletion to parent (parent does API + rollback/refetch)
+    await onDeleteReview?.(reviewId);
+  } catch (err) {
+    // if parent rejects, restore modal state
+    setLocalReviews(previous);
+    console.error("delete failed propagated from parent", err);
+  }
+};
 
-    // Optimistically remove review from UI
-    setLocalReviews(prev => deleteReviewInTree(prev, reviewId));
 
-    try {
-      const res = await deleteReview({ id: reviewId });
 
-      if (!res.result?.success) {
-        // Rollback if API failed
-        setLocalReviews(previousReviews);
-        alert(res.result?.message || "Xóa bình luận thất bại");
-      }
-    } catch (err) {
-      console.error("Error deleting review", err);
-      setLocalReviews(previousReviews);
-      alert("Có lỗi khi xóa bình luận");
+
+// in ReviewThreadModal
+// replace handleEditReview in ReviewThreadModal
+const handleEditReview = async (
+  reviewId: number,
+  comment: string,
+  media?: { file: File; type: string }[]
+) => {
+  try {
+    const res = await updateReview({ id: reviewId, comment, media });
+    const updated = res.result; // server authoritative updated review
+
+    if (updated) {
+      // update modal local state from server response
+      setLocalReviews(prev =>
+        updateReviewInTree(prev, reviewId, r => ({
+          ...r,
+          comment: updated.comment,
+          reviewMedias: updated.reviewMedias ?? r.reviewMedias,
+        }))
+      );
+
+      // notify parent with full updated review so parent keeps same data
+   onEditReview?.(reviewId, comment, media);
+
     }
-  };
+  } catch (err) {
+    console.error("Failed to update review", err);
+  }
+};
 
 
-  const handleEditReview = async (
-    reviewId: number,
-    comment: string,
-    media?: { file: File; type: string }[]
-  ) => {
-    try {
-      await updateReview({ id: reviewId, comment, media });
 
-      // Optimistic UI update
-      setLocalReviews(updateReviewInTree(localReviews, reviewId, r => ({
-        ...r,
-        comment,
-        reviewMedias: media
-          ? media.map((m, i) => ({
-              id: r.reviewMedias?.[i]?.id ?? Date.now() + i, // keep id if exists
-              reviewId,
-              mediaType: m.type,
-              url: URL.createObjectURL(m.file), // preview URL
-            }))
-          : r.reviewMedias,
-      })));
-    } catch (err) {
-      console.error("Failed to update review", err);
-    }
-  };
 
   const handleLikeToggle = async (reviewId: number) => {
     let currentlyLiked = false;

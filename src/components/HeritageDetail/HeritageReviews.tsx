@@ -4,6 +4,8 @@ import ReviewThreadModal from "./ReviewThreadModal";
 import { getReviewsByHeritageId } from "../../services/reviewService";
 import { createReview } from "../../services/reviewService";
 import { ReviewCreateRequest } from "../../types/review";
+import { deleteReview  } from "../../services/reviewService";
+
 interface Props {
   heritageId: number;   // ✅ new prop
   onSubmitReview?: (payload: { comment: string; media?: File[] }) => Promise<void> | void;
@@ -11,6 +13,23 @@ interface Props {
   currentUserName?: string;
   currentUserAvatar?: string;
 }
+const timeVi = (iso: string) =>
+    new Date(iso).toLocaleString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+    });
+export const addReplyToTree = (
+  reviews: Review[],
+  parentId: number,
+  reply: Review
+): Review[] =>
+  reviews.map(r =>
+    r.id === parentId
+      ? { ...r, replies: [...(r.replies || []), reply] }
+      : { ...r, replies: addReplyToTree(r.replies || [], parentId, reply) }
+  );
 
 const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode }> = ({
   title,
@@ -54,13 +73,69 @@ export const HeritageReviews: React.FC<Props> = ({
   }, [heritageId]);
 
   const displayedReviews = reviews.length > 0 ? reviews : [];
-  // Utility: map MIME type → MediaType (backend expects "IMAGE", "VIDEO", "DOCUMENT")
-const detectMediaType = (file: File): string => {
-  if (file.type.startsWith("image/")) return "IMAGE";
-  if (file.type.startsWith("video/")) return "VIDEO";
-  if (file.type === "application/pdf") return "DOCUMENT";
-  return "DOCUMENT"; // fallback
+ 
+// copy the same helpers into parent (or export/import them)
+// recursive removal that returns a NEW array (no mutation)
+const deleteReviewInTree = (reviews: Review[], reviewId: number): Review[] =>
+  reviews
+    .filter(r => r.id !== reviewId)
+    .map(r => ({
+      ...r,
+      replies: r.replies ? deleteReviewInTree(r.replies, reviewId) : [],
+    }));
+
+const updateReviewInTree = (reviews: Review[], reviewId: number, updater: (r: Review) => Review): Review[] =>
+  reviews.map(r => {
+    if (r.id === reviewId) return updater(r);
+    return { ...r, replies: r.replies ? updateReviewInTree(r.replies, reviewId, updater) : [] };
+  });
+
+// parent handler to remove from its state
+const handleDeleteFromModal = async (id: number) => {
+  // Optimistic update
+  setReviews(prev => deleteReviewInTree(prev, id));
+
+  try {
+    const res = await deleteReview({ id });
+
+    if (!res.result?.success) {
+      // rollback if API fails
+      const fresh = await getReviewsByHeritageId(heritageId);
+      setReviews(fresh.result ?? []);
+      alert(res.result?.message || "Xóa bình luận thất bại");
+    }
+  } catch (err) {
+    console.error(err);
+    const fresh = await getReviewsByHeritageId(heritageId);
+    setReviews(fresh.result ?? []);
+    alert("Có lỗi khi xóa bình luận");
+  }
 };
+
+// in parent
+const handleEditFromModal = (
+  reviewId: number,
+  comment: string,
+  media?: { file: File; type: string }[]
+) => {
+  setReviews(prev =>
+    updateReviewInTree(prev, reviewId, r => ({
+      ...r,
+      comment,
+      updatedAt: new Date().toISOString(), // ✅ UTC timestamp
+      reviewMedias: media
+        ? media.map((m, i) => ({
+            id: i, // temp id for frontend until backend saves
+            reviewId: r.id, // required by ReviewMedia
+            url: URL.createObjectURL(m.file),
+            mediaType: m.type,
+          }))
+        : r.reviewMedias,
+    }))
+  );
+};
+
+
 
 const handleCreateReview = async (payload: { comment: string; media?: { file: File; type: string }[] }) => {
   try {
@@ -92,21 +167,14 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
       media: payload.media,
     });
 
-   if (res.result) {
-  const replyReview: Review = {
-    ...res.result,
-    createdByMe: true, // ✅ mark as mine
-  };
+    if (res.result) {
+      const replyReview: Review = {
+        ...res.result,
+        createdByMe: true,
+      };
 
-  setReviews((prev) =>
-    prev.map((review) =>
-      review.id === payload.parentReviewId
-        ? { ...review, replies: [...(review.replies || []), replyReview] }
-        : review
-    )
-  );
-}
-
+      setReviews(prev => addReplyToTree(prev, payload.parentReviewId, replyReview));
+    }
   } catch (err) {
     console.error("Error replying to review:", err);
   }
@@ -157,7 +225,7 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
           <div className="flex items-center justify-between mb-1">
             <span className="font-medium text-gray-900">{review.username}</span>
             <span className="text-xs text-gray-500 ml-1">
-              {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+              {new Date(review.updatedAt).toLocaleDateString("vi-VN")}
             </span>
           </div>
           <p className="text-sm text-gray-700">{review.comment}</p>
@@ -177,15 +245,20 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
 
 
       {/* Full Review Modal */}
-     <ReviewThreadModal
+<ReviewThreadModal
   open={openModal}
   onClose={() => setOpenModal(false)}
-  reviews={displayedReviews}
+  reviews={reviews} // use parent state directly
   onSubmitReview={handleCreateReview}
   onReply={handleReply}
+  onDeleteReview={handleDeleteFromModal}
+  onEditReview={handleEditFromModal}
   currentUserName={currentUserName}
   currentUserAvatar={currentUserAvatar}
 />
+
+
+
 
     </>
   );

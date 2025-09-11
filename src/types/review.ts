@@ -10,7 +10,7 @@ export interface Review {
   likedByMe?: boolean;        // Track if current user liked this review
   createdByMe? : boolean;
   createdAt: string;         
-  updatedAt?: string;
+  updatedAt: string;
   replies?: Review[];         // Nested replies
   reviewMedias?: ReviewMedia[]; // Media attached to review
 }
