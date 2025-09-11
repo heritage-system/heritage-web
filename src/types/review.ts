@@ -8,6 +8,7 @@ export interface Review {
   parentReviewId?: number;    
   likes?: number;             // Optional: API may return 0 if missing
   likedByMe?: boolean;        // Track if current user liked this review
+  createdByMe? : boolean;
   createdAt: string;         
   updatedAt?: string;
   replies?: Review[];         // Nested replies

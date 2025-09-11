@@ -71,12 +71,17 @@ const handleCreateReview = async (payload: { comment: string; media?: { file: Fi
     });
 
     if (res.result) {
-      setReviews((prev) => [res.result!, ...prev]);
+      const newReview: Review = {
+        ...res.result,
+        createdByMe: true, // ✅ force it for new reviews
+      };
+      setReviews((prev) => [newReview, ...prev]);
     }
   } catch (err) {
     console.error("Error creating review:", err);
   }
 };
+
 
 const handleReply = async (payload: { parentReviewId: number; comment: string; media?: { file: File; type: string }[] }) => {
   try {
@@ -87,15 +92,21 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
       media: payload.media,
     });
 
-    if (res.result) {
-      setReviews((prev) =>
-        prev.map((review) =>
-          review.id === payload.parentReviewId
-            ? { ...review, replies: [...(review.replies || []), res.result!] }
-            : review
-        )
-      );
-    }
+   if (res.result) {
+  const replyReview: Review = {
+    ...res.result,
+    createdByMe: true, // ✅ mark as mine
+  };
+
+  setReviews((prev) =>
+    prev.map((review) =>
+      review.id === payload.parentReviewId
+        ? { ...review, replies: [...(review.replies || []), replyReview] }
+        : review
+    )
+  );
+}
+
   } catch (err) {
     console.error("Error replying to review:", err);
   }
@@ -105,49 +116,65 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
   return (
     <>
       <SectionCard
-        title="Đánh giá (Review)"
-        right={
-          displayedReviews.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setOpenModal(true)}
-              className="text-sm text-yellow-700 hover:underline"
-            >
-              Xem tất cả
-            </button>
-          )
-        }
+  title="Đánh giá (Review)"
+  right={
+    displayedReviews.length > 0 ? (
+      <button
+        type="button"
+        onClick={() => setOpenModal(true)}
+        className="text-sm text-yellow-700 hover:underline"
       >
-        {loading ? (
-          <div className="text-sm text-gray-500">Đang tải đánh giá...</div>
-        ) : displayedReviews.length === 0 ? (
-          <div className="text-sm text-gray-500">Chưa có đánh giá nào.</div>
-        ) : (
-          <div className="space-y-3">
-            {displayedReviews.slice(0, 3).map((review) => (
-              <div key={review.id} className="border-b last:border-b-0 pb-3 last:pb-0">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-gray-900">{review.username}</span>
-                  <span className="text-xs text-gray-500 ml-1">
-                    {new Date(review.createdAt).toLocaleDateString("vi-VN")}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-700">{review.comment}</p>
-              </div>
-            ))}
-
-            {displayedReviews.length > 3 && (
-              <button
-                type="button"
-                onClick={() => setOpenModal(true)}
-                className="text-sm text-yellow-700 hover:underline"
-              >
-                Xem thêm {displayedReviews.length - 3} bình luận
-              </button>
-            )}
+        Xem tất cả
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={() => setOpenModal(true)}
+        className="text-sm text-yellow-700 hover:underline"
+      >
+        Viết đánh giá
+      </button>
+    )
+  }
+>
+  {loading ? (
+    <div className="text-sm text-gray-500">Đang tải đánh giá...</div>
+  ) : displayedReviews.length === 0 ? (
+    <div className="text-sm text-gray-500">
+      Chưa có đánh giá nào.{" "}
+      <button
+        type="button"
+        onClick={() => setOpenModal(true)}
+        className="text-yellow-700 hover:underline"
+      >
+        Viết đánh giá đầu tiên
+      </button>
+    </div>
+  ) : (
+    <div className="space-y-3">
+      {displayedReviews.slice(0, 3).map((review) => (
+        <div key={review.id} className="border-b last:border-b-0 pb-3 last:pb-0">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-medium text-gray-900">{review.username}</span>
+            <span className="text-xs text-gray-500 ml-1">
+              {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+            </span>
           </div>
-        )}
-      </SectionCard>
+          <p className="text-sm text-gray-700">{review.comment}</p>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => setOpenModal(true)}
+        className="text-sm text-yellow-700 hover:underline"
+      >
+        Xem thêm {displayedReviews.length} bình luận
+      </button>
+    </div>
+  )}
+</SectionCard>
+
 
       {/* Full Review Modal */}
      <ReviewThreadModal

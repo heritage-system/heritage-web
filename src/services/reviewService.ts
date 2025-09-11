@@ -10,26 +10,27 @@ export async function createReview(
 ): Promise<ApiResponse<Review>> {
   const formData = new FormData();
 
-  formData.append("HeritageId", req.heritageId.toString());
+  formData.append("HeritageId", String(req.heritageId));
   formData.append("Comment", req.comment);
 
-  if (req.parentReviewId !== undefined) {
-    formData.append("ParentReviewId", req.parentReviewId.toString());
+  // nên check != null để không bỏ qua giá trị 0
+  if (req.parentReviewId != null) {
+    formData.append("ParentReviewId", String(req.parentReviewId));
   }
 
   req.media?.forEach((m, idx) => {
     if (!m.file) return;
-    formData.append(`Media[${idx}].File`, m.file);
-    formData.append(`Media[${idx}].Type`, m.type);
+    // ASP.NET/Core binder thường bắt được key dạng dot + index như dưới
+    formData.append(`Media[${idx}].File`, m.file);     // file phải là File/Blob
+    formData.append(`Media[${idx}].Type`, String(m.type));
   });
 
-  // ✅ Only type the fetchInterceptor with ApiResponse<Review>
-  return fetchInterceptor<Review>(`${API_URL}/api/v1/reviews`, {
+  return fetchInterceptor<Review>(`${API_URL}/api/v1/Reviews/create_review`, {
     method: "POST",
-    body: formData,
+    body: formData,            // ❗️để nguyên FormData
+    // headers: KHÔNG thêm Content-Type
   });
 }
-
 
 
 
@@ -56,24 +57,26 @@ export const toggleLikeReview = async (
   });
 };
 
-// 🔹 Update a review
 export const updateReview = async (
   payload: ReviewUpdateRequest
 ): Promise<ApiResponse<ReviewUpdateResponse>> => {
   const formData = new FormData();
-  formData.append("id", payload.id.toString());
-  formData.append("comment", payload.comment);
+  formData.append("Id", payload.id.toString());
+  formData.append("Comment", payload.comment);
 
-  payload.media?.forEach((m, idx) => {
-    formData.append(`media[${idx}].file`, m.file);
-    formData.append(`media[${idx}].type`, m.type);
-  });
+  if (payload.media) {
+    payload.media.forEach((m, i) => {
+      formData.append(`Media[${i}].File`, m.file);
+      formData.append(`Media[${i}].Type`, m.type);
+    });
+  }
 
   return await fetchInterceptor<ReviewUpdateResponse>(`${API_URL}/api/v1/reviews`, {
     method: "PUT",
     body: formData,
   });
 };
+
 
 export const deleteReview = async (
   payload: ReviewDeleteRequest
