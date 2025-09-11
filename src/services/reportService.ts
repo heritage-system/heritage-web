@@ -2,7 +2,7 @@ import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
-import { Report, ReportSearchRequest, ReportReply } from "../types/report";
+import { Report, ReportSearchRequest, ReportReply, CreateReportRequest, ReportResponse } from "../types/report";
 
 
 export async function fetchReports(params: ReportSearchRequest): Promise<ApiResponse<PageResponse<Report>>> {
@@ -27,15 +27,13 @@ export async function getReportById(id: number): Promise<ApiResponse<Report>> {
   );
 }
 
-export async function createReport(data: { userId: number; heritageId: number; reason: string }): Promise<ApiResponse<Report>> {
-  return await fetchInterceptor<Report>(
-    `${API_URL}/api/Report/create`,
-    {
-      method: "POST",
-      body: data as any,
-    }
-  );
+export async function createReport(data: { heritageId: number, reason: string }): Promise<ApiResponse<Report>> {
+  return await fetchInterceptor<Report>(`${API_URL}/api/Report/heritages/${data.heritageId}`, {
+    method: "POST",
+    body: data as any,
+  });
 }
+
 
 export async function answerReport(data: { reportId: number; answer: string }): Promise<ApiResponse<void>> {
   return await fetchInterceptor<void>(

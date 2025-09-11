@@ -3,13 +3,14 @@ import {
   Calendar,
   Clock,
   Users,
-  Share2,  
+  Share2,
   Flag
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { HeritageSearchResponse } from "../../types/heritage";
+import ReportModal from "./ReportModal";
 
 // Fix icon marker khi bundle với webpack/vite
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -30,20 +31,23 @@ interface Props {
   bookmarked: boolean;
   onLike: () => void;
   onBookmark: () => void;
+  userId?: number; 
 }
-const formatLocation = (loc?: {
-    province?: string;
-    district?: string;
-    ward?: string;
-    addressDetail?: string;
-  }) => {
-    if (!loc) return "Không xác định";
-    
-    const parts = [loc.province,loc.district, loc.ward,loc.addressDetail ]
-      .filter((x) => x && x.trim() !== "");
 
-    return parts.length > 0 ? parts.join(", ") : "Không xác định";
-  };
+const formatLocation = (loc?: {
+  province?: string;
+  district?: string;
+  ward?: string;
+  addressDetail?: string;
+}) => {
+  if (!loc) return "Không xác định";
+
+  const parts = [loc.province, loc.district, loc.ward, loc.addressDetail].filter(
+    (x) => x && x.trim() !== ""
+  );
+
+  return parts.length > 0 ? parts.join(", ") : "Không xác định";
+};
 
 const calendarLabel: Record<string, string> = {
   SOLAR: "Dương lịch",
@@ -54,9 +58,9 @@ const frequencyLabel: Record<string, string> = {
   ONETIME: "Một lần",
   ANNUAL: "Hằng năm",
   SEASONAL: "Theo mùa",
-  MONTHLY: "Hằng tháng"  
+  MONTHLY: "Hằng tháng",
 };
-  
+
 const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode }> =
   ({ title, right, children }) => (
     <section className="bg-white rounded-2xl shadow-sm border p-5">
@@ -83,16 +87,19 @@ export const HeritageSidebar: React.FC<Props> = ({
   bookmarked,
   onLike,
   onBookmark,
+  userId,
 }) => {
   const firstOcc = heritage.heritageOccurrences?.[0];
   const firstLoc = heritage.heritageLocations?.[0];
   const [selectedLoc, setSelectedLoc] = useState(firstLoc ?? null);
 
+  // ✅ Thêm state cho modal
+  const [openReport, setOpenReport] = useState(false);
+
   // 🔧 Sync lại khi di sản/địa điểm đầu tiên thay đổi
   useEffect(() => {
     setSelectedLoc(firstLoc ?? null);
   }, [firstLoc?.id, heritage.id]);
-
 
   return (
     <div className="space-y-6">
@@ -121,50 +128,50 @@ export const HeritageSidebar: React.FC<Props> = ({
       {/* Bản đồ */}
       <SectionCard title="Bản đồ & chỉ đường">
         <div className="relative z-0">
-        {heritage.heritageLocations?.length ? (
-          <div className="space-y-3">
-            {/* Dropdown chọn địa điểm */}
-            <select
-              className="w-full border rounded-lg p-2 text-sm"
-              value={selectedLoc?.id}
-              onChange={(e) =>
-                setSelectedLoc(
-                  heritage.heritageLocations.find((l) => l.id === Number(e.target.value)) ||
+          {heritage.heritageLocations?.length ? (
+            <div className="space-y-3">
+              {/* Dropdown chọn địa điểm */}
+              <select
+                className="w-full border rounded-lg p-2 text-sm"
+                value={selectedLoc?.id}
+                onChange={(e) =>
+                  setSelectedLoc(
+                    heritage.heritageLocations.find((l) => l.id === Number(e.target.value)) ||
                     firstLoc
-                )
-              }
-            >
-              {heritage.heritageLocations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {formatLocation(loc)}
-                </option>
-              ))}
-            </select>
-
-            {/* Hiển thị bản đồ */}
-            {selectedLoc && (
-              <MapContainer
-                center={[selectedLoc.latitude, selectedLoc.longitude]}
-                zoom={13}
-                style={{ height: "200px", width: "100%" }}
-                className="rounded-xl"
+                  )
+                }
               >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
-                <Marker position={[selectedLoc.latitude, selectedLoc.longitude]}>
-                  <Popup>
-                    {heritage.name}<br />
-                    {formatLocation(selectedLoc)}
-                  </Popup>
-                </Marker>
-                <FlyToLocation lat={selectedLoc.latitude} lng={selectedLoc.longitude} />
-              </MapContainer>
-            )}
-          </div>
-        ) : (
-          <div className="h-48 w-full bg-gray-100 rounded-xl flex items-center justify-center text-gray-500">
-            Chưa có dữ liệu vị trí.
-          </div>
-        )}
+                {heritage.heritageLocations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {formatLocation(loc)}
+                  </option>
+                ))}
+              </select>
+
+              {/* Hiển thị bản đồ */}
+              {selectedLoc && (
+                <MapContainer
+                  center={[selectedLoc.latitude, selectedLoc.longitude]}
+                  zoom={13}
+                  style={{ height: "200px", width: "100%" }}
+                  className="rounded-xl"
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
+                  <Marker position={[selectedLoc.latitude, selectedLoc.longitude]}>
+                    <Popup>
+                      {heritage.name}<br />
+                      {formatLocation(selectedLoc)}
+                    </Popup>
+                  </Marker>
+                  <FlyToLocation lat={selectedLoc.latitude} lng={selectedLoc.longitude} />
+                </MapContainer>
+              )}
+            </div>
+          ) : (
+            <div className="h-48 w-full bg-gray-100 rounded-xl flex items-center justify-center text-gray-500">
+              Chưa có dữ liệu vị trí.
+            </div>
+          )}
         </div>
       </SectionCard>
 
@@ -174,18 +181,28 @@ export const HeritageSidebar: React.FC<Props> = ({
           {/* Nút chia sẻ */}
           <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
             <Share2 className="w-4 h-4" /> Chia sẻ
-          </button>  
+          </button>
           {/* Nút nhắc lịch */}
           <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
             <Clock className="w-4 h-4" /> Nhắc lịch
           </button>
 
-          {/* Nút báo cáo */}
-          <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 text-red-600 border-red-200">
+          {/* ✅ Nút báo cáo */}
+          <button
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 text-red-600 border-red-200"
+            onClick={() => setOpenReport(true)}
+          >
             <Flag className="w-4 h-4" /> Báo cáo
           </button>
         </div>
       </SectionCard>
+
+      <ReportModal
+        open={openReport}
+        onClose={() => setOpenReport(false)}
+        heritageId={heritage.id}
+      />
+
 
       {/* Nguồn tham khảo */}
       <SectionCard title="Nguồn tham khảo & Liên hệ">
