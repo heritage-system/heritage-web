@@ -10,17 +10,17 @@ import {
   approveContributor,
   rejectContributor,
   searchDropdownUser,
-} from "../../services/contributorService";
+} from "../../../services/contributorService";
 import {
   ContributorSearchResponse,
   ContributorCreateRequest,
   ContributorUpdateRequest,
   ContributorResponse,
   DropdownUserResponse,
-} from "../../types/contributor";
-import { ContributorStatus, SortBy } from "../../types/enum";
-import Pagination from "../Layouts/Pagination";
-import PortalModal from "../Layouts/PortalModal";
+} from "../../../types/contributor";
+import { ContributorStatus, SortBy } from "../../../types/enum";
+import Pagination from "../../Layouts/Pagination";
+import PortalModal from "../../Layouts/PortalModal";
 
 const ContributorManagement: React.FC = () => {
   const [contributors, setContributors] = useState<ContributorSearchResponse[]>([]);
