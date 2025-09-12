@@ -75,7 +75,6 @@ const ViewProfile: React.FC = () => {
   const [formData, setFormData] = useState<UpdateProfileRequest>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get("tab") || "profile";
-  // Sử dụng currentTab thay vì tạo state menu riêng biệt
   const [contributionForm, setContributionForm] = useState<ContributionForm>({
     title: "",
     description: "",
@@ -178,159 +177,251 @@ const ViewProfile: React.FC = () => {
         {/* Main content */}
         <div className="flex-1 p-8">
           {currentTab === "profile" && (
-            <div className="bg-purple-50 rounded-2xl p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-purple-700">
-                  Thông tin cá nhân
-                </h2>
-                {!editMode ? (
-                  <button
-                    onClick={() => setEditMode(true)}
-                    className="px-3 py-1 text-sm bg-purple-600 text-white rounded-xl hover:bg-purple-700"
-                  >
-                    Chỉnh sửa
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditMode(false);
-                        setFormData(profile);
-                      }}
-                      className="px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-xl hover:bg-gray-300"
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700"
-                    >
-                      Lưu
-                    </button>
+            <div className="max-w-4xl mx-auto">
+              {/* Header Section */}
+              <div className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl p-6 mb-8 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={profile.avatarUrl}
+                      alt="Avatar"
+                      className="w-20 h-20 rounded-full border-4 border-white/30 shadow-lg"
+                    />
+                    <div>
+                      <h1 className="text-2xl font-bold mb-1">{profile.fullName}</h1>
+                      <p className="text-purple-100">{profile.email}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                          Thành viên
+                        </span>
+                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                          Đã xác thực
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
+                  {!editMode ? (
+                    <button
+                      onClick={() => setEditMode(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all duration-200 backdrop-blur-sm"
+                    >
+                      <span>✏️</span>
+                      Chỉnh sửa
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditMode(false);
+                          setFormData(profile);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all duration-200"
+                      >
+                        <span>❌</span>
+                        Hủy
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-xl transition-all duration-200"
+                      >
+                        <span>💾</span>
+                        Lưu
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-                {/* Tên đăng nhập */}
-                <div>
-                  <span className="block text-xs text-gray-500">
-                    Tên đăng nhập
-                  </span>
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={formData.userName || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, userName: e.target.value })
-                      }
-                      className="w-full px-3 py-1 border rounded-xl"
-                    />
-                  ) : (
-                    <span className="block bg-white rounded-xl px-3 py-1">
-                      {profile.userName}
-                    </span>
-                  )}
+
+              {/* Profile Information Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Personal Information Card */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span className="text-purple-600">👤</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800">Thông tin cá nhân</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Username */}
+                      <div className="group">
+                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                          Tên đăng nhập
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="text"
+                            value={formData.userName || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, userName: e.target.value })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Nhập tên đăng nhập"
+                          />
+                        ) : (
+                          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-800 font-medium">
+                            {profile.userName}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Full Name */}
+                      <div className="group">
+                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                          Họ và tên
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="text"
+                            value={formData.fullName || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, fullName: e.target.value })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Nhập họ và tên"
+                          />
+                        ) : (
+                          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-800 font-medium">
+                            {profile.fullName}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Date of Birth */}
+                      <div className="group">
+                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                          Ngày sinh
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="date"
+                            value={formData.dateOfBirth?.split("T")[0] || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                dateOfBirth: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                          />
+                        ) : (
+                          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-800 font-medium">
+                            {profile.dateOfBirth
+                              ? new Date(profile.dateOfBirth).toLocaleDateString("vi-VN")
+                              : "Chưa cập nhật"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                {/* Họ và tên */}
-                <div>
-                  <span className="block text-xs text-gray-500">Họ và tên</span>
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={formData.fullName || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, fullName: e.target.value })
-                      }
-                      className="w-full px-3 py-1 border rounded-xl"
-                    />
-                  ) : (
-                    <span className="block bg-white rounded-xl px-3 py-1">
-                      {profile.fullName}
-                    </span>
-                  )}
+
+                {/* Contact Information Card */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-green-600">📞</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800">Thông tin liên hệ</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Email */}
+                      <div className="group">
+                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                          Email
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="email"
+                            value={formData.email || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, email: e.target.value })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Nhập email"
+                          />
+                        ) : (
+                          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-800 font-medium">
+                            {profile.email}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Phone */}
+                      <div className="group">
+                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                          Số điện thoại
+                        </label>
+                        {editMode ? (
+                          <input
+                            type="text"
+                            value={formData.phone || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, phone: e.target.value })
+                            }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Nhập số điện thoại"
+                          />
+                        ) : (
+                          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-800 font-medium">
+                            {profile.phone || "Chưa cập nhật"}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Address */}
+                      <div className="group">
+                        <label className="block text-sm font-medium text-gray-600 mb-2">
+                          Địa chỉ
+                        </label>
+                        {editMode ? (
+                          <textarea
+                            value={formData.address || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, address: e.target.value })
+                            }
+                            rows={3}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
+                            placeholder="Nhập địa chỉ"
+                          />
+                        ) : (
+                          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-800 font-medium min-h-[80px] flex items-center">
+                            {profile.address || "Chưa cập nhật"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                {/* Email */}
-                <div>
-                  <span className="block text-xs text-gray-500">Email</span>
-                  {editMode ? (
-                    <input
-                      type="email"
-                      value={formData.email || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className="w-full px-3 py-1 border rounded-xl"
-                    />
-                  ) : (
-                    <span className="block bg-white rounded-xl px-3 py-1">
-                      {profile.email}
-                    </span>
-                  )}
+              </div>
+
+              {/* Statistics Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-xl text-white">
+                  <div className="text-2xl font-bold">12</div>
+                  <div className="text-sm text-blue-100">Di sản yêu thích</div>
                 </div>
-                {/* Phone */}
-                <div>
-                  <span className="block text-xs text-gray-500">SĐT</span>
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={formData.phone || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      className="w-full px-3 py-1 border rounded-xl"
-                    />
-                  ) : (
-                    <span className="block bg-white rounded-xl px-3 py-1">
-                      {profile.phone}
-                    </span>
-                  )}
+                <div className="bg-gradient-to-br from-green-500 to-green-600 p-4 rounded-xl text-white">
+                  <div className="text-2xl font-bold">8</div>
+                  <div className="text-sm text-green-100">Sự kiện tham gia</div>
                 </div>
-                {/* Address */}
-                <div>
-                  <span className="block text-xs text-gray-500">Địa chỉ</span>
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={formData.address || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      className="w-full px-3 py-1 border rounded-xl"
-                    />
-                  ) : (
-                    <span className="block bg-white rounded-xl px-3 py-1">
-                      {profile.address}
-                    </span>
-                  )}
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-4 rounded-xl text-white">
+                  <div className="text-2xl font-bold">15</div>
+                  <div className="text-sm text-orange-100">Quiz hoàn thành</div>
                 </div>
-                {/* Date of Birth */}
-                <div>
-                  <span className="block text-xs text-gray-500">Ngày sinh</span>
-                  {editMode ? (
-                    <input
-                      type="date"
-                      value={formData.dateOfBirth?.split("T")[0] || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          dateOfBirth: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-1 border rounded-xl"
-                    />
-                  ) : (
-                    <span className="block bg-white rounded-xl px-3 py-1">
-                      {profile.dateOfBirth
-                        ? new Date(profile.dateOfBirth).toLocaleDateString(
-                            "vi-VN"
-                          )
-                        : ""}
-                    </span>
-                  )}
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-4 rounded-xl text-white">
+                  <div className="text-2xl font-bold">5</div>
+                  <div className="text-sm text-purple-100">Đóng góp</div>
                 </div>
               </div>
             </div>
           )}
+          
+          {/* Other tabs remain unchanged */}
           {currentTab === "favorites" && (
             <div>
               <div className="flex justify-between items-center mb-4">

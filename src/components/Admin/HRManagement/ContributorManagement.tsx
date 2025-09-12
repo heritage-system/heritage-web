@@ -30,6 +30,7 @@ const ContributorManagement: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const [sortBy, setSortBy] = useState<SortBy>(SortBy.IdDesc);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const [selectedContributor, setSelectedContributor] = useState<ContributorResponse | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -124,16 +125,26 @@ const ContributorManagement: React.FC = () => {
   }, [showForm, selectedContributor]);
 
   const handleAdd = () => {
-    setSelectedContributor(null);
-    setFormData({
-      bio: "",
-      expertise: "",
-    });
-    setSelectedUserId(undefined);
-    setUserSearchTerm("");
-    setShowForm(true);
-    // FIX: Không clear userOptions ở đây nữa
-  };
+  setSelectedContributor(null);
+  setFormData({ bio: "", expertise: "" });
+  setSelectedUserId(undefined);
+  setUserSearchTerm("");
+  setShowUserDropdown(false); // Reset dropdown state
+  setShowForm(true);
+};
+
+  // Thêm vào useEffect
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showUserDropdown && !target.closest('.user-dropdown-container')) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserDropdown]);
 
   const handleEdit = async (item: ContributorSearchResponse) => {
     try {
@@ -237,12 +248,13 @@ const ContributorManagement: React.FC = () => {
   };
 
   const handleUserSearch = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUserSearchTerm(value);
-    debouncedLoadUsers(value);
-  };
+  const value = e.target.value;
+  setUserSearchTerm(value);
+  setSelectedUserId(undefined); 
+  setShowUserDropdown(true); 
+  debouncedLoadUsers(value);
+};
 
-  // FIX: Cải thiện saveContributor để refresh table đúng cách
   const saveContributor = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -531,10 +543,10 @@ const ContributorManagement: React.FC = () => {
       <PortalModal
         open={showForm}
         onClose={() => setShowForm(false)}
-        size="md"
+        size="lg"
         ariaLabel="Form cộng tác viên"
         centered
-        contentClassName="bg-white rounded-2xl p-6 shadow-xl"
+         contentClassName="bg-white rounded-2xl p-6 shadow-xl w-[500px] max-w-full"
       >
         <div className="bg-white rounded-xl">
           <div className="flex justify-between items-center mb-4">
@@ -551,46 +563,52 @@ const ContributorManagement: React.FC = () => {
 
           <form onSubmit={saveContributor} className="space-y-4">
             {!selectedContributor && (
-              <div>
+              <div className="relative user-dropdown-container"> 
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Chọn người dùng *
                 </label>
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm người dùng..."
-                    value={userSearchTerm}
-                    onChange={handleUserSearch}
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <select
-                    value={selectedUserId || ""}
-                    onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : undefined)}
-                    required
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={loadingUsers}
-                  >
-                    <option value="">
-                      {loadingUsers ? "Đang tải..." : "-- Chọn người dùng --"}
-                    </option>
-                    {userOptions.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.fullName} ({user.email})
-                      </option>
-                    ))}
-                  </select>
-                  {loadingUsers && (
-                    <div className="text-sm text-blue-500 flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
-                      Đang tải danh sách người dùng...
-                    </div>
-                  )}
-                  {!loadingUsers && userOptions.length === 0 && userSearchTerm && (
-                    <div className="text-sm text-gray-500">
-                      Không tìm thấy người dùng nào
-                    </div>
-                  )}
-                </div>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm người dùng..."
+                  value={userSearchTerm}
+                  onChange={handleUserSearch}
+                  onFocus={() => {
+                    setShowUserDropdown(true);
+                    if (userOptions.length === 0) loadUserOptions();
+                  }}
+                  className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                {/* Dropdown menu */}
+                {showUserDropdown && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+                    {loadingUsers ? (
+                      <div className="p-3 text-sm text-blue-500 flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
+                        Đang tải...
+                      </div>
+                    ) : userOptions.length === 0 ? (
+                      <div className="p-3 text-sm text-gray-500">
+                        {userSearchTerm ? "Không tìm thấy người dùng nào" : "Nhập để tìm kiếm người dùng"}
+                      </div>
+                    ) : (
+                      userOptions.map((user) => (
+                        <div
+                          key={user.id}
+                          onClick={() => {
+                            setSelectedUserId(user.id);
+                            setUserSearchTerm(`${user.fullName} (${user.email})`);
+                            setShowUserDropdown(false);
+                          }}
+                          className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 text-sm"
+                        >
+                          <div className="font-medium">{user.fullName}</div>
+                          <div className="text-gray-500 text-xs">{user.email}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
