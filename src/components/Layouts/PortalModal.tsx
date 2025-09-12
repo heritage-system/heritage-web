@@ -91,15 +91,15 @@ const PortalModal: React.FC<PortalModalProps> = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, closeOnEsc, onClose]);
 
-//   // Lock scroll
-//   React.useEffect(() => {
-//     if (!open || !lockScroll) return;
-//     const prev = document.body.style.overflow;
-//     document.body.style.overflow = "hidden";
-//     return () => {
-//       document.body.style.overflow = prev;
-//     };
-//   }, [open, lockScroll]);
+// Lock scroll
+  React.useEffect(() => {
+    if (!open || !lockScroll) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open, lockScroll]);
 
   // Focus management
   React.useEffect(() => {

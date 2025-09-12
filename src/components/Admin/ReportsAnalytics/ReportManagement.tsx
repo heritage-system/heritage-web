@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Eye, AlertTriangle, X, MessageSquare } from "lucide-react";
-import Pagination from "../Layouts/Pagination";
-import SearchFilter from "./SearchFilter";
-import { TableProps, ReportItem, TableColumn } from "../../types/report";
-import { fetchReports, answerReport } from "../../services/reportService";
+import Pagination from "../../Layouts/Pagination";
+import SearchFilter from "../SearchFilter";
+import { TableProps, ReportItem, TableColumn } from "../../../types/report";
+import { fetchReports, answerReport } from "../../../services/reportService";
 import { useNavigate } from "react-router-dom";
 
 function DataTable<T extends { id: number }>({
