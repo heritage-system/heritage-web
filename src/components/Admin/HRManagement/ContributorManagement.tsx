@@ -270,7 +270,7 @@ const ContributorManagement: React.FC = () => {
           userId: selectedUserId,
         };
         const res = await createContributor(createData);
-        if (res.code === 200) {
+        if (res.code === 201) {
           toast.success("Thêm cộng tác viên thành công!");
           setShowForm(false);
           

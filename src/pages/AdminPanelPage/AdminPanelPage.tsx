@@ -426,11 +426,11 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
       <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-800 border-r shadow-md flex flex-col transition-all duration-300`}>
         {/* Logo */}
         <div className="p-6 border-b dark:border-gray-700 flex items-center gap-2">
-          <div className="w-10 h-10 bg-blue-600 text-white flex items-center justify-center rounded-lg font-bold">
-            H
+          <div className="w-20 h-10 bg-blue-600 text-white flex items-center justify-center rounded-lg font-bold">
+            VTFP
           </div>
           {!sidebarCollapsed && (
-            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">Heritage Admin</h1>
+            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">VTFP Admin</h1>
           )}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
