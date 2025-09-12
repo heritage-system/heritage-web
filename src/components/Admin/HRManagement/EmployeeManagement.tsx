@@ -14,8 +14,8 @@ import {
   UserX,
   Users as UsersIcon,
 } from "lucide-react";
-import Pagination from "../Layouts/Pagination";
-import SearchFilter from "./SearchFilter";
+import Pagination from "../../Layouts/Pagination";
+import SearchFilter from "../SearchFilter";
 
 /* ===================== Types ===================== */
 interface User {
@@ -170,7 +170,7 @@ function DataTable<T extends { id: string }>({
 }
 
 /* ===================== User Management ===================== */
-const UserManagement: React.FC = () => {
+const EmployeeManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([
     {
       id: "1",
@@ -514,7 +514,7 @@ const UserManagement: React.FC = () => {
   );
 };
 
-export default UserManagement;
+export default EmployeeManagement;
 
 /* ===================== Reusable Modals ===================== */
 

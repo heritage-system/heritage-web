@@ -31,9 +31,9 @@ import {
   Edit3,
   X
 } from "lucide-react";
-import HeritageAdminPanel from "../../pages/AdminPage/AdminPage";
-import { fetchHeritageDetail, deleteHeritage } from "../../services/heritageService";
-import { HeritageDetail } from "../../types/heritage";
+import HeritageAdminPanel from "../../../pages/AdminPanelPage/AdminPanelPage";
+import { fetchHeritageDetail, deleteHeritage } from "../../../services/heritageService";
+import { HeritageDetail } from "../../../types/heritage";
 import { notification } from "antd";
 
 interface Occurrence {

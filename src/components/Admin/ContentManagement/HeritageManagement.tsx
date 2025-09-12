@@ -11,12 +11,12 @@ import {
   BarChart3,
   X,
 } from "lucide-react";
-import Pagination from "../Layouts/Pagination";
-import SearchFilter from "./SearchFilter";
-import { fetchHeritages, deleteHeritage } from "../../services/heritageService";
-import { fetchTags } from "../../services/tagService";
-import { fetchCategories } from "../../services/categoryService";
-import { HeritageAdmin, TableColumn, TableProps } from "../../types/heritage";
+import Pagination from "../../Layouts/Pagination";
+import SearchFilter from "../SearchFilter";
+import { fetchHeritages, deleteHeritage } from "../../../services/heritageService";
+import { fetchTags } from "../../../services/tagService";
+import { fetchCategories } from "../../../services/categoryService";
+import { HeritageAdmin, TableColumn, TableProps } from "../../../types/heritage";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
