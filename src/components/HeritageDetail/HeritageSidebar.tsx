@@ -11,6 +11,10 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { HeritageSearchResponse } from "../../types/heritage";
 import ReportModal from "./ReportModal";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import PortalModal from "../Layouts/PortalModal";
+
 
 // Fix icon marker khi bundle với webpack/vite
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -93,8 +97,21 @@ export const HeritageSidebar: React.FC<Props> = ({
   const firstLoc = heritage.heritageLocations?.[0];
   const [selectedLoc, setSelectedLoc] = useState(firstLoc ?? null);
 
-  // ✅ Thêm state cho modal
   const [openReport, setOpenReport] = useState(false);
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+
+
+const handleReportClick = () => {
+    console.log("isLoggedIn =", isLoggedIn); // debug
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    setOpenReport(true);
+  };
+
 
   // 🔧 Sync lại khi di sản/địa điểm đầu tiên thay đổi
   useEffect(() => {
@@ -187,21 +204,47 @@ export const HeritageSidebar: React.FC<Props> = ({
             <Clock className="w-4 h-4" /> Nhắc lịch
           </button>
 
-          {/* ✅ Nút báo cáo */}
+           {/* Nút Báo cáo */}
           <button
             className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 text-red-600 border-red-200"
-            onClick={() => setOpenReport(true)}
+            onClick={handleReportClick}
           >
             <Flag className="w-4 h-4" /> Báo cáo
           </button>
         </div>
       </SectionCard>
 
+      {/* Modal báo cáo */}
       <ReportModal
         open={openReport}
         onClose={() => setOpenReport(false)}
         heritageId={heritage.id}
       />
+
+     <PortalModal
+      open={openLoginModal}
+      onClose={() => setOpenLoginModal(false)}
+    >
+      <div className="p-6 text-center border-2 border-red-400 rounded-xl shadow-lg bg-white">
+        <h2 className="text-lg font-semibold mb-3">Bạn cần đăng nhập</h2>
+        <p className="text-gray-600 mb-4">
+          Vui lòng đăng nhập để thực hiện báo cáo!
+        </p>
+
+        {/* Wrap button trong div flex justify-center */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate("/login")}
+            className="bg-gradient-to-r from-yellow-800 to-yellow-600 text-white px-6 py-2 rounded-xl
+                      hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+          >
+            Đăng nhập ngay
+          </button>
+        </div>
+      </div>
+    </PortalModal>
+
+
 
 
       {/* Nguồn tham khảo */}
@@ -212,6 +255,10 @@ export const HeritageSidebar: React.FC<Props> = ({
           <li>Liên hệ chính quyền địa phương</li>
         </ul>
       </SectionCard>
+
     </div>
+
+    
   );
+  
 };
