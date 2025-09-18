@@ -1,9 +1,9 @@
 import React from 'react';
 import { Heart, MessageCircle, BookmarkPlus, Share2, MoreHorizontal } from 'lucide-react';
-import { Contribution } from '../../types/contribution';
+import { ContributionSearchResponse } from '../../types/contribution';
 
 interface ArticleMetaProps {
-  contribution: Contribution;
+  contribution: ContributionSearchResponse;
   formatDate: (date: Date) => string;
   formatPrice: (price: number) => string;
 }
