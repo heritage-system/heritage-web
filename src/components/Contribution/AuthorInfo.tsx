@@ -1,8 +1,8 @@
 import React from 'react';
-import { Contribution } from '../../types/contribution';
+import { ContributionSearchResponse } from '../../types/contribution';
 
 interface AuthorInfoProps {
-  contribution: Contribution;
+  contribution: ContributionSearchResponse;
   isFollowing: boolean;
   onToggleFollow: (contributorId: number) => void;
 }

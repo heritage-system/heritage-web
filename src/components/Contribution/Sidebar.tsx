@@ -2,10 +2,10 @@ import React from 'react';
 import TrendingTopics from './TrendingTopics';
 import RecommendedAuthors from './RecommendedAuthors';
 import TopicsToFollow from './TopicsToFollow';
-import { Contribution } from '../../types/contribution';
+import { ContributionSearchResponse } from '../../types/contribution';
 
 interface SidebarProps {
-  contributions: Contribution[];
+  contributions: ContributionSearchResponse[];
   followingAuthors: number[];
   onToggleFollow: (contributorId: number) => void;
 }

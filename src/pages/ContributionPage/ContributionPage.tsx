@@ -3,11 +3,11 @@ import { Search } from 'lucide-react';
 import Header from '../../components/Layouts/Header';
 import ArticleCard from '../../components/Contribution/ArticleCard';
 import Sidebar from '../../components/Contribution/Sidebar';
-import { Contribution, SearchRequest } from '../../types/contribution';
+import { ContributionSearchResponse, SearchRequest } from '../../types/contribution';
 
 
 // Sample data
-const sampleContributions: Contribution[] = [
+const sampleContributions: ContributionSearchResponse[] = [
   {
     id: 1,
     contributorId: 101,
@@ -97,9 +97,9 @@ const formatPrice = (price: number): string => {
 };
 
 const filterContributions = (
-  contributions: Contribution[], 
+  contributions: ContributionSearchResponse[], 
   keyword: string
-): Contribution[] => {
+): ContributionSearchResponse[] => {
   if (!keyword.trim()) {
     return contributions;
   }
@@ -124,7 +124,7 @@ const ContributionSearchUI: React.FC = () => {
     pageSize: 10
   });
 
-  const [filteredContributions, setFilteredContributions] = useState<Contribution[]>(sampleContributions);
+  const [filteredContributions, setFilteredContributions] = useState<ContributionSearchResponse[]>(sampleContributions);
   const [followingAuthors, setFollowingAuthors] = useState<number[]>([]);
 
   const handleSearch = (keyword: string) => {

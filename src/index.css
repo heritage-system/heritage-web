@@ -6,3 +6,14 @@
 /* Leaflet styles */
 @import "leaflet/dist/leaflet.css";
 
+.ql-editor .ql-align-center img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ql-editor .ql-align-right img {
+  display: block;
+  margin-left: auto;
+  margin-right: 0;
+}
