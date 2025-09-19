@@ -20,18 +20,6 @@ export interface ReportSearchRequest {
   status?: string;
 }
 
-export interface ReportItem {
-  id: number;
-  userId: number;
-  heritageId: number;
-  heritageName?: string; 
-  reason: string;
-  createdAt: string;
-  userName?: string;
-  status?: string;
-}
-
-
 export interface TableColumn<T> {
   key: keyof T;
   label: string;
@@ -56,3 +44,14 @@ export interface ReportReply {
   updatedAt: string;
 }
 
+export interface CreateReportRequest {
+  reason: string;
+  description: string;
+}
+
+export interface ReportResponse {
+  id: number;
+  heritageId: number;
+  userId: number;
+  reason: string
+}

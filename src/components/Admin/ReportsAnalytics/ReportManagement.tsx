@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Eye, AlertTriangle, X, MessageSquare } from "lucide-react";
 import Pagination from "../../Layouts/Pagination";
 import SearchFilter from "../SearchFilter";
-import { TableProps, ReportItem, TableColumn } from "../../../types/report";
+import { TableProps, Report, TableColumn } from "../../../types/report";
 import { fetchReports, answerReport } from "../../../services/reportService";
 import { useNavigate } from "react-router-dom";
 
@@ -78,7 +78,7 @@ function DataTable<T extends { id: number }>({
 
 // ===================== Report Management =====================
 const ReportManagement: React.FC = () => {
-  const [reports, setReports] = useState<ReportItem[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
 
   // UI states
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,7 +136,7 @@ const ReportManagement: React.FC = () => {
     load();
   }, [currentPage, searchTerm, startDate, endDate, statusFilter]);
 
-  const columns: TableColumn<ReportItem>[] = [
+  const columns: TableColumn<Report>[] = [
     { key: "id", label: "ID" },
     { key: "userName", label: "User Name" },
     { key: "heritageName", label: "Heritage Name" },
@@ -162,11 +162,11 @@ const ReportManagement: React.FC = () => {
 };
 
 
-  const handleAnswer = (item: ReportItem) => setSelectedReport(item);
+  const handleAnswer = (item: Report) => setSelectedReport(item);
   const navigate = useNavigate();
 
-  const [viewReport, setViewReport] = useState<ReportItem | null>(null);
-  const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
+  const [viewReport, setViewReport] = useState<Report | null>(null);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [answerText, setAnswerText] = useState("");
 
   const handleSubmitAnswer = async () => {
@@ -299,7 +299,7 @@ const ReportManagement: React.FC = () => {
 
 
       {/* Table */}
-      <DataTable<ReportItem>
+      <DataTable<Report>
         data={reports}
         columns={columns}
         loading={loading}
