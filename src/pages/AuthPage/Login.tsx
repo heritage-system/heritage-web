@@ -128,17 +128,23 @@ const Login: React.FC = () => {
                 />
                 Ghi nhớ tôi
               </label>
-              <Link to="/forgot-password" className="text-sm text-purple-600 hover:underline">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-yellow-700 hover:text-yellow-800 hover:underline"
+              >
                 Quên mật khẩu?
               </Link>
+
+
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
+              className="w-full py-3 mb-4 bg-gradient-to-r from-yellow-800 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
             >
               Đăng nhập
             </button>
+
 
             <button
               type="button"
@@ -155,9 +161,13 @@ const Login: React.FC = () => {
 
             <p className="text-center text-sm text-gray-700">
               Chưa có tài khoản?{" "}
-              <Link to="/register" className="text-purple-600 font-medium hover:underline">
+              <Link
+                to="/register"
+                className="text-yellow-700 font-medium hover:text-yellow-800 hover:underline"
+              >
                 Đăng ký
               </Link>
+
             </p>
           </form>
         </div>
