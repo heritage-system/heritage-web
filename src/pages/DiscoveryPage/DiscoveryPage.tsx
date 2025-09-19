@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useTransition } from "react";
+import { useNavigate } from "react-router-dom"; // 👈 to navigate to heritage detail
 import DiscoveryGoogleMapsView from "../../components/Discovery/DiscoveryGoogleMapsView";
 import DiscoveryHeritageGrid from "../../components/Discovery/DiscoveryHeritageGrid";
 import DiscoveryQuickFilters from "../../components/Discovery/DiscoveryQuickFilters";
 import DiscoveryUpcomingEvents from "../../components/Discovery/DiscoveryUpcomingEvents";
 import DiscoveryViewToggle from "../../components/Discovery/DiscoveryViewToggle";
+import DiscoveryAIUploader from "../../components/Discovery/DiscoveryAIUploader";
+
 import Pagination from "../../components/Layouts/Pagination";
 import { HeritageSearchRequest } from "../../types/heritage";
 import { useDiscoveryFilters } from "../../hooks/useDiscoveryFilters";
@@ -13,7 +16,13 @@ import { Tag } from "../../types/tag";
 import { fetchProvinces } from "../../services/locationSerivce";
 import { fetchCategories } from "../../services/categoryService";
 import { fetchTags } from "../../services/tagService";
+
+// 👇 import AI types
+import { PredictResponse } from "../../types/heritage";
+
 const DiscoveryPage: React.FC = () => {
+  const navigate = useNavigate();
+
   const {
     heritages,
     loading,
@@ -39,6 +48,10 @@ const DiscoveryPage: React.FC = () => {
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+
+  // 👇 New: AI mode
+  const [aiResults, setAiResults] = useState<PredictResponse | null>(null);
+
   // Đồng bộ khi heritages thay đổi
   useEffect(() => {
     startTransition(() => setDisplayedHeritages(heritages));
@@ -73,7 +86,7 @@ const DiscoveryPage: React.FC = () => {
         const res = await fetchCategories();
         setCategories(res.result || []);
       } catch (err) {
-        console.error("Không thể tải provinces:", err);
+        console.error("Không thể tải categories:", err);
       }
     };
     loadCategories();
@@ -82,7 +95,7 @@ const DiscoveryPage: React.FC = () => {
         const res = await fetchTags();
         setTags(res.result || []);
       } catch (err) {
-        console.error("Không thể tải provinces:", err);
+        console.error("Không thể tải tags:", err);
       }
     };
     loadTags();
@@ -115,14 +128,34 @@ const DiscoveryPage: React.FC = () => {
   };
 
   const updatedFiltersHeritages = (filters: HeritageSearchRequest) => {
-  if (mapMode === "all") {
-    // fetch lại toàn bộ map theo filter mới
-    fetchHeritagesDirect({ ...filters, page: 0, pageSize: 10000 })
-      .then((res) => setAllHeritagesForMap(res));
-  }
-  return mapMode === "paged" ? displayedHeritages : allHeritagesForMap;
-};
+    if (mapMode === "all") {
+      fetchHeritagesDirect({ ...filters, page: 0, pageSize: 10000 })
+        .then((res) => setAllHeritagesForMap(res));
+    }
+    return mapMode === "paged" ? displayedHeritages : allHeritagesForMap;
+  };
 
+  // 👇 Render AI results (name + description only)
+  const renderAiResults = () => {
+    if (!aiResults) return null;
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Kết quả AI</h2>
+        {aiResults.matches.map((m) => (
+          <div
+            key={m.heritage_id}
+            className="cursor-pointer border rounded-lg p-3 bg-white shadow hover:bg-gray-50 transition"
+            onClick={() => navigate(`/heritage/${m.heritage_id}`)}
+          >
+            <h3 className="font-bold text-gray-800">{m.name ?? "Không rõ tên"}</h3>
+            <p className="text-sm text-gray-600">
+              {m.description ?? "Không có mô tả"}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 mt-16">
@@ -142,81 +175,88 @@ const DiscoveryPage: React.FC = () => {
 
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:flex-1">
-            <div className="mb-4">
-              <DiscoveryQuickFilters
-                filters={filters}
-                onFiltersChange={(changes) => {
-                  const updatedFilters = {
-                    ...filters,
-                    ...changes,
-                    page: mapMode === "all" ? filters.page : 1,
-                  };
-                  onFiltersChange(updatedFilters, true);
-                  setAllHeritagesForMap(updatedFiltersHeritages(updatedFilters));
-                }}
-                view={view}
-                locations={provinces} 
-                categories={categories}
-                tags={tags}
-              />
-
-
-            </div>
-
-            <div className="flex justify-end mb-6">
-              <DiscoveryViewToggle view={view} onViewChange={setView} />
-            </div>
-
-            {view === "grid" && (
-              <p className="text-sm text-gray-600 mb-4">
-                Tìm thấy <span className="font-medium">{totalElements}</span> di sản văn hóa
-              </p>
-            )}
-
-            {/* Grid / Map */}
-            {view === "grid" ? (
-              <DiscoveryHeritageGrid heritages={displayedHeritages || []} />
+            <div className="mb-6">
+  <DiscoveryAIUploader onResult={setAiResults} />
+</div>
+            {/* 👇 If AI results exist, show them instead of normal search */}
+            {aiResults ? (
+              renderAiResults()
             ) : (
               <>
-                <div className="relative z-0 mb-2 flex gap-2 justify-end">
-                  {mapMode === "paged" ? (
-                    <button
-                      onClick={showAllOnMap}
-                      className="bg-white rounded-lg shadow px-4 py-2 text-sm border font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border z-[1000]">
-                   
-                      Hiển thị tất cả
-                    </button>
-                  ) : (
-                    <button
-                      onClick={backToPagedMap}
-                      className="bg-white rounded-lg shadow px-4 py-2 text-sm border font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border z-[1000]"
-                    >
-                      Quay lại phân trang
-                    </button>
-                  )}
+                <div className="mb-4">
+                  
+                  <DiscoveryQuickFilters
+                    filters={filters}
+                    onFiltersChange={(changes) => {
+                      const updatedFilters = {
+                        ...filters,
+                        ...changes,
+                        page: mapMode === "all" ? filters.page : 1,
+                      };
+                      onFiltersChange(updatedFilters, true);
+                      setAllHeritagesForMap(updatedFiltersHeritages(updatedFilters));
+                    }}
+                    view={view}
+                    locations={provinces} 
+                    categories={categories}
+                    tags={tags}
+                  />
                 </div>
-                <DiscoveryGoogleMapsView
-                  heritages={allHeritagesForMap}
-                  userLocation={userLocation}
-                  onFiltersChange={mapMode === "paged" ? onFiltersChangeForMap : undefined}
-                />
+
+                <div className="flex justify-end mb-6">
+                  <DiscoveryViewToggle view={view} onViewChange={setView} />
+                </div>
+
+                {view === "grid" && (
+                  <p className="text-sm text-gray-600 mb-4">
+                    Tìm thấy <span className="font-medium">{totalElements}</span> di sản văn hóa
+                  </p>
+                )}
+
+                {view === "grid" ? (
+                  <DiscoveryHeritageGrid heritages={displayedHeritages || []} />
+                ) : (
+                  <>
+                    <div className="relative z-0 mb-2 flex gap-2 justify-end">
+                      {mapMode === "paged" ? (
+                        <button
+                          onClick={showAllOnMap}
+                          className="bg-white rounded-lg shadow px-4 py-2 text-sm border font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border z-[1000]">
+                          Hiển thị tất cả
+                        </button>
+                      ) : (
+                        <button
+                          onClick={backToPagedMap}
+                          className="bg-white rounded-lg shadow px-4 py-2 text-sm border font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border z-[1000]"
+                        >
+                          Quay lại phân trang
+                        </button>
+                      )}
+                    </div>
+                    <DiscoveryGoogleMapsView
+                      heritages={allHeritagesForMap}
+                      userLocation={userLocation}
+                      onFiltersChange={mapMode === "paged" ? onFiltersChangeForMap : undefined}
+                    />
+                  </>
+                )}
+
+                {isPending && (
+                  <div className="text-center text-sm text-gray-500 mt-2">
+                    Đang tải dữ liệu mới...
+                  </div>
+                )}
+
+                {view === "grid" && totalPages > 1 && (
+                  <Pagination
+                    currentPage={filters.page ?? 1}
+                    totalPages={totalPages}
+                    onPageChange={onPageChange}
+                    itemsPerPage={filters.pageSize ?? 12}
+                    totalItems={totalElements}
+                  />
+                )}
               </>
-            )}
-
-            {isPending && (
-              <div className="text-center text-sm text-gray-500 mt-2">
-                Đang tải dữ liệu mới...
-              </div>
-            )}
-
-            {view === "grid" && totalPages > 1 && (
-              <Pagination
-                currentPage={filters.page ?? 1}
-                totalPages={totalPages}
-                onPageChange={onPageChange}
-                itemsPerPage={filters.pageSize ?? 12}
-                totalItems={totalElements}
-              />
             )}
           </div>
 
