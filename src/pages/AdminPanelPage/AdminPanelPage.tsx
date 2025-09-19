@@ -46,6 +46,7 @@ import {
   ChevronLeft,
   Home
 } from "lucide-react";
+import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 
 // Import all management components
 import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement";
@@ -96,7 +97,7 @@ import DataVisualization from "../../components/Admin/ReportsAnalytics/DataVisua
 // import PolicyManagement from "../../components/Admin/Compliance/PolicyManagement";
 import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
-import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement";
+import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -340,7 +341,7 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
           </button>
         ) : (
           <button
-            onClick={() => navigate(-1)} // Fallback to browser back if no onBackToDashboard
+            onClick={() => navigate("/admin/adminHomeDashboard")} // Fallback to browser back if no onBackToDashboard
             className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 mb-4"
           >
             <Home size={18} />
@@ -424,19 +425,32 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
     <div className="h-screen flex bg-gray-100 dark:bg-gray-900 overflow-hidden">
       {/* Sidebar */}
       <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-800 border-r shadow-md flex flex-col transition-all duration-300`}>
-        {/* Logo */}
+       {/* Logo */}
         <div className="p-6 border-b dark:border-gray-700 flex items-center gap-2">
-          <div className="w-20 h-10 bg-blue-600 text-white flex items-center justify-center rounded-lg font-bold">
-            VTFP
+          {/* Thay block xanh bằng logo */}
+          <div className="relative w-28 h-28">  
+            <img
+              src={VTFPLogo}
+              alt="Logo"
+              className="w-full h-full object-contain rounded-full"
+            />
           </div>
+
           {!sidebarCollapsed && (
-            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">VTFP Admin</h1>
+            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+              VTFP Admin
+            </h1>
           )}
+
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="ml-auto p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
           >
-            <ChevronLeft className={`w-4 h-4 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} />
+            <ChevronLeft
+              className={`w-4 h-4 transition-transform ${
+                sidebarCollapsed ? "rotate-180" : ""
+              }`}
+            />
           </button>
         </div>
 
@@ -455,7 +469,7 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-black dark:text-gray-100">
             {getPageTitle()}
           </h2>
           <div className="flex items-center gap-4">
