@@ -3,7 +3,7 @@ import { API_URL } from './baseUrl';
 import { tokenStorage } from './tokenStorage';
 import { ApiResponse } from "../types/apiResponse";
 
-const PUBLIC_ENDPOINTS: string[] = [
+const PUBLIC_ONLY_ENDPOINTS: string[] = [
   '/api/v1/auth/sign-in',
   '/api/v1/auth/outbound',
   '/api/v1/users',
@@ -16,6 +16,10 @@ const PUBLIC_ENDPOINTS: string[] = [
   '/api/v1/users/heritageDetail',
   '/api/v1/Reviews',
 ];
+const OPTIONAL_AUTH_ENDPOINTS: string[] = [
+  '/api/v1/contributions/contributionDetail',
+  
+]
 
 // Helpers nhận diện body
 const isFormData = (b: any): b is FormData => typeof FormData !== 'undefined' && b instanceof FormData;
@@ -26,10 +30,13 @@ const isBlobLike = (b: any) =>
 const isPlainObject = (b: any) =>
   b && typeof b === 'object' && !Array.isArray(b) && !isFormData(b) && !isBlobLike(b);
 
-function isPublicEndpoint(url: string): boolean {
+function getEndpointCategory(url: string): "public" | "optional" | "protected" {
   let path: string;
   try { path = new URL(url).pathname; } catch { path = url; }
-  return PUBLIC_ENDPOINTS.some(endpoint => path === endpoint);
+
+  if (PUBLIC_ONLY_ENDPOINTS.includes(path)) return "public";
+  if (OPTIONAL_AUTH_ENDPOINTS.includes(path)) return "optional";
+  return "protected"; 
 }
 
 let refreshingPromise: Promise<boolean> | null = null;
@@ -77,7 +84,7 @@ export const fetchInterceptor = async <T = any>(
   options: FetchInterceptorOptions = {}
 ): Promise<ApiResponse<T>> => {
 
-  const isPublic = options.skipAuth || isPublicEndpoint(url);
+  const category = getEndpointCategory(url);
 
   // ====== Build headers đúng theo loại body ======
   const headers = new Headers(options.headers || {});
@@ -102,10 +109,16 @@ export const fetchInterceptor = async <T = any>(
     }
   }
 
-  if (!isPublic) {
-    const token = tokenStorage.getAccessToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    console.log("Lan 1:" + token)
+  const token = tokenStorage.getAccessToken();
+  if (category === "protected") {
+    if (!token) {
+      return { code: 401, message: "Unauthorized" };
+    }
+    headers.set("Authorization", `Bearer ${token}`);
+  } else if (category === "optional") {
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
   }
 
   const requestOptions: RequestInit = {

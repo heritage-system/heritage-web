@@ -25,7 +25,7 @@ import ReportDetailManagement from './components/Admin/ReportsAnalytics/ReportDe
 import ContributionFormPage from './pages/ContributionPage/ContributionFormPage';
 import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
-
+import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 const App: React.FC = () => {
   return (
     <Router>
@@ -52,7 +52,7 @@ const App: React.FC = () => {
         <Route path="/reports/:id" element={<ReportDetailManagement />} />
         <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
-
+        <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />   
       </Routes>
 
       {/* <ChatBoxAI /> */}

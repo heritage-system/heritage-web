@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { HeritageSearchResponse,HeritageSearchRequest, HeritageDescription } from "../../types/heritage";
 import { getHeritageDetail } from "../../services/heritageService";
-import HeritageEditor from "./arcticleinput-Quill";
 // Import các components con
 import { HeritageHero } from "../../components/HeritageDetail/HeritageHero";
 import { HeritageContentTabs } from "../../components/HeritageDetail/HeritageContentTabs";

@@ -2,10 +2,10 @@ import React from 'react';
 import AuthorInfo from './AuthorInfo';
 import ArticleMeta from './ArticleMeta';
 import Tags from './Tags';
-import { Contribution } from '../../types/contribution';
+import { ContributionSearchResponse } from '../../types/contribution';
 
 interface ArticleCardProps {
-  contribution: Contribution;
+  contribution: ContributionSearchResponse;
   isFollowing: boolean;
   onToggleFollow: (contributorId: number) => void;
   formatDate: (date: Date) => string;
