@@ -85,7 +85,7 @@ export const HeritageContributorPosts: React.FC<Props> = ({
   };
 
   return (
-    <SectionCard title="Bài viết từ cộng tác viên" right={rightSlot}>
+    <SectionCard title="Bài viết bạn có thể quan tâm" right={rightSlot}>
       <div className="relative">
         {/* Nút trái */}
         <button

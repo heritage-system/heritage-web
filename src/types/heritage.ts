@@ -183,6 +183,11 @@ export interface HeritageDetail {
     description: string;
   }[];
 }
+
+export interface HeritageName {
+  id: number;
+  name: string;
+}
 export interface PredictResponse {
   matches: {
     heritage_id: number;

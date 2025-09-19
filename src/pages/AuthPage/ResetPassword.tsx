@@ -159,7 +159,7 @@ const ResetPassword: React.FC = () => {
               </span>
               <button
                 type="button"
-                className={`text-purple-600 font-medium hover:underline text-sm ml-2 ${
+                className={`text-yellow-700 font-medium hover:text-yellow-800 hover:underline text-sm ml-2 ${
                   canResend ? "" : "opacity-50 cursor-not-allowed"
                 }`}
                 onClick={handleResendOTP}
@@ -167,6 +167,7 @@ const ResetPassword: React.FC = () => {
               >
                 Gửi lại OTP
               </button>
+
             </div>
 
             <label
@@ -223,19 +224,21 @@ const ResetPassword: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full py-3 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
+              className="w-full py-3 mb-4 bg-gradient-to-r from-yellow-800 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
             >
               Đặt lại mật khẩu
             </button>
+
 
             <p className="text-center text-sm text-gray-700">
               Đã nhớ mật khẩu?{" "}
               <Link
                 to="/login"
-                className="text-purple-600 font-medium hover:underline"
+                className="text-yellow-700 font-medium hover:text-yellow-800 hover:underline"
               >
                 Đăng nhập
               </Link>
+
             </p>
           </form>
         </div>

@@ -1,7 +1,7 @@
 import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
-import { HeritageSearchRequest, HeritageSearchResponse, HeritageAdmin, HeritageDetail, PredictResponse} from "../types/heritage";
-import { AI_API_URL, API_URL } from "../utils/baseUrl";
+import { HeritageSearchRequest, HeritageSearchResponse, HeritageAdmin, HeritageDetail, HeritageName,PredictResponse} from "../types/heritage";
+import { AI_API_URL,API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 
 export const predictHeritage = async (
@@ -116,6 +116,18 @@ export const deleteHeritage = async (id: number): Promise<ApiResponse<void>> => 
 };
 
 
+export const searchHeritageNames = async (
+  keyword: string
+): Promise<ApiResponse<HeritageName[]>> => {
+  const query = new URLSearchParams();
+
+  if (keyword) query.append("keyword", keyword);
+
+  return await fetchInterceptor<HeritageName[]>(
+    `${API_URL}/api/Heritage/get_list_heritage_name?${query.toString()}`,
+    { method: "GET" }
+  );
+};
 
 
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { fetchRepliesByReportId, getReportById, answerReport } from "../../services/reportService";
-import { Report, ReportReply } from "../../types/report";
+import { fetchRepliesByReportId, getReportById, answerReport } from "../../../services/reportService";
+import { Report, ReportReply } from "../../../types/report";
 import { useParams } from "react-router-dom";
-import HeritageAdminPanel from "../../pages/AdminPage/AdminPage";
+import HeritageAdminPanel from "../../../pages/AdminPanelPage/AdminPanelPage";
 import { 
   Send, 
   ArrowLeft, 
