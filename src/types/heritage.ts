@@ -184,3 +184,7 @@ export interface HeritageDetail {
   }[];
 }
 
+export interface HeritageName {
+  id: number;
+  name: string;
+}

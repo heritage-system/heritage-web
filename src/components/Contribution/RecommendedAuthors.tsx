@@ -1,8 +1,8 @@
 import React from 'react';
-import { Contribution } from '../../types/contribution';
+import { ContributionSearchResponse } from '../../types/contribution';
 
 interface RecommendedAuthorsProps {
-  contributors: Contribution[];
+  contributors: ContributionSearchResponse[];
   followingAuthors: number[];
   onToggleFollow: (contributorId: number) => void;
 }

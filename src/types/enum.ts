@@ -28,3 +28,8 @@ export enum ContributionStatus {
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
 }
+
+export enum ContributionPremiumTypes {
+  FREE = "FREE",
+  SUBSCRIPTIONONLY = "SUBSCRIPTIONONLY"
+}
