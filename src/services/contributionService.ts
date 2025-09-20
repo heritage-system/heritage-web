@@ -1,12 +1,45 @@
 import { ApiResponse } from "../types/apiResponse";
+import { PageResponse } from "../types/pageResponse";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 import {
   ContributionCreateRequest,
   ContributionCreateResponse,  
-  ContributionResponse
+  ContributionResponse,
+  ContributionSearchRequest,
+  ContributionSearchResponse
 } from "../types/contribution";
+import {
+  ContributionReviewCreateRequest,
+  ContributionReviewResponse,
+  ContributionReviewUpdateRequest,
+  ContributionReviewUpdateResponse
+} from "../types/contributionReview";
+import { LikeReviewResponse, LikeReviewRequest} from "../types/review";
 
+export const searchContribution = async (
+  params: ContributionSearchRequest
+): Promise<ApiResponse<PageResponse<ContributionSearchResponse>>> => {
+
+    const queryString = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+        value.forEach(v => queryString.append(key, String(v)));
+    } else {
+        queryString.append(key, String(value));
+    }
+    });
+
+    const response = await fetchInterceptor<PageResponse<ContributionSearchResponse>>(
+    `${API_URL}/api/v1/contributions/search_contribution?${queryString.toString()}`,
+    { method: "GET" }
+    );
+
+  return response;
+};
 
 export const postContribution = async (
   data: ContributionCreateRequest
@@ -52,7 +85,7 @@ export const addContributionSave = async (id: number): Promise<ApiResponse<boole
   return data;
 };
 
-export const removContributionSave = async (id: number): Promise<ApiResponse<boolean>> => {
+export const removeContributionSave = async (id: number): Promise<ApiResponse<boolean>> => {
   const queryString = new URLSearchParams({ id: id.toString() });
   const data = await fetchInterceptor<boolean>(
     `${API_URL}/api/v1/contributions/remove_contribution_save?${queryString}`,
@@ -63,3 +96,64 @@ export const removContributionSave = async (id: number): Promise<ApiResponse<boo
 
   return data;
 };
+
+export async function createContributionReview(
+  req: ContributionReviewCreateRequest
+): Promise<ApiResponse<ContributionReviewResponse>> {
+  const formData = new FormData();
+
+  formData.append("ContributionId", String(req.contributionId));
+  formData.append("Comment", req.comment);
+
+  if (req.parentReviewId != null) {
+    formData.append("ParentReviewId", String(req.parentReviewId));
+  }
+
+  return fetchInterceptor<ContributionReviewResponse>(`${API_URL}/api/v1/contribution_reviews/create_review`, {
+    method: "POST",
+    body: formData,            
+  });
+}
+
+
+export const getReviewsByContributionId = async (
+ contributionId: number
+): Promise<ApiResponse<ContributionReviewResponse[]>> => {
+  return await fetchInterceptor<ContributionReviewResponse[]>(
+    `${API_URL}/api/v1/contribution_reviews/get_contribution_reviews?contributionId=${contributionId}`,
+    { method: "GET" }
+  );
+};
+
+export const toggleLikeContributionReview = async (
+  payload: LikeReviewRequest
+): Promise<ApiResponse<LikeReviewResponse>> => {
+  return await fetchInterceptor(`${API_URL}/api/v1/contribution_reviews/like`, {
+    method: "POST",
+    body: payload as any,
+  });
+};
+
+export const updateReview = async (
+  payload: ContributionReviewUpdateRequest
+): Promise<ApiResponse<ContributionReviewUpdateResponse>> => {
+  const formData = new FormData();
+  formData.append("Id", payload.id.toString());
+  formData.append("Comment", payload.comment);
+
+  return await fetchInterceptor<ContributionReviewUpdateResponse>(`${API_URL}/api/v1/contribution_reviews/update_review`, {
+    method: "PUT",
+    body: formData,
+  });
+};
+
+
+export const deleteReview = async (
+  reviewId: number
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contribution_reviews/delete_review?reviewId=${reviewId}`,
+    { method: "DELETE" }
+  );
+};
+

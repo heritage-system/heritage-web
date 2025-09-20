@@ -1,6 +1,7 @@
-import { ContributionPremiumTypes, ContributionStatus} from "./enum";
+import { SortBy, ContributionStatus} from "./enum";
 import {HeritageName} from "./heritage"
 import {SubscriptionDto} from "./subscription"
+
 export interface ContributionCreateRequest {
   title: string,
   content: string,
@@ -17,22 +18,28 @@ export interface ContributionCreateResponse {
     status: ContributionStatus   
 }
 
+export interface ContributionSearchRequest {
+    keyword?: string;   
+    sortBy?: SortBy;             
+    page?: number;
+    pageSize?: number;
+}
+
 export interface ContributionSearchResponse {
   id: number;
   contributorId: number;
   contributorName: string;
   avatarUrl: string;
-  firstText: string;
+  content?: string;
+  firstContent?: string;
   title: string;
   mediaUrl?: string;
-  price: number;
-  contributorNameUnsigned: string;
-  titleUnsigned: string;
-  postedAt: Date;
-  readTime: string;
-  tags: string[];
-  claps: number;
+  contributionHeritageTags:  HeritageName[]; 
+  publishedAt: string; 
+  view: number;  
   comments: number;
+  isSave: boolean;
+  isPremium: boolean
 }
 
 export interface ContributionResponse {
