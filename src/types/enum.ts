@@ -7,8 +7,8 @@ export enum CalendarType {
 export enum SortBy {
   NameAsc = "NAMEASC",
   NameDesc = "NAMEDESC",
-  DateAsc = "DateAsc",
-  DateDesc = "DateDesc",
+  DateAsc = "DATEASC",
+  DateDesc = "DATEDESC",
     IdAsc = "IDASC",
   IdDesc = "IDDESC"
 }
@@ -18,7 +18,6 @@ export type MediaType = "image" | "video" | "audio" | "other";
 // ---- Contributor ----
 export enum ContributorStatus {
   APPLIED = "APPLIED",
-  APPROVED = "APPROVED",
   REJECTED = "REJECTED",
   ACTIVE = "ACTIVE",
   SUSPENDED = "SUSPENDED",
