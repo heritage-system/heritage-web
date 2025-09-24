@@ -98,3 +98,8 @@ export interface UpdateProfileResponse {
   dateOfBirth?: string;
   avatarUrl?: string;
 }
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}

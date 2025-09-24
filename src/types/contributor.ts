@@ -11,14 +11,13 @@ export interface ContributorCreateRequest {
 export interface ContributorUpdateRequest {
   bio?: string;
   expertise?: string;
-  verified: boolean;
-  status: ContributorStatus;
+  status: string;
+  documentsUrl?: string;
 }
 
 // Search
 export interface ContributorSearchRequest {
   keyword?: string;
-  verified?: boolean;
   status?: ContributorStatus;
   sortBy?: SortBy;
   page?: number;
@@ -32,15 +31,14 @@ export interface ContributorSearchResponse {
   id: number;
   bio?: string;
   expertise?: string;
-  verified: boolean;
-  status: ContributorStatus;
+  status: string; 
   updatedAt?: string;
 
   userId: number;
   userFullName?: string;
   userEmail?: string;
 
-  count: number;
+  count: number;  
 
   expertiseUnsigned?: string;
   fullNameUnsigned?: string;
@@ -51,14 +49,14 @@ export interface ContributorResponse {
   id: number;
   bio?: string;
   expertise?: string;
-  verified: boolean;
-  status: ContributorStatus;
+  documentsUrl?: string;
+  status: string;
 
   userId: number;
   userFullName?: string;
   userEmail?: string;
 
-  createdAt: string;
+  createdAt: string;   
   updatedAt?: string;
   createdBy?: string;
   updatedBy?: string;
@@ -69,7 +67,6 @@ export interface ContributorResponse {
   updatedByEmail?: string;
 
   count: number;
-
   expertiseUnsigned?: string;
   fullNameUnsigned?: string;
 }
@@ -78,6 +75,23 @@ export interface DropdownUserResponse {
   id: number;
   email?: string;
   fullName?: string;
+}
+
+// Request khi user apply
+export interface ContributorApplyRequest {
+  bio?: string;
+  expertise?: string;
+  documentsUrl?: string;
+}
+
+// Response sau khi apply
+export interface ContributorApplyResponse {
+  id: number;
+  bio?: string;
+  expertise?: string;
+  documentsUrl?: string;
+  status: ContributorStatus | string; // "APPLIED" | "APPROVED" | "ACTIVE" | "REJECTED" | "SUSPENDED"
+  createdAt: string;
 }
 
 export interface TrendingContributor {

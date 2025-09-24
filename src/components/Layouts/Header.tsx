@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import VTFPLogo from "./VTFP_Logo.png";
 
 interface HeaderProps {
   isMenuOpen: boolean;
@@ -44,16 +45,16 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     }`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse"></div>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-yellow-700 to-yellow-500 bg-clip-text text-transparent">
-                VTFP
-              </h1>
-              {/* <p className="text-xs text-white">Heritage Portal</p> */}
+
+         {/* Logo */}
+          <div className="flex items-center space-x-3 ml-12">  
+            <div className="relative w-28 h-28">              
+              {/* Logo */}
+              <img
+                src={VTFPLogo}
+                alt="Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
             </div>
           </div>
 
@@ -72,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               key={idx}
               to={item.path}
               className={`font-medium transition duration-300 ${
-                isScrolled ? 'text-gray-700 hover:text-yellow-700' : 'text-yellow-900 hover:text-yellow-600'
+                isScrolled ? 'text-black hover:text-yellow-700' : 'text-black hover:text-yellow-600'
               }`}
             >
               {item.label}
@@ -104,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               <div className="relative">
                 <button
                   onClick={handleProfileClick}
-                  className="bg-gray-100 px-4 py-2 rounded-xl flex items-center space-x-2 hover:bg-gray-200 transition"
+                  className="bg-gray-100 text-black font-medium px-4 py-2 rounded-xl flex items-center space-x-2 hover:bg-gray-200 transition"
                 >
                   <User className="w-4 h-4" />
                   <span>Profile</span>
@@ -113,14 +114,14 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                   <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-xl overflow-hidden z-50">
                     <Link
                       to="/view-profile"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-black hover:bg-gray-100"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       Hồ sơ
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      className="w-full text-left px-4 py-2 text-black hover:bg-gray-100"
                     >
                       Đăng xuất
                     </button>
@@ -145,18 +146,18 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       {isMenuOpen && (
         <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200 animate-in slide-in-from-top duration-300">
           <div className="px-4 py-6 space-y-4">
-            <Link to="/" className="block text-gray-700 hover:text-purple-600">Trang chủ</Link>
-            <Link to="/DiscoveryPage" className="block text-gray-700 hover:text-purple-600">Khám phá</Link>
-            <Link to="/VRToursPage" className="block text-gray-700 hover:text-purple-600">VR Tours</Link>
-            <Link to="/QuizzPage" className="block text-gray-700 hover:text-purple-600">Học tập</Link>
-            <Link to="/CommunityPage" className="block text-gray-700 hover:text-purple-600">Cộng đồng</Link>
+            <Link to="/" className="block text-black hover:text-purple-600">Trang chủ</Link>
+            <Link to="/DiscoveryPage" className="block text-black hover:text-purple-600">Khám phá</Link>
+            <Link to="/VRToursPage" className="block text-black hover:text-purple-600">VR Tours</Link>
+            <Link to="/QuizzPage" className="block text-black hover:text-purple-600">Học tập</Link>
+            <Link to="/CommunityPage" className="block text-black hover:text-purple-600">Cộng đồng</Link>
             {isLoggedIn ? (
               <>
-                <Link to="/view-profile" className="block text-gray-700 hover:text-purple-600">Hồ sơ</Link>
-                <button onClick={handleLogout} className="w-full text-left text-gray-700 hover:text-purple-600">Đăng xuất</button>
+                <Link to="/view-profile" className="block text-black hover:text-purple-600">Hồ sơ</Link>
+                <button onClick={handleLogout} className="w-full text-left text-black hover:text-purple-600">Đăng xuất</button>
               </>
             ) : (
-              <Link to="/login" className="block text-gray-700 hover:text-purple-600">Đăng nhập</Link>
+              <Link to="/login" className="block text-black hover:text-purple-600">Đăng nhập</Link>
             )}
           </div>
         </div>
