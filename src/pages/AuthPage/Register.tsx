@@ -167,22 +167,33 @@ const Register: React.FC = () => {
                 className="mr-2"
               />
               Tôi đồng ý với{" "}
-              <a href="#" className="ml-1 text-purple-600 hover:underline">điều khoản</a>
+              <a
+                href="#"
+                className="ml-1 text-yellow-700 hover:text-yellow-800 hover:underline"
+              >
+                điều khoản
+              </a>
+
             </label>
 
             <button
               type="submit"
-              className="w-full py-3 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
+              className="w-full py-3 mb-4 bg-gradient-to-r from-yellow-800 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
             >
               Đăng ký
             </button>
 
+
             {/* Login */}
             <p className="text-center text-sm text-gray-700">
               Đã có tài khoản?{" "}
-              <Link to="/login" className="text-purple-600 font-medium hover:underline">
+              <Link
+                to="/login"
+                className="text-yellow-700 font-medium hover:text-yellow-800 hover:underline"
+              >
                 Đăng nhập
               </Link>
+
             </p>
           </form>
         </div>
