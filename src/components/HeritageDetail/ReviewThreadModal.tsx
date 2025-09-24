@@ -1,5 +1,5 @@
   import React from "react";
-  import PortalModal from "../Layouts/PortalModal";
+  import PortalModal from "../Layouts/ModalLayouts/PortalModal";
   import { Review, ReviewMedia } from "../../types/review";
   import { Play, ThumbsUp } from "lucide-react";
   import { toggleLikeReview }  from "../../services/reviewService";

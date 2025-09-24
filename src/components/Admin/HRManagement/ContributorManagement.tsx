@@ -20,7 +20,7 @@ import {
 } from "../../../types/contributor";
 import { ContributorStatus, SortBy } from "../../../types/enum";
 import Pagination from "../../Layouts/Pagination";
-import PortalModal from "../../Layouts/PortalModal";
+import PortalModal from "../../Layouts/ModalLayouts/PortalModal";
 
 const ContributorManagement: React.FC = () => {
   const [contributors, setContributors] = useState<ContributorSearchResponse[]>([]);

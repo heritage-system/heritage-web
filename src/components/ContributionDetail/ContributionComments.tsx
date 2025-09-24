@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { ThumbsUp, MoreVertical } from "lucide-react";
+import toast from "react-hot-toast";
+import ConfirmModal from "../Layouts/ModalLayouts/ConfirmModal";
+
 import {
   getReviewsByContributionId,
   createContributionReview,
   toggleLikeContributionReview,
-  updateReview, 
-  deleteReview
+  updateReview,
+  deleteReview,
 } from "../../services/contributionService";
+
 import {
   ContributionReviewResponse,
   ContributionReviewCreateRequest,
-  ContributionReviewUpdateRequest
+  ContributionReviewUpdateRequest,
 } from "../../types/contributionReview";
-import { LikeReviewRequest} from "../../types/review";
+import { LikeReviewRequest } from "../../types/review";
 import { tokenStorage } from "../../utils/tokenStorage";
 
 interface Props {
@@ -32,12 +36,21 @@ const ContributionComments: React.FC<Props> = ({
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(COMMENTS_PER_PAGE);
-  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
+
   const [replyBox, setReplyBox] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
+
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
+
+  // confirm modal
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // toggle replies
+  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
 
   const isLoggedIn = !!tokenStorage.getAccessToken();
 
@@ -64,9 +77,10 @@ const ContributionComments: React.FC<Props> = ({
       if (res.result) {
         setReviews((prev) => [res.result!, ...prev]);
         setNewComment("");
+        toast.success("Đã đăng bình luận!");
       }
     } catch (err) {
-      console.error("Error creating review:", err);
+      toast.error("Không thể đăng bình luận");
     }
   };
 
@@ -90,15 +104,11 @@ const ContributionComments: React.FC<Props> = ({
         setReviews((prev) => addReply(prev));
         setReplyBox(null);
         setReplyText("");
+        toast.success("Đã trả lời!");
       }
     } catch (err) {
-      console.error("Error replying:", err);
+      toast.error("Không thể trả lời");
     }
-  };
-
-  const handleCancelReply = () => {
-    setReplyBox(null);
-    setReplyText("");
   };
 
   const handleEditSubmit = async (id: number) => {
@@ -117,42 +127,44 @@ const ContributionComments: React.FC<Props> = ({
           );
 
         setReviews((prev) => updateComment(prev));
+        toast.success("Cập nhật bình luận thành công!");
       }
-
     } catch (err) {
-      console.error("Error updating review:", err);
+      toast.error("Không thể cập nhật bình luận");
     }
 
     setEditingId(null);
     setEditText("");
   };
 
-  const handleDelete = async (id: number) => {
+  const confirmDelete = (id: number) => {
+    setDeleteTargetId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
     try {
-      const res = await deleteReview(id);
+      setDeleting(true);
+      const res = await deleteReview(deleteTargetId);
       if (res.result) {
         const deleteRecursive = (items: ContributionReviewResponse[]): ContributionReviewResponse[] =>
           items
-            .filter((r) => r.id !== id)
+            .filter((r) => r.id !== deleteTargetId)
             .map((r) => ({ ...r, replies: r.replies ? deleteRecursive(r.replies) : [] }));
 
         setReviews((prev) => deleteRecursive(prev));
+        toast.success("Đã xoá bình luận!");
       } else {
-        console.warn("Xoá bình luận thất bại!");
+        toast.error("Xoá bình luận thất bại!");
       }
     } catch (err) {
-      console.error("Error deleting review:", err);
+      toast.error("Lỗi khi xoá bình luận");
+    } finally {
+      setDeleting(false);
+      setConfirmOpen(false);
+      setDeleteTargetId(null);
     }
-    setMenuOpen(null);
-  };
-
-  const toggleReplies = (id: number) => {
-    setExpandedReplies((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
   };
 
   const handleToggleLike = async (id: number, likedByMe: boolean) => {
@@ -171,10 +183,18 @@ const ContributionComments: React.FC<Props> = ({
         setReviews((prev) => updateLikes(prev));
       }
     } catch (err) {
-      console.error("Error toggling like:", err);
+      toast.error("Không thể like bình luận");
     }
   };
 
+  const toggleReplies = (id: number) => {
+    setExpandedReplies((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const displayedReviews = reviews.slice(0, visibleCount);
 
@@ -249,12 +269,11 @@ const ContributionComments: React.FC<Props> = ({
                 setEditingId={setEditingId}
                 setEditText={setEditText}
                 handleReplySubmit={handleReplySubmit}
-                handleCancelReply={handleCancelReply}
                 handleEditSubmit={handleEditSubmit}
-                handleDelete={handleDelete}
-                toggleReplies={toggleReplies}
-                expandedReplies={expandedReplies}
+                confirmDelete={confirmDelete}
                 handleToggleLike={handleToggleLike}
+                expandedReplies={expandedReplies}
+                toggleReplies={toggleReplies}
               />
             </div>
           ))}
@@ -278,6 +297,18 @@ const ContributionComments: React.FC<Props> = ({
           )}
         </div>
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleDelete}
+        title="Xoá bình luận"
+        message="Bạn có chắc chắn muốn xoá bình luận này? Hành động này không thể hoàn tác."
+        confirmText="Xoá"
+        cancelText="Hủy"
+        loading={deleting}
+      />
     </div>
   );
 };
@@ -299,12 +330,11 @@ const CommentItem = ({
   setEditingId,
   setEditText,
   handleReplySubmit,
-  handleCancelReply,
   handleEditSubmit,
-  handleDelete,
-  toggleReplies,
+  confirmDelete,
+  handleToggleLike,
   expandedReplies,
-  handleToggleLike
+  toggleReplies,
 }: any) => {
   return (
     <div className="flex space-x-3">
@@ -339,13 +369,13 @@ const CommentItem = ({
                     }}
                     className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                   >
-                    ✏️ Sửa
+                    Sửa
                   </button>
                   <button
-                    onClick={() => handleDelete(review.id)}
+                    onClick={() => confirmDelete(review.id)}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                   >
-                    🗑 Xoá
+                    Xoá
                   </button>
                 </div>
               )}
@@ -422,7 +452,10 @@ const CommentItem = ({
                 Đăng
               </button>
               <button
-                onClick={handleCancelReply}
+                onClick={() => {
+                  setReplyBox(null);
+                  setReplyText("");
+                }}
                 className="px-4 py-1 bg-gray-200 text-sm rounded"
               >
                 Huỷ
@@ -431,8 +464,20 @@ const CommentItem = ({
           </div>
         )}
 
-        {/* replies */}
+        {/* nút toggle replies */}
         {review.replies && review.replies.length > 0 && (
+          <button
+            onClick={() => toggleReplies(review.id)}
+            className="text-sm text-yellow-700 hover:text-yellow-700 mt-2"
+          >
+            {expandedReplies.has(review.id)
+              ? "Ẩn trả lời"
+              : `Xem ${review.replies.length} trả lời`}
+          </button>
+        )}
+
+        {/* replies */}
+        {expandedReplies.has(review.id) && review.replies.length > 0 && (
           <div className="ml-12 mt-3 space-y-2">
             {review.replies.map((reply: ContributionReviewResponse) => (
               <CommentItem
@@ -450,12 +495,11 @@ const CommentItem = ({
                 setEditingId={setEditingId}
                 setEditText={setEditText}
                 handleReplySubmit={handleReplySubmit}
-                handleCancelReply={handleCancelReply}
                 handleEditSubmit={handleEditSubmit}
-                handleDelete={handleDelete}
-                toggleReplies={toggleReplies}
-                expandedReplies={expandedReplies}
+                confirmDelete={confirmDelete}
                 handleToggleLike={handleToggleLike}
+                expandedReplies={expandedReplies}
+                toggleReplies={toggleReplies}
               />
             ))}
           </div>

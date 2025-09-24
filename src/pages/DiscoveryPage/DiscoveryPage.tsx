@@ -13,6 +13,7 @@ import { Tag } from "../../types/tag";
 import { fetchProvinces } from "../../services/locationSerivce";
 import { fetchCategories } from "../../services/categoryService";
 import { fetchTags } from "../../services/tagService";
+import { latLng } from "leaflet";
 const DiscoveryPage: React.FC = () => {
   const {
     heritages,
@@ -125,8 +126,10 @@ const DiscoveryPage: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-16">
+    
+    <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Khám phá{" "}
@@ -175,9 +178,9 @@ const DiscoveryPage: React.FC = () => {
 
             {/* Grid / Map */}
             {view === "grid" ? (
-              <DiscoveryHeritageGrid heritages={displayedHeritages || []} />
+              <DiscoveryHeritageGrid heritages={displayedHeritages || []} loading={loading}  />
             ) : (
-              <>
+              <>           
                 <div className="relative z-0 mb-2 flex gap-2 justify-end">
                   {mapMode === "paged" ? (
                     <button
@@ -195,10 +198,11 @@ const DiscoveryPage: React.FC = () => {
                     </button>
                   )}
                 </div>
+                
                 <DiscoveryGoogleMapsView
                   heritages={allHeritagesForMap}
                   userLocation={userLocation}
-                  onFiltersChange={mapMode === "paged" ? onFiltersChangeForMap : undefined}
+                  onFiltersChange={mapMode === "paged" ? onFiltersChangeForMap : undefined}               
                 />
               </>
             )}
@@ -209,7 +213,7 @@ const DiscoveryPage: React.FC = () => {
               </div>
             )}
 
-            {view === "grid" && totalPages > 1 && (
+            {view === "grid" && totalPages > 1 && !loading && (
               <Pagination
                 currentPage={filters.page ?? 1}
                 totalPages={totalPages}

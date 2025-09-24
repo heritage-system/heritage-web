@@ -1,6 +1,6 @@
 import React from "react";
 import { Play, ChevronLeft, ChevronRight, X } from "lucide-react";
-import PortalModal from "../Layouts/PortalModal";
+import PortalModal from "../Layouts/ModalLayouts/PortalModal";
 import {HeritageMedia} from "../../types/heritage";
 
 interface Props {

@@ -79,3 +79,14 @@ export interface DropdownUserResponse {
   email?: string;
   fullName?: string;
 }
+
+export interface TrendingContributor {
+  contributorId: number,
+  contributorName: string,
+  avatarUrl: string,
+  totalPosts: number,
+  totalViews: number,
+  totalComments: number,
+  totalSaves: number,
+  score: number
+}

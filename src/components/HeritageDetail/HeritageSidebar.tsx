@@ -13,7 +13,7 @@ import { HeritageSearchResponse } from "../../types/heritage";
 import ReportModal from "./ReportModal";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import PortalModal from "../Layouts/PortalModal";
+import PortalModal from "../Layouts/ModalLayouts/PortalModal";
 
 
 // Fix icon marker khi bundle với webpack/vite

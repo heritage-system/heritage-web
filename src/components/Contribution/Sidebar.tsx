@@ -1,26 +1,28 @@
 import React from 'react';
 import TrendingTopics from './TrendingTopics';
 import RecommendedAuthors from './RecommendedAuthors';
-import TopicsToFollow from './TopicsToFollow';
-import { ContributionSearchResponse } from '../../types/contribution';
-
+import { ContributionHeritageTag } from "../../types/heritage";
+import { TrendingContributor } from '../../types/contributor';
 interface SidebarProps {
-  contributions: ContributionSearchResponse[];
-  followingAuthors: number[];
-  onToggleFollow: (contributorId: number) => void;
+  contributors: TrendingContributor[];
+  contributionTags: ContributionHeritageTag[];
+  loadingContributors: boolean;
+  loadingTrending: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ contributions, followingAuthors, onToggleFollow }) => {
+const Sidebar: React.FC<SidebarProps> = ({ contributors,contributionTags,loadingContributors,loadingTrending}) => {
   return (
     <aside className="col-span-4 hidden lg:block">
       <div className="sticky top-24 space-y-8">
-        <TrendingTopics />
-        <RecommendedAuthors
-          contributors={contributions}
-          followingAuthors={followingAuthors}
-          onToggleFollow={onToggleFollow}
+        <TrendingTopics 
+          loading={loadingTrending}
+          contributionTags={contributionTags}
         />
-        <TopicsToFollow />
+        <RecommendedAuthors
+          contributors={contributors}   
+          loading={loadingContributors}    
+        />
+        {/* <TopicsToFollow /> */}
       </div>
     </aside>
   );

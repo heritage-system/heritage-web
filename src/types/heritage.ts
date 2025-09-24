@@ -188,3 +188,9 @@ export interface HeritageName {
   id: number;
   name: string;
 }
+
+export interface ContributionHeritageTag {
+  heritageId: number;
+  heritageName: string;
+  count: number
+}

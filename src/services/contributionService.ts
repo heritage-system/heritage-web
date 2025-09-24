@@ -7,7 +7,8 @@ import {
   ContributionCreateResponse,  
   ContributionResponse,
   ContributionSearchRequest,
-  ContributionSearchResponse
+  ContributionSearchResponse,
+  ContributionRelatedRequest
 } from "../types/contribution";
 import {
   ContributionReviewCreateRequest,
@@ -15,6 +16,15 @@ import {
   ContributionReviewUpdateRequest,
   ContributionReviewUpdateResponse
 } from "../types/contributionReview";
+import {
+  ContributionHeritageTag
+} from "../types/heritage";
+import {
+  TrendingContributor
+} from "../types/contributor";
+import {
+  ContributionReportCreationRequest
+} from "../types/contributionReport";
 import { LikeReviewResponse, LikeReviewRequest} from "../types/review";
 
 export const searchContribution = async (
@@ -157,3 +167,51 @@ export const deleteReview = async (
   );
 };
 
+export const getTrendingContributionHeritageTag = async (): 
+Promise<ApiResponse<ContributionHeritageTag[]>> => {
+  return await fetchInterceptor<ContributionHeritageTag[]>(
+    `${API_URL}/api/v1/contributions/top_contribution_heritage_tag`,
+    { method: "GET" }
+  );
+};
+
+export const getTrendingContributor = async (): 
+Promise<ApiResponse<TrendingContributor[]>> => {
+  return await fetchInterceptor<TrendingContributor[]>(
+    `${API_URL}/api/v1/contributions/top_contributor`,
+    { method: "GET" }
+  );
+};
+
+export const createContributionReport = async (
+  payload: ContributionReportCreationRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor(`${API_URL}/api/v1/contributions/create_contribution_report`, {
+    method: "POST",
+    body: payload as any,
+  });
+};
+
+export const getContributionRelated = async (
+  params: ContributionRelatedRequest
+): Promise<ApiResponse<ContributionSearchResponse[]>> => {
+
+    const queryString = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+        value.forEach(v => queryString.append(key, String(v)));
+    } else {
+        queryString.append(key, String(value));
+    }
+    });
+
+    const response = await fetchInterceptor<ContributionSearchResponse[]>(
+    `${API_URL}/api/v1/contributions/contribution_related?${queryString.toString()}`,
+    { method: "GET" }
+    );
+
+  return response;
+};

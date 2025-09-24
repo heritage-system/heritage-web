@@ -20,9 +20,19 @@ export interface ContributionCreateResponse {
 
 export interface ContributionSearchRequest {
     keyword?: string;   
+    contributorIds?: number[];
+    tagHeritageIds?: number[];
     sortBy?: SortBy;             
     page?: number;
     pageSize?: number;
+}
+
+export interface ContributionRelatedRequest {
+    keyword?: string;   
+    contributionId?: number;
+    contributorIds?: number[];
+    tagHeritageIds?: number[];         
+    quantity?: number;  
 }
 
 export interface ContributionSearchResponse {

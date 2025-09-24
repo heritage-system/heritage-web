@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { BookmarkPlus, Share2, Flag } from "lucide-react";
-
+import ReportModal from "../Contribution/ReportModal";
+import toast from "react-hot-toast";
 interface Author {
   avatarUrl: string;
   contributorName: string;
 }
 
 interface SidebarProps {
+  contributionId: number;
   author: Author;
   isSaved: boolean;
   onSave: () => void;
@@ -15,9 +17,11 @@ interface SidebarProps {
 const ContributionDetailSidebar: React.FC<SidebarProps> = ({ 
   author, 
   isSaved, 
-  onSave 
+  onSave,
+  contributionId
 }) => {
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const handleShare = (platform: string) => {
     const url = window.location.href;
@@ -32,7 +36,7 @@ const ContributionDetailSidebar: React.FC<SidebarProps> = ({
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
-        alert('Đã sao chép link!');
+        toast.success("Đã sao chép link!");  
         break;
     }
     setShowShareMenu(false);
@@ -120,12 +124,22 @@ const ContributionDetailSidebar: React.FC<SidebarProps> = ({
 
           {/* Báo cáo */}
           <button 
-            onClick={() => alert("Chức năng báo cáo sẽ xử lý sau 🚨")}
+            onClick={(e) => {
+                e.preventDefault();
+                setReportOpen(true);
+              }}
             className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-50 text-gray-700 border border-gray-200 hover:bg-red-50 hover:text-red-700 transition-all"
           >
             <Flag className="w-4 h-4" />
             <span>Báo cáo</span>
           </button>
+
+          {/* Modal */}
+          <ReportModal
+            open={reportOpen}
+            onClose={() => setReportOpen(false)}
+            contributionId={contributionId}
+          />
         </div>
       </div>
     </div>

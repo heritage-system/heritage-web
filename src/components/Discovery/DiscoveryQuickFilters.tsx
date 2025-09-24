@@ -5,7 +5,7 @@ import { Province } from "../../types/location";
 import { Category } from "../../types/category";
 import { Tag } from "../../types/tag";
 import { Search } from "lucide-react";
-import PortalModal from "../Layouts/PortalModal"
+import PortalModal from "../Layouts/ModalLayouts/PortalModal"
 interface DiscoveryQuickFiltersProps {
   filters: HeritageSearchRequest;
   onFiltersChange: (filters: Partial<HeritageSearchRequest>) => void;

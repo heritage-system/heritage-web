@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, AlertTriangle, Loader2 } from "lucide-react";
-import PortalModal from "../Layouts/PortalModal";
+import PortalModal from "../Layouts/ModalLayouts/PortalModal";
 import { createReport } from "../../services/reportService";
 
 
