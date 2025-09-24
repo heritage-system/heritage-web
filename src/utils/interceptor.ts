@@ -15,11 +15,14 @@ const PUBLIC_ONLY_ENDPOINTS: string[] = [
   '/api/v1/Tags',
   '/api/v1/users/heritageDetail',
   '/api/v1/Reviews',
- 
+  '/api/v1/contributions/top_contribution_heritage_tag',
+  '/api/v1/contributions/top_contributor',
+  '/api/v1/contributions/contribution_related'
 ];
 const OPTIONAL_AUTH_ENDPOINTS: string[] = [
   '/api/v1/contributions/get_contribution_detail',
-  '/api/v1/contribution_reviews/get_contribution_reviews' 
+  '/api/v1/contribution_reviews/get_contribution_reviews',
+  '/api/v1/contributions/search_contribution'
 ]
 
 // Helpers nhận diện body

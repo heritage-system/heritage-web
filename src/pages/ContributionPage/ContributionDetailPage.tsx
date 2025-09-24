@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ContentPreview from "../../components/ContributionForm/ContentPreview";
-import { getContributionDetail, unlockContribution, addContributionSave, removeContributionSave, createContributionReview, getReviewsByContributionId } from "../../services/contributionService";
+import { getContributionDetail, unlockContribution, addContributionSave, removeContributionSave, getContributionRelated } from "../../services/contributionService";
 import { ContributionResponse } from "../../types/contribution";
 import { HeritageContributorPosts } from "../../components/HeritageDetail/HeritageContributorPosts";
 import ContributionDetailSidebar from "../../components/ContributionDetail/ContributionDetailSideBar";
 import ContributionComments from "../../components/ContributionDetail/ContributionComments";
+import PageLoader from "../../components/Layouts/LoadingLayouts/PageLoader";
 import toast from 'react-hot-toast';
+import {ContributionSearchResponse} from "../../types/contribution";
 
 const ArticleDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +18,8 @@ const ArticleDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
+  const [relatedPosts, setRelatedPosts] = useState<ContributionSearchResponse[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);  
   useEffect(() => {
     const loadDetail = async () => {
       if (!id) return;
@@ -40,6 +44,34 @@ const ArticleDetailPage = () => {
 
     loadDetail();
   }, [id]);
+
+  useEffect(() => {
+    const fetchRelated = async () => {
+      if (!article) return;
+
+      try {
+        //setLoadingRelated(true);
+        const res = await getContributionRelated({
+          keyword: article.title,
+          contributionId: article.id,
+          contributorIds: [article.contributorId],
+          tagHeritageIds: article.contributionHeritageTags.map((t) => t.id),      
+          quantity: 6,
+        });
+
+        if (res.code === 200 && res.result) {
+          setRelatedPosts(res.result);
+        }
+      } catch (err) {
+        console.error("Lỗi load bài viết liên quan:", err);
+      } finally {
+        setLoadingRelated(false);
+      }
+    };
+
+    fetchRelated();
+  }, [article]);
+
 
   const handleUnlock = async () => {
     if (!article) return;
@@ -103,12 +135,12 @@ const ArticleDetailPage = () => {
     console.log("Replying to comment:", commentId, content);
   };
 
-  if (loading) return <div className="p-6">⏳ Đang tải bài viết...</div>;
+  if (loading) return <PageLoader show={loading} text="Đang tải dữ liệu trang…" />;
   if (error) return <div className="p-6 text-red-600">{error}</div>;
   if (!article) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">    
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main Content */}
@@ -133,13 +165,11 @@ const ArticleDetailPage = () => {
             {/* Related Posts */}
             <div className="mt-8">
               <HeritageContributorPosts
-                posts={undefined}
+                posts={relatedPosts}
                 onOpenPost={(post) => {
                   window.location.href = `/contributions/${post.id}`;
-                }}
-                onOpenAuthor={(author) => {
-                  console.log("Mở tác giả:", author);
-                }}
+                }}         
+                loading={loadingRelated}   
               />
             </div>
           </div>
@@ -153,6 +183,7 @@ const ArticleDetailPage = () => {
               }}
               isSaved={isSaved}
               onSave={handleSave}
+              contributionId={article.id}
             />
           </div>
         </div>
