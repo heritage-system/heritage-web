@@ -107,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                   className="bg-gray-100 px-4 py-2 rounded-xl flex items-center space-x-2 hover:bg-gray-200 transition"
                 >
                   <User className="w-4 h-4" />
-                  <span>Profile</span>
+                  <span>Hồ sơ</span>
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-xl overflow-hidden z-50">
@@ -116,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      Hồ sơ
+                      Thông tin cá nhân
                     </Link>
                     <button
                       onClick={handleLogout}

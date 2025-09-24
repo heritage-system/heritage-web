@@ -89,6 +89,7 @@ const Register: React.FC = () => {
               id="username"
               name="username"
               type="text"
+              placeholder="Anh Nguyễn"
               value={form.username}
               onChange={handleChange}
               required
@@ -100,6 +101,7 @@ const Register: React.FC = () => {
               id="email"
               name="email"
               type="email"
+              placeholder="abc@gmail.com"
               value={form.email}
               onChange={handleChange}
               required
@@ -112,6 +114,7 @@ const Register: React.FC = () => {
               id="fullName"
               name="fullName"
               type="text"
+              placeholder="Nuyễn Văn Anh"
               value={form.fullName}
               onChange={handleChange}
               required
@@ -124,6 +127,7 @@ const Register: React.FC = () => {
               <input
                 id="password"
                 name="password"
+                placeholder="Nhập mật khẩu"
                 type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={handleChange}
@@ -144,6 +148,7 @@ const Register: React.FC = () => {
               <input
                 id="confirmPassword"
                 name="confirmPassword"
+                placeholder="Nhập lại mật khẩu"
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

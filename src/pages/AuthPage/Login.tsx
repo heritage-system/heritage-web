@@ -89,7 +89,7 @@ const Login: React.FC = () => {
               id="email"
               name="emailOrUsername"
               type="email"
-              placeholder="example@email.com"
+              placeholder="abc@gmail.com"
               value={form.emailOrUsername}
               onChange={handleChange}
               className="mb-4 px-4 py-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
