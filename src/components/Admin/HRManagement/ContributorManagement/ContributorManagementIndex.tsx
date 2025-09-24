@@ -18,6 +18,7 @@ import {
   disableContributor,
   approveContributor,
   rejectContributor,
+  reactivateContributor
 } from "../../../../services/contributorService";
 import {
   ContributorSearchResponse,
@@ -72,8 +73,8 @@ const ContributorManagement: React.FC = () => {
   const [selectedContributor, setSelectedContributor] =
     useState<ContributorResponse | null>(null);
   const [actionType, setActionType] = useState<
-    "delete" | "approve" | "reject" | null
-  >(null);
+  "delete" | "approve" | "reject" | "restore" | null
+>(null);
 
   // Refresh callback for child components
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -162,7 +163,7 @@ const ContributorManagement: React.FC = () => {
 
   const handleAction = (
     contributor: ContributorSearchResponse,
-    action: "delete" | "approve" | "reject"
+    action: "delete" | "approve" | "reject" | "restore"
   ) => {
     setSelectedContributor(
       contributor as unknown as ContributorResponse
@@ -187,6 +188,9 @@ const ContributorManagement: React.FC = () => {
         case "reject":
           res = await rejectContributor(selectedContributor.id);
           break;
+        case "restore":
+          res = await reactivateContributor(selectedContributor.id);
+          break;
       }
 
       if (res && res.code === 200) {
@@ -200,6 +204,9 @@ const ContributorManagement: React.FC = () => {
             break;
           case "reject":
             message = "Từ chối cộng tác viên thành công!";
+            break;
+          case "restore":
+            message = "Khôi phục cộng tác viên thành công!";
             break;
         }
         toast.success(message);
@@ -229,6 +236,8 @@ const ContributorManagement: React.FC = () => {
         return `Bạn có chắc muốn phê duyệt cộng tác viên "${selectedContributor?.userFullName}"? Họ sẽ có thể bắt đầu thực hiện các hoạt động đóng góp.`;
       case "reject":
         return `Bạn có chắc muốn từ chối đơn của "${selectedContributor?.userFullName}"? Đơn đăng ký sẽ bị từ chối và họ cần nộp lại đơn mới.`;
+      case "restore":
+        return `Bạn có chắc muốn khôi phục cộng tác viên "${selectedContributor?.userFullName}"? Họ sẽ có thể tiếp tục hoạt động.`;
       default:
         return "";
     }

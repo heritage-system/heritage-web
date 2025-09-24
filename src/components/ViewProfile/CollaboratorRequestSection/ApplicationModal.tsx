@@ -1,4 +1,12 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
+import { 
+  ClipboardList, 
+  User, 
+  Target, 
+  Folder, 
+  X, 
+  Send 
+} from 'lucide-react';
 import PortalModal from '../../Layouts/PortalModal';
 import { ApplicationData } from './CollaboratorRequestSection';
 
@@ -58,7 +66,7 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({
       <div className="bg-white rounded-3xl p-8 shadow-2xl max-h-full overflow-y-auto">
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-            <span className="text-3xl">📋</span>
+            <ClipboardList className="w-7 h-7 text-blue-600" />
             Đơn đăng ký cộng tác viên
           </h3>
           <p className="text-gray-600">Vui lòng điền đầy đủ thông tin để chúng tôi có thể đánh giá hồ sơ của bạn</p>
@@ -67,7 +75,6 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({
         <div className="space-y-6">
           <div>
             <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
-              <span className="text-blue-600">👤</span>
               Tiểu sử cá nhân <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -82,7 +89,6 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({
 
           <div>
             <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
-              <span className="text-indigo-600">🎯</span>
               Chuyên môn <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -97,8 +103,7 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({
 
           <div>
             <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
-              <span className="text-pink-600">📁</span>
-              Portfolio/Tài liệu đính kèm
+             Tài liệu đính kèm
             </label>
             <input
               type="url"
@@ -115,18 +120,18 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({
         <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             disabled={loading}
           >
-            <span className="mr-2">❌</span>
+            <X className="w-4 h-4" />
             Hủy bỏ
           </button>
           <button
             onClick={handleSubmit}
-            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
             disabled={loading}
           >
-            <span className="mr-2">📤</span>
+            <Send className="w-4 h-4" />
             {loading ? 'Đang gửi...' : 'Gửi đơn đăng ký'}
           </button>
         </div>

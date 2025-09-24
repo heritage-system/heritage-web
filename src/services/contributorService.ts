@@ -135,4 +135,13 @@ export const getMyApplication = async (): Promise<ApiResponse<ContributorApplyRe
   );
 };
 
+// Re-Activate Contributor (ADMIN)
+export const reactivateContributor = async (
+  id: number
+): Promise<ApiResponse<ContributorResponse>> => {
+  return await fetchInterceptor<ContributorResponse>(
+    `${API_URL}/api/v1/contributors/${id}/reactivate`,
+    { method: "PUT" }
+  );
+};
 

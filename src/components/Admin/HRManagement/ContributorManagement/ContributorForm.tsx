@@ -34,10 +34,12 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
     bio: string;
     expertise: string;
     status: ContributorStatus;
+    documentsUrl: string;
   }>({
     bio: "",
     expertise: "",
     status: ContributorStatus.APPLIED,
+    documentsUrl: "",
   });
 
   const [userOptions, setUserOptions] = useState<DropdownUserResponse[]>([]);
@@ -75,15 +77,16 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
   const debouncedLoadUsers = useCallback(debounce(loadUserOptions, 300), []);
 
   const normalizeStatus = (status: ContributorStatus | string): ContributorStatus => {
-  if (typeof status === "string") {
-    const upper = status.toUpperCase();
-    if (upper in ContributorStatus) {
-      return ContributorStatus[upper as keyof typeof ContributorStatus];
+    if (typeof status === "string") {
+      const upper = status.toUpperCase();
+      // convert string enum name to enum value if exists
+      if (upper in ContributorStatus) {
+        return ContributorStatus[upper as keyof typeof ContributorStatus];
+      }
+      return ContributorStatus.APPLIED;
     }
-    return ContributorStatus.APPLIED;
-  }
-  return status;
-};
+    return status;
+  };
 
   useEffect(() => {
     const loadContributorDetail = async () => {
@@ -91,11 +94,12 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
         try {
           const res = await getContributorDetail(contributor.id);
           if (res.code === 200 && res.result) {
-           setFormData({
-            bio: res.result.bio || "",
-            expertise: res.result.expertise || "",
-            status: normalizeStatus(res.result.status), 
-          });
+            setFormData({
+              bio: res.result.bio || "",
+              expertise: res.result.expertise || "",
+              status: normalizeStatus(res.result.status),
+              documentsUrl: res.result.documentsUrl || "", 
+            });
           }
         } catch (error) {
           console.error("Load contributor detail error:", error);
@@ -108,10 +112,12 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
       if (isEditing) {
         loadContributorDetail();
       } else {
+        // reset full formData including documentsUrl
         setFormData({
           bio: "",
           expertise: "",
           status: ContributorStatus.APPLIED,
+          documentsUrl: "",
         });
         setSelectedUserId(undefined);
         setUserSearchTerm("");
@@ -144,7 +150,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
       ...prev,
       [name]:
         name === "status"
-          ? (value as ContributorStatus) 
+          ? (value as ContributorStatus)
           : value,
     }));
   };
@@ -175,10 +181,22 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
           bio: formData.bio,
           expertise: formData.expertise,
           status: String(formData.status),
-        };
+          // ensure your ContributorUpdateRequest type (frontend & backend) supports documentsUrl if you want to send it
+          ...(formData.documentsUrl ? { documentsUrl: formData.documentsUrl } : {}),
+        } as any;
+
         const res = await updateContributor(contributor.id, updateData);
-       if (Number(res.code) === 200) {
+      if (Number(res.code) === 200) {
           toast.success("Cập nhật cộng tác viên thành công!");
+          const updated = await getContributorDetail(contributor.id);
+          if (updated.code === 200 && updated.result) {
+            setFormData({
+              bio: updated.result.bio || "",
+              expertise: updated.result.expertise || "",
+              status: normalizeStatus(updated.result.status),
+              documentsUrl: updated.result.documentsUrl || "",
+            });
+          }
           onSuccess();
           onClose();
         } else {
@@ -193,6 +211,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
           userId: selectedUserId,
           bio: formData.bio,
           expertise: formData.expertise,
+          // create currently doesn't send documentsUrl (kept for apply flow)
         };
         const res = await createContributor(createData);
         if (res.code === 201) {
@@ -212,11 +231,11 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
   };
 
   const statusMap: Record<ContributorStatus, string> = {
-  [ContributorStatus.APPLIED]: "Chờ duyệt",
-  [ContributorStatus.REJECTED]: "Từ chối",
-  [ContributorStatus.ACTIVE]: "Duyệt",
-  [ContributorStatus.SUSPENDED]: "Đình chỉ",
-};
+    [ContributorStatus.APPLIED]: "Chờ duyệt",
+    [ContributorStatus.REJECTED]: "Từ chối",
+    [ContributorStatus.ACTIVE]: "Duyệt",
+    [ContributorStatus.SUSPENDED]: "Đình chỉ",
+  };
 
   return (
     <PortalModal
@@ -249,6 +268,34 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* SHOW USER INFO WHEN EDITING */}
+          {isEditing && contributor && (
+            <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Người dùng:</span>{" "}
+                {contributor.userFullName ?? "-"}
+              </p>
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Email:</span>{" "}
+                {contributor.userEmail ?? "-"}
+              </p>
+              {contributor.documentsUrl && (
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">Tài liệu:</span>{" "}
+                <a
+                  href={contributor.documentsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Xem tài liệu
+                </a>
+              </p>
+             )}
+            </div>
+          )}
+
+          {/* CREATE: user selector */}
           {!isEditing && (
             <div className="relative user-dropdown-container">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -276,9 +323,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
                     </div>
                   ) : userOptions.length === 0 ? (
                     <div className="p-4 text-sm text-gray-500">
-                      {userSearchTerm
-                        ? "Không tìm thấy người dùng nào"
-                        : "Nhập để tìm kiếm người dùng"}
+                      {userSearchTerm ? "Không tìm thấy người dùng nào" : "Nhập để tìm kiếm người dùng"}
                     </div>
                   ) : (
                     userOptions.map((user) => (
@@ -287,9 +332,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
                         onClick={() => handleUserSelect(user)}
                         className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 text-sm transition-colors"
                       >
-                        <div className="font-medium text-gray-900">
-                          {user.fullName}
-                        </div>
+                        <div className="font-medium text-gray-900">{user.fullName}</div>
                         <div className="text-gray-500 text-xs">{user.email}</div>
                       </div>
                     ))
@@ -299,10 +342,9 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
             </div>
           )}
 
+          {/* BIO */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tiểu sử
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tiểu sử</label>
             <textarea
               name="bio"
               value={formData.bio}
@@ -314,10 +356,9 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
             />
           </div>
 
+          {/* EXPERTISE */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Chuyên môn
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Chuyên môn</label>
             <input
               type="text"
               name="expertise"
@@ -329,11 +370,26 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
             />
           </div>
 
+          {/* DOCUMENTS URL - visible when editing */}
           {isEditing && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trạng thái
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tài liệu (URL)</label>
+              <input
+                type="url"
+                name="documentsUrl"
+                value={formData.documentsUrl}
+                onChange={handleFormChange}
+                disabled={loading}
+                className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Nhập đường dẫn tài liệu..."
+              />
+            </div>
+          )}
+
+          {/* STATUS (editable when not ACTIVE) */}
+          {isEditing && formData.status !== ContributorStatus.ACTIVE && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
               <select
                 name="status"
                 value={formData.status}

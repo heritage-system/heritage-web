@@ -1,4 +1,14 @@
 import React, { ChangeEvent } from 'react';
+import { 
+  FileText, 
+  Folder, 
+  Edit, 
+  X, 
+  Send,
+  Image,
+  Video,
+  FileCheck
+} from 'lucide-react';
 
 interface ContributionForm {
   title: string;
@@ -23,7 +33,7 @@ const AddContributionForm: React.FC<AddContributionFormProps> = ({
     <div className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 rounded-3xl p-8 min-h-[700px]">
       <div className="mb-8">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 bg-clip-text text-black mb-3 flex items-center gap-3">
-          <span className="text-4xl">📝</span>
+          <Edit className="w-10 h-10 text-yellow-700" />
           Thêm đóng góp di sản
         </h2>
         <p className="text-amber-700/80 text-lg">Chia sẻ kiến thức của bạn về di sản văn hóa Việt Nam</p>
@@ -36,7 +46,7 @@ const AddContributionForm: React.FC<AddContributionFormProps> = ({
               <div>
                 <label className="flex items-center gap-3 text-sm font-bold text-yellow-700 mb-4">
                   <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <span className="text-yellow-600">📋</span>
+                    <FileText className="w-4 h-4 text-yellow-600" />
                   </div>
                   Tiêu đề đóng góp
                 </label>
@@ -53,7 +63,7 @@ const AddContributionForm: React.FC<AddContributionFormProps> = ({
               <div>
                 <label className="flex items-center gap-3 text-sm font-bold text-amber-700 mb-4">
                   <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                    <span className="text-amber-600">📂</span>
+                    <Folder className="w-4 h-4 text-amber-600" />
                   </div>
                   Loại đóng góp
                 </label>
@@ -74,7 +84,7 @@ const AddContributionForm: React.FC<AddContributionFormProps> = ({
             <div>
               <label className="flex items-center gap-3 text-sm font-bold text-yellow-700 mb-4">
                 <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <span className="text-yellow-600">📝</span>
+                  <Edit className="w-4 h-4 text-yellow-600" />
                 </div>
                 Mô tả chi tiết
               </label>
@@ -91,17 +101,17 @@ const AddContributionForm: React.FC<AddContributionFormProps> = ({
               <button
                 type="button"
                 onClick={onContributionCancel}
-                className="px-8 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg"
+                className="px-8 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-2xl transition-all duration-300 font-semibold text-lg flex items-center"
               >
-                <span className="mr-2">❌</span>
+                <X className="w-5 h-5 mr-2" />
                 Hủy bỏ
               </button>
               <button
                 type="button"
                 onClick={onContributionSubmit}
-                className="px-10 py-4 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:from-yellow-600 hover:to-amber-600 text-white rounded-2xl transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 text-lg"
+                className="px-10 py-4 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:from-yellow-600 hover:to-amber-600 text-white rounded-2xl transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 text-lg flex items-center"
               >
-                <span className="mr-3">📤</span>
+                <Send className="w-5 h-5 mr-3" />
                 Gửi đóng góp
               </button>
             </div>

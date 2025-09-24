@@ -1,4 +1,21 @@
 import React from 'react';
+import { 
+  AlertTriangle, 
+  CheckCircle, 
+  Target, 
+  Clock, 
+  X, 
+  Pause, 
+  Users, 
+  FileText, 
+  User, 
+  Briefcase, 
+  Folder, 
+  ClipboardList, 
+  Lightbulb, 
+  Phone, 
+  Check 
+} from 'lucide-react';
 import { ContributorApplyResponse } from '../../../types/contributor';
 import { ContributorStatus } from '../../../types/enum';
 
@@ -24,7 +41,7 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
     return (
       <div className="text-center py-12">
         <div className="w-32 h-32 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="text-6xl">⚠️</span>
+          <AlertTriangle className="w-16 h-16 text-red-600" />
         </div>
         <h3 className="text-2xl font-bold text-red-600 mb-4">Lỗi tải dữ liệu</h3>
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 max-w-md mx-auto">
@@ -51,47 +68,31 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
     );
   }
 
-  // Case 1: Contributor chính thức (ACTIVE)
-  if (contributorData?.status === ContributorStatus.ACTIVE) {
-    return (
-      <div className="text-center py-12">
-        <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="text-6xl">✅</span>
-        </div>
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">
-          Tài khoản đã được kích hoạt
-        </h3>
-        <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-          Chúc mừng! Bạn đang hoạt động với tư cách là cộng tác viên của hệ thống.
-        </p>
-      </div>
-    );
-  }
-
-  // Case 2: Có contributorData nhưng chưa ACTIVE
+  // Case: Có contributorData
   if (contributorData) {
+    // ACTIVE
     if (contributorData.status === ContributorStatus.ACTIVE) {
       return (
         <div className="text-center py-12">
           <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-6xl">🎯</span>
+            <CheckCircle className="w-16 h-16 text-green-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
-            Đơn đăng ký được chấp thuận
+            Tài khoản đã được kích hoạt
           </h3>
           <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-            Vui lòng chờ admin kích hoạt tài khoản của bạn.
+            Chúc mừng! Bạn đang hoạt động với tư cách là cộng tác viên của hệ thống.
           </p>
-          {renderApplicationDetails(contributorData)}
         </div>
       );
     }
 
+    // APPLIED
     if (contributorData.status === ContributorStatus.APPLIED) {
       return (
         <div className="text-center py-12">
           <div className="w-32 h-32 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-            <span className="text-6xl">⏳</span>
+            <Clock className="w-16 h-16 text-amber-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Đơn đăng ký đang được xem xét
@@ -104,11 +105,12 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
       );
     }
 
+    // REJECTED
     if (contributorData.status === ContributorStatus.REJECTED) {
       return (
         <div className="text-center py-12">
           <div className="w-32 h-32 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-6xl">❌</span>
+            <X className="w-16 h-16 text-red-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Đơn đăng ký đã bị từ chối
@@ -121,11 +123,12 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
       );
     }
 
+    // SUSPENDED
     if (contributorData.status === ContributorStatus.SUSPENDED) {
       return (
         <div className="text-center py-12">
           <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-6xl">⏸️</span>
+            <Pause className="w-16 h-16 text-gray-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Quyền Contributor bị tạm ngưng
@@ -139,11 +142,11 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
     }
   }
 
-  // Case 3: Chưa có contributorData - cho phép đăng ký
+  // Case: Không có contributorData -> cho phép đăng ký
   return (
     <div className="text-center py-12">
       <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <span className="text-6xl">👥</span>
+        <Users className="w-16 h-16 text-blue-600" />
       </div>
       <h3 className="text-2xl font-bold text-gray-800 mb-4">
         Chưa được cấp quyền Contributor
@@ -153,45 +156,50 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
       </p>
       <button
         onClick={onOpenApplicationModal}
-        className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-xl"
+        className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-xl flex items-center gap-2 mx-auto"
         disabled={loading}
       >
-        📝 Đăng ký làm cộng tác viên
+        <FileText className="w-5 h-5" />
+        Đăng ký làm cộng tác viên
       </button>
     </div>
   );
 
-  // Helper function để render chi tiết đơn đăng ký
-  function renderApplicationDetails(data: ContributorApplyResponse, showReapplyButton: boolean = false) {
+  // Helper function render chi tiết đơn
+  function renderApplicationDetails(
+    data: ContributorApplyResponse,
+    showReapplyButton: boolean = false
+  ) {
     const getStatusConfig = (status: ContributorStatus) => {
       const configs = {
         [ContributorStatus.APPLIED]: {
           text: 'Đang chờ xem xét',
           color: 'bg-amber-100 text-amber-700',
-          icon: '⏳'
+          icon: <Clock className="w-4 h-4" />
         },
         [ContributorStatus.ACTIVE]: {
           text: 'Đang hoạt động',
           color: 'bg-green-100 text-green-700',
-          icon: '🎯'
+          icon: <Target className="w-4 h-4" />
         },
         [ContributorStatus.REJECTED]: {
           text: 'Đã bị từ chối',
           color: 'bg-red-100 text-red-700',
-          icon: '❌'
+          icon: <X className="w-4 h-4" />
         },
         [ContributorStatus.SUSPENDED]: {
           text: 'Tạm ngừng',
           color: 'bg-gray-100 text-gray-700',
-          icon: '⏸️'
+          icon: <Pause className="w-4 h-4" />
         }
       };
-      
-      return configs[status] || { 
-        text: 'Không xác định', 
-        color: 'bg-gray-100 text-gray-700', 
-        icon: '❓' 
-      };
+      return (
+        configs[status] || {
+          text: 'Không xác định',
+          color: 'bg-gray-100 text-gray-700',
+          icon: <AlertTriangle className="w-4 h-4" />
+        }
+      );
     };
 
     const statusConfig = getStatusConfig(data.status as ContributorStatus);
@@ -200,8 +208,10 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
       <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 max-w-3xl mx-auto border border-blue-200 shadow-xl">
         <div className="flex items-center justify-between mb-8">
           <h4 className="text-xl font-bold text-gray-800">Thông tin đơn đăng ký</h4>
-          <span className={`px-6 py-3 rounded-full font-bold text-lg ${statusConfig.color}`}>
-            <span className="mr-2">{statusConfig.icon}</span>
+          <span
+            className={`px-6 py-3 rounded-full font-bold text-lg ${statusConfig.color} flex items-center gap-2`}
+          >
+            {statusConfig.icon}
             {statusConfig.text}
           </span>
         </div>
@@ -222,7 +232,7 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
         {data.bio && (
           <div className="mb-4 text-left">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">👤</span>
+              <User className="w-5 h-5 text-gray-600" />
               <span className="text-gray-700 font-medium">Tiểu sử cá nhân</span>
             </div>
             <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-400">
@@ -234,7 +244,7 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
         {data.expertise && (
           <div className="mb-6 text-left">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🎯</span>
+              <Briefcase className="w-5 h-5 text-gray-600" />
               <span className="text-gray-700 font-medium">Chuyên môn</span>
             </div>
             <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-400">
@@ -246,13 +256,13 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
         {data.documentsUrl && (
           <div className="mb-6 text-left">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">📁</span>
+              <Folder className="w-5 h-5 text-gray-600" />
               <span className="text-gray-700 font-medium">Tài liệu đính kèm</span>
             </div>
             <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-pink-400">
-              <a 
-                href={data.documentsUrl} 
-                target="_blank" 
+              <a
+                href={data.documentsUrl}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline break-all"
               >
@@ -262,17 +272,17 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
           </div>
         )}
 
-        {/* Hiển thị thông tin dựa trên trạng thái */}
+        {/* Hiển thị quy trình nếu đang chờ */}
         {data.status === ContributorStatus.APPLIED && (
           <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-200">
             <h5 className="font-bold text-amber-800 mb-4 flex items-center gap-2">
-              <span className="text-xl">📋</span>
+              <ClipboardList className="w-5 h-5" />
               Quy trình đánh giá
             </h5>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
+                  <Check className="w-3 h-3 text-white" />
                 </div>
                 <span className="text-green-700 font-medium">Tiếp nhận đơn đăng ký</span>
               </div>
@@ -288,10 +298,11 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
           </div>
         )}
 
+        {/* Nếu bị từ chối thì cho gợi ý + nút đăng ký lại */}
         {showReapplyButton && (
           <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
             <h5 className="font-bold text-red-800 mb-4 flex items-center gap-2">
-              <span className="text-xl">💡</span>
+              <Lightbulb className="w-5 h-5" />
               Gợi ý cải thiện để đăng ký lại
             </h5>
             <div className="text-left space-y-3 text-red-700 mb-6">
@@ -324,10 +335,10 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
           </div>
         )}
 
-        {/* Contact information */}
+        {/* Thông tin liên hệ */}
         <div className="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-200">
           <h5 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-            <span className="text-lg">📞</span>
+            <Phone className="w-5 h-5" />
             Liên hệ hỗ trợ
           </h5>
           <div className="text-sm text-blue-700 space-y-2">

@@ -1,5 +1,13 @@
 import React from 'react';
 import FavoriteHeritageList from "../Auth/FavoriteHeritageList";
+import { 
+  User, 
+  Heart, 
+  Calendar, 
+  FileText, 
+  Send, 
+  Users 
+} from 'lucide-react';
 
 const FavoriteSection: React.FC = () => {
   return (
@@ -7,7 +15,7 @@ const FavoriteSection: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-700 to-yellow-600 bg-clip-text text-black mb-3 flex items-center gap-3">
-            <span className="text-4xl">❤️</span>
+            <Heart className="w-10 h-10 text-red-500" />
             Di sản yêu thích
           </h2>
           <p className="text-gray-700 text-lg">Những di sản văn hóa mà bạn đã yêu thích</p>

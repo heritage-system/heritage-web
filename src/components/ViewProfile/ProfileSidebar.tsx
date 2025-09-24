@@ -1,9 +1,17 @@
 import React from 'react';
+import { 
+  User, 
+  Heart, 
+  Calendar, 
+  FileText, 
+  Send, 
+  Users 
+} from 'lucide-react';
 
 interface MenuItem {
   key: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 interface Profile {
@@ -19,12 +27,12 @@ interface ProfileSidebarProps {
 }
 
 const MENU: MenuItem[] = [
-  { key: "profile", label: "Thông tin cá nhân", icon: "👤" },
-  { key: "favorites", label: "Di sản yêu thích", icon: "❤️" },
-  { key: "events", label: "Sự kiện đã tham gia", icon: "🎉" },
-  { key: "quiz", label: "Lịch sử quiz", icon: "📝" },
-  { key: "contributions", label: "Đóng góp đã gửi", icon: "📤" },
-  { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: "👥" },
+  { key: "profile", label: "Thông tin cá nhân", icon: <User className="w-5 h-5" /> },
+  { key: "favorites", label: "Di sản yêu thích", icon: <Heart className="w-5 h-5" /> },
+  { key: "events", label: "Sự kiện đã tham gia", icon: <Calendar className="w-5 h-5" /> },
+  { key: "quiz", label: "Lịch sử quiz", icon: <FileText className="w-5 h-5" /> },
+  { key: "contributions", label: "Đóng góp đã gửi", icon: <Send className="w-5 h-5" /> },
+  { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" /> },
 ];
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ 
@@ -46,7 +54,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 : "text-black hover:bg-yellow-200/50 hover:transform hover:translate-x-1"
             }`}
           >
-            <span className="text-lg group-hover:scale-110 transition-transform duration-200">
+            <span className="group-hover:scale-110 transition-transform duration-200">
               {item.icon}
             </span>
             <span className="text-sm font-medium">{item.label}</span>

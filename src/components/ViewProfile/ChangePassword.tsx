@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Lock, Key, PlusSquare, CheckCircle, Info, Shield, Eye, EyeOff, Save } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 interface ChangePasswordFormData {
   currentPassword: string;
@@ -22,6 +24,11 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
     newPassword: '',
     confirmPassword: ''
   });
+  const navigate = useNavigate();
+  const handleCancel = () => {
+    if (onCancel) onCancel();
+    else navigate("/view-profile?tab=profile", { replace: true }); 
+  };
 
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -33,47 +40,24 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ChangePasswordFormData> = {};
-
-    // Validate current password
-    if (!formData.currentPassword.trim()) {
-      newErrors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại';
-    }
-
-    // Validate new password
-    if (!formData.newPassword.trim()) {
-      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
-    } else if (formData.newPassword.length < 6) {
-      newErrors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự';
-    } else if (formData.newPassword === formData.currentPassword) {
-      newErrors.newPassword = 'Mật khẩu mới phải khác mật khẩu hiện tại';
-    }
-
-    // Validate confirm password
-    if (!formData.confirmPassword.trim()) {
-      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới';
-    } else if (formData.confirmPassword !== formData.newPassword) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
-    }
-
+    if (!formData.currentPassword.trim()) newErrors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại';
+    if (!formData.newPassword.trim()) newErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
+    else if (formData.newPassword.length < 6) newErrors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự';
+    else if (formData.newPassword === formData.currentPassword) newErrors.newPassword = 'Mật khẩu mới phải khác mật khẩu hiện tại';
+    if (!formData.confirmPassword.trim()) newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới';
+    else if (formData.confirmPassword !== formData.newPassword) newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (validateForm() && onSubmit) {
-      onSubmit(formData);
-    }
+    if (validateForm() && onSubmit) onSubmit(formData);
   };
 
   const handleInputChange = (field: keyof ChangePasswordFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
@@ -85,11 +69,6 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 
-                          rounded-3xl flex items-center justify-center mx-auto mb-4 
-                          shadow-lg shadow-yellow-500/25">
-            <span className="text-3xl text-white">🔒</span>
-          </div>
           <h1 className="text-2xl font-bold text-black mb-2">Đổi mật khẩu</h1>
           <p className="text-gray-600">Cập nhật mật khẩu để bảo mật tài khoản</p>
         </div>
@@ -102,7 +81,6 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
               {/* Current Password */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-black mb-3">
-                  <span className="text-gray-600">🔑</span>
                   Mật khẩu hiện tại
                 </label>
                 <div className="relative">
@@ -123,18 +101,15 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
                     onClick={() => togglePasswordVisibility('current')}
                     className="absolute right-3 top-3 text-gray-500 hover:text-yellow-600 transition-colors"
                   >
-                    <span className="text-lg">{showPasswords.current ? "🙈" : "👁️"}</span>
+                    {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {errors.currentPassword && (
-                  <p className="mt-2 text-sm text-red-500">{errors.currentPassword}</p>
-                )}
+                {errors.currentPassword && <p className="mt-2 text-sm text-red-500">{errors.currentPassword}</p>}
               </div>
 
               {/* New Password */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-black mb-3">
-                  <span className="text-green-600">🆕</span>
                   Mật khẩu mới
                 </label>
                 <div className="relative">
@@ -155,18 +130,15 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
                     onClick={() => togglePasswordVisibility('new')}
                     className="absolute right-3 top-3 text-gray-500 hover:text-yellow-600 transition-colors"
                   >
-                    <span className="text-lg">{showPasswords.new ? "🙈" : "👁️"}</span>
+                    {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {errors.newPassword && (
-                  <p className="mt-2 text-sm text-red-500">{errors.newPassword}</p>
-                )}
+                {errors.newPassword && <p className="mt-2 text-sm text-red-500">{errors.newPassword}</p>}
               </div>
 
               {/* Confirm Password */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-black mb-3">
-                  <span className="text-blue-600">✅</span>
                   Xác nhận mật khẩu mới
                 </label>
                 <div className="relative">
@@ -187,18 +159,16 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
                     onClick={() => togglePasswordVisibility('confirm')}
                     className="absolute right-3 top-3 text-gray-500 hover:text-yellow-600 transition-colors"
                   >
-                    <span className="text-lg">{showPasswords.confirm ? "🙈" : "👁️"}</span>
+                    {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {errors.confirmPassword && (
-                  <p className="mt-2 text-sm text-red-500">{errors.confirmPassword}</p>
-                )}
+                {errors.confirmPassword && <p className="mt-2 text-sm text-red-500">{errors.confirmPassword}</p>}
               </div>
 
               {/* Password Requirements */}
               <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
                 <div className="flex items-start gap-2">
-                  <span className="text-blue-600 text-lg mt-0.5">ℹ️</span>
+                  <Info className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div>
                     <h4 className="text-sm font-semibold text-blue-800 mb-2">Yêu cầu mật khẩu:</h4>
                     <ul className="text-sm text-blue-700 space-y-1">
@@ -214,7 +184,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={onCancel}
+                  onClick={handleCancel}
                   disabled={isLoading}
                   className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 
                              font-semibold rounded-2xl hover:bg-gray-50 
@@ -225,21 +195,17 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 
-                             hover:from-yellow-600 hover:to-orange-600 text-white font-semibold 
-                             rounded-2xl transition-all duration-300 hover:shadow-lg 
-                             hover:shadow-yellow-500/25 disabled:opacity-50 
-                             flex items-center justify-center gap-2"
+                 className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-700
+                          hover:from-green-700 hover:to-green-800 text-white font-semibold 
+                          rounded-2xl transition-all duration-300 hover:shadow-lg 
+                          hover:shadow-green-500/25 disabled:opacity-50 
+                          flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent 
-                                      rounded-full animate-spin"></div>
-                      Đang xử lý...
-                    </>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
                     <>
-                      <span className="text-lg">💾</span>
+                      <Save className="w-5 h-5" />
                       Cập nhật
                     </>
                   )}
@@ -252,7 +218,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({
         {/* Security Tips */}
         <div className="mt-8 bg-white/60 backdrop-blur-sm border border-yellow-200 rounded-2xl p-4">
           <div className="flex items-start gap-2">
-            <span className="text-yellow-600 text-lg mt-0.5">🛡️</span>
+            <Shield className="w-5 h-5 text-yellow-600 mt-0.5" />
             <div>
               <h4 className="text-sm font-semibold text-yellow-800 mb-2">Mẹo bảo mật:</h4>
               <ul className="text-sm text-yellow-700 space-y-1">

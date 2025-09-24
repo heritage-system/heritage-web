@@ -12,6 +12,7 @@ export interface ContributorUpdateRequest {
   bio?: string;
   expertise?: string;
   status: string;
+  documentsUrl?: string;
 }
 
 // Search
@@ -48,6 +49,7 @@ export interface ContributorResponse {
   id: number;
   bio?: string;
   expertise?: string;
+  documentsUrl?: string;
   status: string;
 
   userId: number;

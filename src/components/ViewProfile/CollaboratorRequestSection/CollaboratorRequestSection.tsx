@@ -4,6 +4,7 @@ import { ContributorApplyResponse } from '../../../types/contributor';
 import ApplicationModal from './ApplicationModal';
 import StatusDisplay from './StatusDisplay';
 import { toast } from "react-hot-toast";
+import { Users, Loader2, X, CheckCircle } from 'lucide-react';
 
 export interface ApplicationData {
   bio: string;
@@ -56,7 +57,9 @@ const CollaboratorRequestSection: React.FC = () => {
 
   const handleSubmitApplication = async (applicationData: ApplicationData) => {
     if (!applicationData.bio.trim() || !applicationData.expertise.trim()) {
-      toast.error("❌ Vui lòng điền đầy đủ thông tin bắt buộc!");
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!", {
+        icon: <X className="w-5 h-5 text-red-500" />,
+      });
       return false;
     }
 
@@ -72,23 +75,32 @@ const CollaboratorRequestSection: React.FC = () => {
         await loadContributorData();
         setShowApplicationModal(false);
         toast.success(
-          "Đã gửi đơn đăng ký thành công! Chúng tôi sẽ xem xét và phản hồi trong vòng 7 ngày làm việc."
+          "Đã gửi đơn đăng ký thành công! Chúng tôi sẽ xem xét và phản hồi trong vòng 7 ngày làm việc.",
+          {
+            icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+          }
         );
         return true;
       } else {
         toast.error(
-          `❌ ${response.message || "Có lỗi xảy ra khi gửi đơn đăng ký"}`
+          `${response.message || "Có lỗi xảy ra khi gửi đơn đăng ký"}`,
+          {
+            icon: <X className="w-5 h-5 text-red-500" />,
+          }
         );
         return false;
       }
     } catch (error: any) {
       console.error("Error submitting application:", error);
       toast.error(
-        `❌ ${
+        `${
           error?.response?.data?.message ||
           error?.message ||
           "Có lỗi xảy ra khi gửi đơn đăng ký"
-        }`
+        }`,
+        {
+          icon: <X className="w-5 h-5 text-red-500" />,
+        }
       );
       return false;
     } finally {
@@ -112,7 +124,7 @@ const CollaboratorRequestSection: React.FC = () => {
     return (
       <div className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 rounded-3xl p-8 min-h-[700px] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Đang tải thông tin...</p>
         </div>
       </div>
@@ -123,7 +135,7 @@ const CollaboratorRequestSection: React.FC = () => {
     <div className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 rounded-3xl p-8 min-h-[700px]">
       <div className="mb-8">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-black mb-3 flex items-center gap-3">
-          <span className="text-4xl">👥</span>
+          <Users className="w-10 h-10 text-blue-600" />
           Yêu cầu cộng tác viên
         </h2>
         <p className="text-gray-700 text-lg">

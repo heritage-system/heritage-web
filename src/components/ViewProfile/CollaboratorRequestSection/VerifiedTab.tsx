@@ -1,4 +1,19 @@
 import React from 'react';
+import { 
+  AlertTriangle, 
+  CheckCircle, 
+  X, 
+  Clock, 
+  Shield, 
+  Users, 
+  FileText, 
+  RotateCcw,
+  Target,
+  Edit3,
+  CheckSquare,
+  Activity,
+  Settings
+} from 'lucide-react';
 import { ContributorApplyResponse } from '../../../types/contributor';
 import { ContributorStatus } from '../../../types/enum';
 
@@ -20,14 +35,14 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
   onOpenApplicationModal
 }) => {
   // Contributor đã verified và đang ACTIVE hoặc APPROVED
-  const isVerifiedContributor =contributorData?.status === ContributorStatus.ACTIVE 
+  const isVerifiedContributor = contributorData?.status === ContributorStatus.ACTIVE;
 
   // Case: Lỗi load dữ liệu
   if (loadError) {
     return (
       <div className="text-center py-12">
         <div className="w-32 h-32 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="text-6xl">⚠️</span>
+          <AlertTriangle className="w-16 h-16 text-red-600" />
         </div>
         <h3 className="text-2xl font-bold text-red-600 mb-4">Lỗi tải dữ liệu</h3>
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 max-w-md mx-auto">
@@ -59,7 +74,7 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
     return (
       <div className="text-center py-12">
         <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="text-6xl">✅</span>
+          <CheckCircle className="w-16 h-16 text-green-600" />
         </div>
         <h3 className="text-2xl font-bold text-gray-800 mb-4">
           Tài khoản đã được xác thực
@@ -69,14 +84,27 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
         </p>
 
         <div className="bg-green-50 border border-green-200 rounded-2xl p-6 max-w-md mx-auto">
-          <div className="text-green-600 text-lg font-semibold mb-2">
-            🎯 Quyền hạn của bạn
+          <div className="text-green-600 text-lg font-semibold mb-4 flex items-center justify-center gap-2">
+            <Target className="w-5 h-5" />
+            Quyền hạn của bạn
           </div>
-          <div className="text-left space-y-2 text-green-700">
-            <div>• Tạo và chỉnh sửa bài viết về di sản văn hóa</div>
-            <div>• Đánh giá và phê duyệt nội dung từ thành viên</div>
-            <div>• Tham gia các hoạt động bảo tồn di sản</div>
-            <div>• Truy cập các tính năng nâng cao của hệ thống</div>
+          <div className="text-left space-y-3 text-green-700">
+            <div className="flex items-center gap-2">
+              <Edit3 className="w-4 h-4 text-green-600" />
+              <span>Tạo và chỉnh sửa bài viết về di sản văn hóa</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-4 h-4 text-green-600" />
+              <span>Đánh giá và phê duyệt nội dung từ thành viên</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-green-600" />
+              <span>Tham gia các hoạt động bảo tồn di sản</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Settings className="w-4 h-4 text-green-600" />
+              <span>Truy cập các tính năng nâng cao của hệ thống</span>
+            </div>
           </div>
         </div>
       </div>
@@ -90,7 +118,7 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
       return (
         <div className="text-center py-12">
           <div className="w-32 h-32 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-6xl">❌</span>
+            <X className="w-16 h-16 text-red-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Đơn đăng ký đã bị từ chối
@@ -101,10 +129,11 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
 
           <button
             onClick={onOpenApplicationModal}
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-xl"
+            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-xl flex items-center gap-2 mx-auto"
             disabled={loading}
           >
-            🔄 Gửi lại đơn đăng ký
+            <RotateCcw className="w-5 h-5" />
+            Gửi lại đơn đăng ký
           </button>
         </div>
       );
@@ -115,7 +144,7 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
       return (
         <div className="text-center py-12">
           <div className="w-32 h-32 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-6xl">⏳</span>
+            <Clock className="w-16 h-16 text-yellow-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Đơn đăng ký đang chờ duyệt
@@ -132,7 +161,7 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
       return (
         <div className="text-center py-12">
           <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-6xl">⛔</span>
+            <Shield className="w-16 h-16 text-gray-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Quyền Contributor bị tạm ngưng
@@ -149,7 +178,7 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
   return (
     <div className="text-center py-12">
       <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <span className="text-6xl">👥</span>
+        <Users className="w-16 h-16 text-blue-600" />
       </div>
       <h3 className="text-2xl font-bold text-gray-800 mb-4">
         Chưa được cấp quyền Contributor
@@ -160,10 +189,11 @@ const VerifiedTab: React.FC<VerifiedTabProps> = ({
 
       <button
         onClick={onOpenApplicationModal}
-        className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-xl"
+        className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-xl flex items-center gap-2 mx-auto"
         disabled={loading}
       >
-        📝 Đăng ký làm cộng tác viên
+        <FileText className="w-5 h-5" />
+        Đăng ký làm cộng tác viên
       </button>
     </div>
   );

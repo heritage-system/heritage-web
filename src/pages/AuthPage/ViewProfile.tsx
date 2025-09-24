@@ -51,7 +51,6 @@ const ViewProfile: React.FC = () => {
   });
   const [contributions, setContributions] = useState<ContributionItem[]>(mockContributions);
   const [loading, setLoading] = useState<boolean>(true);
-  const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);  
 
   // Load profile data
@@ -112,7 +111,6 @@ const ViewProfile: React.FC = () => {
       const res = await updateProfile(formData);
 
       if (res.code === 200 && res.result) {
-        // Cập nhật cả profile state và formData state
         setProfile(res.result);
         setFormData({
           fullName: res.result.fullName,
@@ -124,20 +122,13 @@ const ViewProfile: React.FC = () => {
           avatarUrl: res.result.avatarUrl,
         });
         setEditMode(false);
-
-        toast.success("Cập nhật thông tin thành công", {
-          position: "top-right",
-        });
+        toast.success("Cập nhật thông tin thành công", { position: "top-right" });
       } else {
-        toast.error(res.message || "Có lỗi xảy ra khi cập nhật thông tin", {
-          position: "top-right",
-        });
+        toast.error(res.message || "Có lỗi xảy ra khi cập nhật thông tin");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Có lỗi xảy ra khi cập nhật thông tin", {
-        position: "top-right",
-      });
+      toast.error("Có lỗi xảy ra khi cập nhật thông tin");
     }
   };
 
@@ -171,25 +162,24 @@ const ViewProfile: React.FC = () => {
 
   // Change Password handlers
   const handleChangePassword = () => {
-    setShowChangePassword(true);
+    handleMenuChange("change-password");
   };
 
   const handlePasswordCancel = () => {
-    setShowChangePassword(false);
+    handleMenuChange("profile");
   };
 
   const handlePasswordSubmit = async (data: ChangePasswordFormData) => {
     try {
       setPasswordLoading(true);
-      // Gọi API đổi mật khẩu với đúng property names
       const res = await updatePassword({
-        oldPassword: data.currentPassword, // Map từ currentPassword -> oldPassword
+        oldPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
 
       if (res.code === 200) {
         toast.success("Đổi mật khẩu thành công!");
-        setShowChangePassword(false);
+        handleMenuChange("profile");
       } else {
         toast.error(res.message || "Đổi mật khẩu thất bại");
       }
@@ -241,17 +231,7 @@ const ViewProfile: React.FC = () => {
     );
   }
 
-  // Show Change Password modal
-  if (showChangePassword) {
-    return (
-      <ChangePassword
-        onSubmit={handlePasswordSubmit}
-        onCancel={handlePasswordCancel}
-        isLoading={passwordLoading}
-      />
-    );
-  }
-
+  // Main Render
   return (
     <div className="min-h-screen bg-gradient-to-br py-8 px-4">
       <div className="max-w-[1600px] mx-auto">
@@ -297,6 +277,12 @@ const ViewProfile: React.FC = () => {
                     />
                   </div>
                 </div>
+              ) : currentTab === "change-password" ? (
+                <ChangePassword
+                  onSubmit={handlePasswordSubmit}
+                  onCancel={handlePasswordCancel}
+                  isLoading={passwordLoading}
+                />
               ) : (
                 <TabContent
                   currentTab={currentTab}

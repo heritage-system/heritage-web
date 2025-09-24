@@ -165,19 +165,6 @@ const ContributorView: React.FC<ContributorViewProps> = ({
                     : "-"}
                 </p>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cập nhật cuối
-                </label>
-                <p className="text-gray-900">
-                  {contributorDetail.updatedAt
-                    ? new Date(contributorDetail.updatedAt).toLocaleString(
-                        "vi-VN"
-                      )
-                    : "Chưa cập nhật"}
-                </p>
-              </div>
             </div>
 
             {/* Bio */}
@@ -203,6 +190,25 @@ const ContributorView: React.FC<ContributorViewProps> = ({
                 </p>
               </div>
             </div>
+
+            {/* Documents URL */}
+            {contributorDetail.documentsUrl && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tài liệu đính kèm
+                </label>
+                <div className="bg-gray-50 rounded-md p-3">
+                  <a
+                    href={contributorDetail.documentsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline break-words"
+                  >
+                    {contributorDetail.documentsUrl}
+                  </a>
+                </div>
+              </div>
+            )}
 
             {/* Creator and Updater */}
             {(contributorDetail.createdByName ||

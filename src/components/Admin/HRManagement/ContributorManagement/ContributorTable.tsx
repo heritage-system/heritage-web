@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Edit, Eye, Check, X, Ban } from "lucide-react";
+import { Edit, Eye, Check, X, Ban, RotateCcw  } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { searchContributors } from "../../../../services/contributorService";
 import { ContributorResponse } from "../../../../types/contributor";
@@ -12,7 +12,7 @@ interface ContributorTableProps {
   onView: (contributor: ContributorResponse) => void;
   onAction: (
     contributor: ContributorResponse,
-    action: "delete" | "approve" | "reject"
+    action: "delete" | "approve" | "reject" | "restore"
   ) => void;
   refreshTrigger: number;
   onDataChange?: () => void;
@@ -132,14 +132,14 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
 
   // Action buttons theo business logic
   const renderActionButtons = (contributor: ContributorResponse) => {
-  const status = contributor.status;
-  const isApplied =
-    status === ContributorStatus.APPLIED || status === "APPLIED";
-  const isSuspended =
-    status === ContributorStatus.SUSPENDED || status === "SUSPENDED";
+  const status =
+    typeof contributor.status === "string"
+      ? contributor.status.toUpperCase()
+      : contributor.status;
 
   return (
     <>
+      {/* View luôn có */}
       <button
         onClick={() => onView(contributor)}
         className="text-blue-600 hover:text-blue-900 p-1"
@@ -148,15 +148,21 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
         <Eye size={16} />
       </button>
 
-      <button
-        onClick={() => onEdit(contributor)}
-        className="text-indigo-600 hover:text-indigo-900 p-1"
-        title="Chỉnh sửa"
-      >
-        <Edit size={16} />
-      </button>
+      {/* Edit luôn có */}
+      {status !== ContributorStatus.APPLIED && 
+        status !== ContributorStatus.REJECTED && 
+        status !== ContributorStatus.SUSPENDED && (
+        <button
+          onClick={() => onEdit(contributor)}
+          className="text-indigo-600 hover:text-indigo-900 p-1"
+          title="Chỉnh sửa"
+        >
+          <Edit size={16} />
+        </button>
+      )}
 
-      {isApplied && (
+      {/* APPLIED → Admin có thể Accept hoặc Reject */}
+      {status === ContributorStatus.APPLIED && (
         <>
           <button
             onClick={() => onAction(contributor, "approve")}
@@ -175,15 +181,29 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
         </>
       )}
 
-      {!isSuspended && (
+      {/* REJECTED → chỉ xem, không có nút action khác */}
+
+      {/* ACTIVE → Admin có thể đình chỉ (Suspend) */}
+      {status === ContributorStatus.ACTIVE && (
         <button
           onClick={() => onAction(contributor, "delete")}
           className="text-red-600 hover:text-red-900 p-1"
-          title="Vô hiệu hóa"
+          title="Đình chỉ"
         >
           <Ban size={16} />
         </button>
       )}
+
+      {/* SUSPENDED → Admin có thể khôi phục (Activate lại) */}
+        {status === ContributorStatus.SUSPENDED && (
+          <button
+            onClick={() => onAction(contributor, "restore")}
+            className="text-green-600 hover:text-green-900 p-1"
+            title="Khôi phục"
+          >
+            <RotateCcw size={16} />
+          </button>
+        )}
     </>
   );
 };

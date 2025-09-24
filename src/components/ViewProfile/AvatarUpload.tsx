@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { UpdateProfileRequest } from "../../types/user";
+import { uploadImage } from "../../services/uploadService";
 
 interface AvatarUploadProps {
   formData: UpdateProfileRequest;
@@ -15,14 +16,14 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ formData, setFormData }) =>
     if (!file) return;
 
     // Kiểm tra loại file
-    if (!file.type.startsWith('image/')) {
-      alert('Vui lòng chọn file hình ảnh!');
+    if (!file.type.startsWith("image/")) {
+      alert("Vui lòng chọn file hình ảnh!");
       return;
     }
 
     // Kiểm tra kích thước file (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Kích thước file không được vượt quá 5MB!');
+      alert("Kích thước file không được vượt quá 5MB!");
       return;
     }
 
@@ -31,60 +32,26 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ formData, setFormData }) =>
 
       // Preview ảnh ngay lập tức
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setPreview(result);
-      };
+      reader.onloadend = () => setPreview(reader.result as string);
       reader.readAsDataURL(file);
 
-      // TODO: Upload ảnh lên server hoặc cloud
-      // Tạm thời sử dụng base64 cho preview
-      const base64Promise = new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
+      // Upload ảnh lên server (Cloudinary qua BE)
+      const response = await uploadImage(file);
 
-      const base64Result = await base64Promise;
-      
-      // Cập nhật formData với URL mới
-      setFormData({ 
-        ...formData, 
-        avatarUrl: base64Result 
-      });
-
-      /* 
-      // Ví dụ upload thật lên Cloudinary:
-      const formDataCloud = new FormData();
-      formDataCloud.append("file", file);
-      formDataCloud.append("upload_preset", "your_preset");
-
-      const response = await fetch(
-        "https://api.cloudinary.com/v1_1/your_cloud_name/image/upload", 
-        {
-          method: "POST",
-          body: formDataCloud
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      if (response.code !== 200 || !response.result) {
+        throw new Error(response.message || "Upload failed");
       }
 
-      const data = await response.json();
-      
-      // Cập nhật formData với URL từ server
-      setFormData({ 
-        ...formData, 
-        avatarUrl: data.secure_url 
+      // Cập nhật formData với URL ảnh từ server
+      setFormData({
+        ...formData,
+        avatarUrl: response.result,
       });
-      
-      setPreview(data.secure_url);
-      */
 
+      setPreview(response.result);
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert('Có lỗi xảy ra khi upload ảnh!');
+      alert("Có lỗi xảy ra khi upload ảnh!");
     } finally {
       setUploading(false);
     }
@@ -100,10 +67,12 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ formData, setFormData }) =>
           className="w-24 h-24 rounded-full border-4 border-white/50 shadow-2xl object-cover 
                      transition-all duration-300 group-hover:brightness-75"
         />
-        
+
         {/* Upload Overlay */}
-        <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 
-                        transition-opacity duration-300 flex items-center justify-center">
+        <div
+          className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 
+                        transition-opacity duration-300 flex items-center justify-center"
+        >
           <span className="text-white text-sm font-medium">Thay đổi</span>
         </div>
 
@@ -117,10 +86,10 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ formData, setFormData }) =>
 
       {/* Upload Input */}
       <label className="absolute inset-0 cursor-pointer rounded-full">
-        <input 
-          type="file" 
-          accept="image/*" 
-          className="hidden" 
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
           onChange={handleFileChange}
           disabled={uploading}
         />
@@ -128,12 +97,15 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ formData, setFormData }) =>
 
       {/* Upload Button */}
       <div className="mt-4 text-center">
-        <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-medium 
+        <label
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-medium 
                            transition-all duration-300 cursor-pointer
-                           ${uploading 
-                             ? 'bg-gray-400 text-white cursor-not-allowed' 
-                             : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white hover:shadow-lg hover:shadow-yellow-500/25'
-                           }`}>
+                           ${
+                             uploading
+                               ? "bg-gray-400 text-white cursor-not-allowed"
+                               : "bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white hover:shadow-lg hover:shadow-yellow-500/25"
+                           }`}
+        >
           {uploading ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -145,10 +117,10 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ formData, setFormData }) =>
               Chọn ảnh
             </>
           )}
-          <input 
-            type="file" 
-            accept="image/*" 
-            className="hidden" 
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
             onChange={handleFileChange}
             disabled={uploading}
           />
