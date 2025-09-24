@@ -4,7 +4,8 @@ import {
   UpdateProfileResponse,
   User,
   UserCreationRequest,
-  UserCreationResponse
+  UserCreationResponse,
+  ChangePasswordRequest
 } from "../types/user";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
@@ -35,6 +36,18 @@ export const updateProfile = async (
     `${API_URL}/api/v1/users/profile`,
     {
       method: "PUT",
+      body: request as any,
+    }
+  );
+};
+
+export const updatePassword = async (
+  request: ChangePasswordRequest
+): Promise<ApiResponse<any>> => {
+  return await fetchInterceptor<any>(
+    `${API_URL}/api/v1/users/change-password`,
+    {
+      method: "POST",
       body: request as any,
     }
   );
