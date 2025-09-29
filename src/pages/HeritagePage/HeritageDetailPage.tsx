@@ -21,7 +21,7 @@ const HeritageDetailPage: React.FC = () => {
   const nav = useNavigate();
 
   const [heritage, setHeritage] = useState<HeritageSearchResponse | null>(null);
-  const [description, setDescription] = useState<HeritageDescription | null>(null);
+  const [content, setContent] = useState<HeritageDescription | null>(null);
 
   const [tab, setTab] = useState<"History" | "Rituals" | "Values" | "Preservation">("History");
   const [liked, setLiked] = useState(false);
@@ -40,14 +40,14 @@ const HeritageDetailPage: React.FC = () => {
         if (response.result) {
           setHeritage(response.result);
           try {
-            const parsed = JSON.parse(response.result.description);
-            setDescription(parsed);
+            const parsed = JSON.parse(response.result.content);
+            setContent(parsed);
           } catch {
-            setDescription(null);
+            setContent(null);
           }
         } else {
           setHeritage(null);
-          setDescription(null);
+          setContent(null);
         }
       })
       .catch((err) => console.error("Error fetching heritage detail:", err));
@@ -141,7 +141,6 @@ const HeritageDetailPage: React.FC = () => {
     );
   }
 
-  const quickIntro = description?.History?.[0]?.Content;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -151,8 +150,7 @@ const HeritageDetailPage: React.FC = () => {
         bookmarked={bookmarked}
         heroImage={heroImage}
         onLike={handleLike}
-        onBookmark={handleBookmark}
-        quickIntro={quickIntro}
+        onBookmark={handleBookmark}  
       />
 {/* <HeritageEditor/> */}
       <div className="mx-auto max-w-6xl px-4 py-6 grid lg:grid-cols-3 gap-6">
@@ -160,7 +158,7 @@ const HeritageDetailPage: React.FC = () => {
           <HeritageContentTabs
             activeTab={tab}
             onTabChange={setTab}
-            description={description}
+            content={content}
           />
 
           <HeritageMediaGallery images={images} videos={videos} heritageName={heritage.name} />

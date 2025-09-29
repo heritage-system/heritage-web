@@ -3,7 +3,7 @@ import { HeritageDescription } from "../../types/heritage";
 
 interface Props {
   activeTab: "History" | "Rituals" | "Values" | "Preservation";
-  description: HeritageDescription | null;
+  content: HeritageDescription | null;
   onTabChange: (tab: "History" | "Rituals" | "Values" | "Preservation") => void;
 }
 
@@ -23,7 +23,7 @@ const SectionCard: React.FC<{
 
 export const HeritageContentTabs: React.FC<Props> = ({
   activeTab,
-  description,
+  content,
   onTabChange,
 }) => {
   const tabs = [
@@ -34,7 +34,7 @@ export const HeritageContentTabs: React.FC<Props> = ({
   ] as const;
 
   // Lấy danh sách block theo tab đang chọn
-  const contentBlocks = description?.[activeTab] || [];
+  const contentBlocks = content?.[activeTab] || [];
 
   return (
     <SectionCard

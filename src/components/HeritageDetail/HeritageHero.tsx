@@ -18,7 +18,6 @@ interface Props {
   liked: boolean;
   bookmarked: boolean;
   heroImage?: string;
-  quickIntro?: string;
   onBack?: () => void;
   onLike: () => void;
   onBookmark: () => void;
@@ -40,7 +39,6 @@ export const HeritageHero: React.FC<Props> = ({
   liked,
   bookmarked,
   heroImage,
-  quickIntro,
   onBack,
   onLike,
   onBookmark,
@@ -164,7 +162,7 @@ export const HeritageHero: React.FC<Props> = ({
 
             {/* Quick intro */}
             {heritage.description && (
-              <p className="mt-3 text-gray-700 leading-relaxed">{quickIntro}</p>
+              <p className="mt-3 text-gray-700 leading-relaxed">{heritage.description}</p>
             )}
           </div>
         </div>
