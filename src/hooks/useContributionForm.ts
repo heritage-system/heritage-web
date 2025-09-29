@@ -48,7 +48,7 @@ export const useContributionForm = () => {
   const [blobMap, setBlobMap] = useState<Map<string, { file: File; hash: string }>>(new Map());
   const [selectedHeritages, setSelectedHeritages] = useState<HeritageName[]>([]);
   const [premiumType, setPremiumType] = useState<ContributionPremiumTypes>(ContributionPremiumTypes.FREE);
-
+  const [submitted, setSubmitted] = useState(false);
   // hash -> primary blobUrl (để biết blobUrl đã có cho hash đó)
   const hashToBlobUrlRef = useRef<Map<string, string>>(new Map());
 
@@ -97,7 +97,9 @@ export const useContributionForm = () => {
     
     setTitle("");
     setCover(null);
+    setSelectedHeritages([])
     setCoverFile(null);
+    setPremiumType(ContributionPremiumTypes.FREE)
     setHtml("");
     setDelta(null);
     setBlobMap(new Map());
@@ -207,6 +209,7 @@ export const useContributionForm = () => {
         //alert(`✅ Đã upload thành công!\n📊 Đã upload ${uploadCount} ảnh lên Cloudinary\n🆔 Mã bài: ${apiRes.result.id}`);
 
         // reset
+        setSubmitted(true);
         resetForm();
       } else {
         toast.error(apiRes.message || "Đăng bài thất bại!");
@@ -231,8 +234,9 @@ export const useContributionForm = () => {
   canSubmit,
   selectedHeritages,
   premiumType,
-
+  submitted,
   // Handlers
+  setSubmitted,
   setTitle,
   setSelectedHeritages,
   setPremiumType,

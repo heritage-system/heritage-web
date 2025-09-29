@@ -153,7 +153,7 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
 
             {/* overlay che phần dưới */}
 <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white via-white/90 to-transparent flex flex-col items-center justify-end gap-3 pb-6">
-  {subscription ? (
+  {/* {subscription ? (
     <>
       <p className="text-sm text-gray-600 mb-5">
         Lượt đọc:{" "}
@@ -182,11 +182,11 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
           : "🔓 Mở khóa bài viết"}
       </button>
     </>
-  ) : (
+  ) : ( */}
     <button className="bg-gradient-to-r from-yellow-700 to-red-700 text-white text-lg font-semibold px-6 py-3 rounded-full shadow-lg animate-bounce">
       ⭐ Nâng cấp Premium để đọc tiếp
     </button>
-  )}
+  {/* )} */}
 </div>
 
           </div>

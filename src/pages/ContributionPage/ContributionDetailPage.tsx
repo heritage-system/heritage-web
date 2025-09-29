@@ -6,7 +6,7 @@ import { ContributionResponse } from "../../types/contribution";
 import { HeritageContributorPosts } from "../../components/HeritageDetail/HeritageContributorPosts";
 import ContributionDetailSidebar from "../../components/ContributionDetail/ContributionDetailSideBar";
 import ContributionComments from "../../components/ContributionDetail/ContributionComments";
-import PageLoader from "../../components/Layouts/LoadingLayouts/PageLoader";
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 import toast from 'react-hot-toast';
 import {ContributionSearchResponse} from "../../types/contribution";
 
@@ -121,22 +121,27 @@ const ArticleDetailPage = () => {
     }
   };
 
-  // Mock comment handlers
-  const handleAddComment = (content: string) => {
-    console.log("Adding comment:", content);
-    toast.success("Đã thêm bình luận!");
-  };
 
-  const handleLikeComment = (commentId: number) => {
-    console.log("Liking comment:", commentId);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br flex items-center justify-center pb-60">
+        <div className="text-center">
+          <div className="mb-4">
+            <Spinner size={40} thickness={5}/>
+          </div>
+          <div className="text-xl font-semibold text-gray-700">Đang tải thông tin...</div>
+          <div className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</div>
+        </div>
+      </div>
+    );
+  }
+  if (error) return (
+    
+ <div className="flex items-center justify-center h-screen -mt-10"> 
+    <div className="p-6 text-red-600">{error}</div>
+ </div>
 
-  const handleReplyComment = (commentId: number, content: string) => {
-    console.log("Replying to comment:", commentId, content);
-  };
-
-  if (loading) return <PageLoader show={loading} text="Đang tải dữ liệu trang…" />;
-  if (error) return <div className="p-6 text-red-600">{error}</div>;
+);
   if (!article) return null;
 
   return (

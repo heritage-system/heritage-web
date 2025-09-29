@@ -5,6 +5,7 @@ export interface ContributorCreateRequest {
   userId?: number;      
   bio?: string;
   expertise?: string;
+  isPremiumEligible?: boolean
 }
 
 // Update
@@ -51,7 +52,7 @@ export interface ContributorResponse {
   expertise?: string;
   documentsUrl?: string;
   status: string;
-
+  isPremiumEligible: boolean;
   userId: number;
   userFullName?: string;
   userEmail?: string;

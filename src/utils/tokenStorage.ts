@@ -8,6 +8,10 @@ export const tokenStorage = {
   setAccessToken: (token: string) => localStorage.setItem("accessToken", token),
   setRefreshToken: (token: string) => localStorage.setItem("refreshToken", token),
   clearAccessToken: () => localStorage.removeItem("accessToken"),
+  getUserName: () => localStorage.getItem("userName"),
+  getAvatarUrl: () => localStorage.getItem("avatarUrl"),
+  setUserName: (username: string) => localStorage.setItem("userName", username),
+  setAvatarUrl: (avatar: string) => localStorage.setItem("avatarUrl", avatar),
 };
 
 

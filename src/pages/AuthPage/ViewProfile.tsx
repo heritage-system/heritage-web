@@ -8,7 +8,7 @@ import ProfileInfoCard from "../../components/ViewProfile/ProfileInfoCards";
 import TabContent from "../../components/ViewProfile/TabContent";
 import ChangePassword from "../../components/ViewProfile/ChangePassword";
 import { toast } from 'react-hot-toast';
-
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 // Services & Types
 import { getProfile, updateProfile, updatePassword } from "../../services/userService";
 import { UpdateProfileResponse, UpdateProfileRequest } from "../../types/user";
@@ -122,6 +122,8 @@ const ViewProfile: React.FC = () => {
           avatarUrl: res.result.avatarUrl,
         });
         setEditMode(false);
+        localStorage.setItem("avatarUrl", res.result.avatarUrl!);
+        localStorage.setItem("userName", res.result.userName!);
         toast.success("Cập nhật thông tin thành công", { position: "top-right" });
       } else {
         toast.error(res.message || "Có lỗi xảy ra khi cập nhật thông tin");
@@ -205,7 +207,9 @@ const ViewProfile: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="mb-4">
+            <Spinner size={45} thickness={5}/>
+          </div>
           <div className="text-xl font-semibold text-gray-700">Đang tải thông tin...</div>
           <div className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</div>
         </div>

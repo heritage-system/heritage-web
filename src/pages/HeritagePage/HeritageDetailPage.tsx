@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { HeritageSearchResponse,HeritageSearchRequest, HeritageDescription } from "../../types/heritage";
 import { getHeritageDetail } from "../../services/heritageService";
+import { getContributionRelated } from "../../services/contributionService";
 // Import các components con
 import { HeritageHero } from "../../components/HeritageDetail/HeritageHero";
 import { HeritageContentTabs } from "../../components/HeritageDetail/HeritageContentTabs";
@@ -13,7 +14,8 @@ import { HeritageRelated } from "../../components/HeritageDetail/HeritageRelated
 import { HeritageSidebar } from "../../components/HeritageDetail/HeritageSidebar";
 import { HeritageContributorPosts } from "../../components/HeritageDetail/HeritageContributorPosts";
 import { searchHeritage } from "../../services/heritageService";
-
+import {ContributionSearchResponse} from "../../types/contribution";
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 const HeritageDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
@@ -21,7 +23,7 @@ const HeritageDetailPage: React.FC = () => {
   const [heritage, setHeritage] = useState<HeritageSearchResponse | null>(null);
   const [description, setDescription] = useState<HeritageDescription | null>(null);
 
-  const [tab, setTab] = useState<"history" | "rituals" | "values" | "preservation">("history");
+  const [tab, setTab] = useState<"History" | "Rituals" | "Values" | "Preservation">("History");
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
 
@@ -29,6 +31,8 @@ const HeritageDetailPage: React.FC = () => {
   const [related, setRelated] = useState<HeritageSearchResponse[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
 
+  const [relatedPosts, setRelatedPosts] = useState<ContributionSearchResponse[]>([]);
+  const [loadingPostRelated, setLoadingPostRelated] = useState(false);  
   useEffect(() => {
     if (!id) return;
     getHeritageDetail(Number(id))
@@ -81,6 +85,30 @@ const HeritageDetailPage: React.FC = () => {
     run();
   }, [heritage]);
 
+  useEffect(() => {
+      const fetchRelated = async () => {
+        if (!heritage) return;
+  
+        try {
+          setLoadingPostRelated(true);
+          const res = await getContributionRelated({          
+            tagHeritageIds: [heritage.id],         
+            quantity: 6,
+          });
+  
+          if (res.code === 200 && res.result) {
+            setRelatedPosts(res.result);
+          }
+        } catch (err) {
+          console.error("Lỗi load bài viết liên quan:", err);
+        } finally {
+          setLoadingPostRelated(false);
+        }
+      };
+  
+      fetchRelated();
+    }, [heritage]);
+
   const heroImage = useMemo(
     () => heritage?.media?.find((m) => m.mediaTypeName?.toLowerCase() === "image")?.url,
     [heritage?.media]
@@ -101,13 +129,19 @@ const HeritageDetailPage: React.FC = () => {
 
   if (!heritage) {
     return (
-      <div className="flex items-center justify-center h-screen text-gray-600">
-        Đang tải thông tin di sản...
+      <div className="min-h-screen bg-gradient-to-br flex items-center justify-center pb-60">
+        <div className="text-center">
+          <div className="mb-4">
+            <Spinner size={40} thickness={5}/>
+          </div>
+          <div className="text-xl font-semibold text-gray-700">Đang tải thông tin...</div>
+          <div className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</div>
+        </div>
       </div>
     );
   }
 
-  const quickIntro = description?.history?.[0]?.content;
+  const quickIntro = description?.History?.[0]?.Content;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -134,8 +168,7 @@ const HeritageDetailPage: React.FC = () => {
           <HeritageReviews heritageId={heritage.id} />
 
 
-          <HeritageContributorPosts/>
-
+          
           {/* Related Heritage */}
           {loadingRelated ? (
             <div className="text-sm text-gray-500">Đang gợi ý di sản liên quan…</div>
@@ -145,6 +178,14 @@ const HeritageDetailPage: React.FC = () => {
               onClickItem={(h) => nav(`/heritagedetail/${h.id}`)}
             />
           )}
+
+          <HeritageContributorPosts  
+            posts={relatedPosts}
+            onOpenPost={(post) => {
+              window.location.href = `/contributions/${post.id}`;
+            }}         
+            loading={loadingRelated}   />
+
         </div>
 
         <HeritageSidebar

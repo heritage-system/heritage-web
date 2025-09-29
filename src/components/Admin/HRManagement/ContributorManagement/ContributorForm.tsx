@@ -14,7 +14,7 @@ import {
   DropdownUserResponse,
 } from "../../../../types/contributor";
 import { ContributorStatus } from "../../../../types/enum";
-import PortalModal from "../../../Layouts/PortalModal";
+import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
 
 interface ContributorFormProps {
   open: boolean;
@@ -35,11 +35,13 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
     expertise: string;
     status: ContributorStatus;
     documentsUrl: string;
+    isPremiumEligible: boolean;
   }>({
     bio: "",
     expertise: "",
     status: ContributorStatus.APPLIED,
     documentsUrl: "",
+    isPremiumEligible: false
   });
 
   const [userOptions, setUserOptions] = useState<DropdownUserResponse[]>([]);
@@ -99,6 +101,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
               expertise: res.result.expertise || "",
               status: normalizeStatus(res.result.status),
               documentsUrl: res.result.documentsUrl || "", 
+              isPremiumEligible: res.result.isPremiumEligible
             });
           }
         } catch (error) {
@@ -118,6 +121,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
           expertise: "",
           status: ContributorStatus.APPLIED,
           documentsUrl: "",
+          isPremiumEligible: false
         });
         setSelectedUserId(undefined);
         setUserSearchTerm("");
@@ -181,6 +185,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
           bio: formData.bio,
           expertise: formData.expertise,
           status: String(formData.status),
+          isPremiumEligible: formData.isPremiumEligible,
           // ensure your ContributorUpdateRequest type (frontend & backend) supports documentsUrl if you want to send it
           ...(formData.documentsUrl ? { documentsUrl: formData.documentsUrl } : {}),
         } as any;
@@ -195,6 +200,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
               expertise: updated.result.expertise || "",
               status: normalizeStatus(updated.result.status),
               documentsUrl: updated.result.documentsUrl || "",
+              isPremiumEligible: updated.result.isPremiumEligible || false
             });
           }
           onSuccess();
@@ -211,6 +217,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
           userId: selectedUserId,
           bio: formData.bio,
           expertise: formData.expertise,
+          isPremiumEligible: formData.isPremiumEligible
           // create currently doesn't send documentsUrl (kept for apply flow)
         };
         const res = await createContributor(createData);
@@ -294,6 +301,7 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
              )}
             </div>
           )}
+
 
           {/* CREATE: user selector */}
           {!isEditing && (
@@ -385,6 +393,38 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
               />
             </div>
           )}
+
+          {/* IS PREMIUM ELIGIBLE */}
+<div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-amber-50 to-red-50">
+  <span className="text-sm font-medium text-gray-900">
+    Cho phép đăng bài <span className="text-red-600 font-semibold">Premium</span>
+  </span>
+
+  <button
+    type="button"
+    role="switch"
+    aria-checked={formData.isPremiumEligible}
+    onClick={() =>
+      setFormData((prev) => ({
+        ...prev,
+        isPremiumEligible: !prev.isPremiumEligible,
+      }))
+    }
+    disabled={loading}
+    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
+      formData.isPremiumEligible
+        ? "bg-gradient-to-r from-yellow-600 to-red-600"
+        : "bg-gray-300"
+    } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+  >
+    <span
+      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+        formData.isPremiumEligible ? "translate-x-6" : "translate-x-1"
+      }`}
+    />
+  </button>
+</div>
+
 
           {/* STATUS (editable when not ACTIVE) */}
           {isEditing && formData.status !== ContributorStatus.ACTIVE && (

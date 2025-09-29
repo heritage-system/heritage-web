@@ -1,6 +1,6 @@
 import React from "react";
 import { AlertTriangle, Info, XCircle } from "lucide-react";
-import PortalModal from "../../../Layouts/PortalModal";
+import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
 
 interface ConfirmDialogProps {
   open: boolean;

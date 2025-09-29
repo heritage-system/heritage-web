@@ -7,6 +7,7 @@ import QuizSection from './QuizSection';
 import ContributionsSection from './ContributionsSection';
 import AddContributionForm from './AddContributionForm';
 import CollaboratorRequestSection from './CollaboratorRequestSection/CollaboratorRequestSection';
+import ContributionFormPage from '../../pages/ContributionPage/ContributionFormPage';
 
 interface ContributionItem {
   title: string;
@@ -59,12 +60,13 @@ const TabContent: React.FC<TabContentProps> = ({
 
     case "add-contribution":
       return (
-        <AddContributionForm 
-          contributionForm={contributionForm}
-          onContributionChange={onContributionChange}
-          onContributionSubmit={onContributionSubmit}
-          onContributionCancel={onContributionCancel}
-        />
+        // <AddContributionForm 
+        //   contributionForm={contributionForm}
+        //   onContributionChange={onContributionChange}
+        //   onContributionSubmit={onContributionSubmit}
+        //   onContributionCancel={onContributionCancel}
+        // />
+        <ContributionFormPage />
       );
 
     case "collaborator-request":

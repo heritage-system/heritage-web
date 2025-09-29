@@ -10,6 +10,8 @@ export interface SignInResponse {
     userType: string;
     tokenType: string;
     twoFaStep: number
+    userName: string;
+    avatarUrl: string;
 }
 
 export interface TwoFASetupResponse {
