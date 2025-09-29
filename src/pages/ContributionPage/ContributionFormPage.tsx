@@ -6,7 +6,8 @@ import ContentPreview from "../../components/ContributionForm/ContentPreview";
 import { useContributionForm } from "../../hooks/useContributionForm";
 import HeritageMultiSelect from "../../components/ContributionForm/HeritageMultiSelect";
 import { ContributionPremiumTypes } from "../../types/enum";
-
+import { CheckCircle } from "lucide-react";
+import { isContributorPremiumEligible } from "../../services/contributorService";
 const ContributionFormPage: React.FC = () => {
   const {
     // State
@@ -19,8 +20,10 @@ const ContributionFormPage: React.FC = () => {
     canSubmit,
     selectedHeritages,
     premiumType,
+    submitted,
 
     // Handlers
+    setSubmitted,
     setTitle,
     setSelectedHeritages,
     setPremiumType,
@@ -38,6 +41,8 @@ const ContributionFormPage: React.FC = () => {
   const [progress, setProgress] = useState(0);
 
   const simulatedProgress = useMemo(() => progress, [progress]);
+
+  const [isPremiumEligible, setPremiumEligible] = useState(false);
 
   useEffect(() => {
     let t: number | undefined;
@@ -61,6 +66,53 @@ const ContributionFormPage: React.FC = () => {
     };
   }, [saving]);
 
+  useEffect(() => {
+    const isPremiumEligible = async () => {
+      try {
+        const res = await isContributorPremiumEligible();
+        setPremiumEligible(res.result || false);
+      } catch (err) {
+        console.error("Không thể tải:", err);
+      }
+    };
+    isPremiumEligible();      
+  }, []);
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 px-4 pt-24">
+        <CheckCircle className="w-16 h-16 text-green-600 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Gửi bài thành công!
+        </h2>
+        <p className="text-gray-600 mb-6 text-center max-w-md">
+          Bài viết của bạn đã được gửi và sẽ được đội ngũ xét duyệt trước khi hiển thị lên website.
+        </p>
+
+        <div className="flex gap-4">
+          {/* Về trang bài viết */}
+          <button
+            onClick={() => (window.location.href = "/view-profile?tab=contributions")}
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-700 to-red-700 text-white font-medium hover:brightness-110 shadow"
+          >
+            Quay về danh sách
+          </button>
+
+          {/* Đăng bài mới */}
+          <button
+            onClick={() => {
+              resetForm();   // dọn form cũ
+              setSubmitted(false); // quay lại form viết bài
+            }}
+            className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 shadow"
+          >
+            Đăng bài viết mới
+          </button>
+        </div>
+      </div>
+    );
+  }
+  else  {
   return (
     <div className="max-w-6xl mx-auto pt-6 space-y-6 relative mb-5">
       {/* ===== Full-screen overlay khi đang upload ===== */}
@@ -135,36 +187,50 @@ const ContributionFormPage: React.FC = () => {
           </div>
 
           {/* Premium Type Toggle */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-            <label className="block text-sm font-semibold mb-3 text-gray-800">Loại bài viết</label>
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button
-                type="button"
-                onClick={() => setPremiumType(ContributionPremiumTypes.FREE)}
-                className={`flex-1 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                  premiumType === "FREE"
-                    ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white shadow-lg transform scale-[1.02]"
-                    : "text-gray-700 hover:text-yellow-700 hover:bg-white/50"
-                }`}
-              >
-                🌟 Miễn phí
-              </button>
-              <button
-                type="button"
-                onClick={() => setPremiumType(ContributionPremiumTypes.SUBSCRIPTIONONLY)}
-                className={`flex-1 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                  premiumType === "SUBSCRIPTIONONLY"
-                    ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white shadow-lg transform scale-[1.02]"
-                    : "text-gray-700 hover:text-yellow-700 hover:bg-white/50"
-                }`}
-              >
-                ⭐ Premium
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {premiumType === "FREE" ? "Bài viết sẽ hiển thị cho tất cả người dùng" : "Chỉ người đăng ký mới có thể xem"}
-            </p>
+         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <label className="block text-sm font-semibold mb-3 text-gray-800">Loại bài viết</label>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            {/* Free luôn cho chọn */}
+            <button
+              type="button"
+              onClick={() => setPremiumType(ContributionPremiumTypes.FREE)}
+              className={`flex-1 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                premiumType === "FREE"
+                  ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white shadow-lg transform scale-[1.02]"
+                  : "text-gray-700 hover:text-yellow-700 hover:bg-white/50"
+              }`}
+            >
+              🌟 Miễn phí
+            </button>
+
+            {/* Premium: disable nếu không đủ quyền */}
+            <button
+              type="button"
+              onClick={() =>
+                isPremiumEligible && setPremiumType(ContributionPremiumTypes.SUBSCRIPTIONONLY)
+              }
+              disabled={!isPremiumEligible}
+              className={`flex-1 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                premiumType === "SUBSCRIPTIONONLY"
+                  ? "bg-gradient-to-r from-yellow-700 to-red-700 text-white shadow-lg transform scale-[1.02]"
+                  : !isPremiumEligible
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-700 hover:text-yellow-700 hover:bg-white/50"
+              }`}
+            >
+              ⭐ Premium
+            </button>
           </div>
+
+          <p className="text-xs text-gray-500 mt-2">
+            {premiumType === "FREE"
+              ? "Bài viết sẽ hiển thị cho tất cả người dùng"
+              : isPremiumEligible
+              ? "Chỉ người đăng ký mới có thể xem"
+              : "Bạn chưa được cấp quyền đăng Premium"}
+          </p>
+        </div>
+
 
           {/* Action Buttons */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
@@ -191,13 +257,13 @@ const ContributionFormPage: React.FC = () => {
                 )}
               </button>
 
-              {/* <button
+              <button
                 onClick={resetForm}
                 className="w-full py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors font-medium text-gray-700"
                 type="button"
               >
                 Dọn dẹp
-              </button> */}
+              </button>
             </div>
           </div>
         </div>
@@ -262,6 +328,7 @@ const ContributionFormPage: React.FC = () => {
       </div>
     </div>
   );
+  }
 };
 
 export default ContributionFormPage;

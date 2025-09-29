@@ -5,7 +5,7 @@ import ApplicationModal from './ApplicationModal';
 import StatusDisplay from './StatusDisplay';
 import { toast } from "react-hot-toast";
 import { Users, Loader2, X, CheckCircle } from 'lucide-react';
-
+import Spinner from "../../Layouts/LoadingLayouts/Spinner";
 export interface ApplicationData {
   bio: string;
   expertise: string;
@@ -124,7 +124,7 @@ const CollaboratorRequestSection: React.FC = () => {
     return (
       <div className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 rounded-3xl p-8 min-h-[700px] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" />
+          <Spinner className="mb-4" size={32}/>
           <p className="text-gray-600">Đang tải thông tin...</p>
         </div>
       </div>

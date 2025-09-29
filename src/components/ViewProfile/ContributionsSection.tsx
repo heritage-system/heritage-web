@@ -124,7 +124,7 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
             <div className="text-sm text-amber-600 font-medium">Đóng góp</div>
           </div>
           <button
-            onClick={() => onMenuChange("add-contribution")}
+            onClick={() => window.location.href = `contribution-form`}
             className="px-8 py-4 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white rounded-3xl hover:from-yellow-700 hover:to-amber-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center"
           >
             <Trophy className="w-5 h-5 mr-3" />

@@ -7,7 +7,7 @@ import {
   X, 
   Send 
 } from 'lucide-react';
-import PortalModal from '../../Layouts/PortalModal';
+import PortalModal from '../../Layouts/ModalLayouts/PortalModal';
 import { ApplicationData } from './CollaboratorRequestSection';
 
 interface ApplicationModalProps {

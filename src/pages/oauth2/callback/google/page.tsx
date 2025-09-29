@@ -30,6 +30,8 @@ function CallbackGoogle() {
       if (data.code === 200) {
         localStorage.setItem('accessToken', data.result.accessToken);
         localStorage.setItem('refreshToken', data.result.refreshToken);
+        localStorage.setItem("userName", data.result!.userName);
+        localStorage.setItem("avatarUrl", data.result!.avatarUrl);
         authLogin(data.result);
     
         setTimeout(() => {

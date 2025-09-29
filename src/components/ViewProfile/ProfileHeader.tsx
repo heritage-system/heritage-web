@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { UpdateProfileResponse, UpdateProfileRequest } from "../../types/user";
-import { Check, X, Save, Camera, Edit, Key } from "lucide-react";
+import { Check, X, Save, Camera, Edit, Key,Crown } from "lucide-react";
 import { uploadImage } from "../../services/uploadService";
 
 interface ProfileHeaderProps {
@@ -67,7 +67,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         ...formData,
         avatarUrl: response.result,
       });
-
+      
       setAvatarPreview(response.result);
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -98,7 +98,20 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     });
   };
 
-  const currentAvatarUrl = avatarPreview || formData.avatarUrl || profile.avatarUrl || "/api/placeholder/96/96";
+  const safeUrl = (url?: string | null) => {
+  if (!url || url === "undefined" || url === "null") return undefined;
+  return url;
+};
+
+const DEFAULT_AVATAR =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/2048px-Windows_10_Default_Profile_Picture.svg.png";
+
+const currentAvatarUrl =
+  safeUrl(avatarPreview) ||
+  safeUrl(formData.avatarUrl) ||
+  safeUrl(profile.avatarUrl) ||
+  DEFAULT_AVATAR;
+
 
   return (
     <div className="bg-gradient-to-r from-yellow-50 via-red-50 to-orange-50 rounded-3xl p-8 mb-8 shadow-xl relative overflow-hidden">
@@ -165,16 +178,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
           <div>
             <h1 className="text-3xl font-bold mb-2 drop-shadow-sm text-gray-900">
-              {(editMode ? formData.fullName : profile.fullName) || "Người dùng"}
+              {(editMode ? formData.userName : profile.userName) || "Người dùng"}
             </h1>
             <p className="text-gray-700 mb-3 text-lg">
               {editMode ? formData.email : profile.email}
             </p>
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white border border-white/30 rounded-full text-sm">
+            {profile.isPremium && ( <div className="flex items-center gap-3">
+             <span
+                className="inline-flex items-center gap-1.5
+                  px-3 py-1.5 
+                  bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-400 
+                  text-white font-semibold 
+                  border border-yellow-300/70 
+                  rounded-full text-sm shadow-md"
+              >
+                <Crown className="w-4 h-4 text-yellow-200 drop-shadow" />
                 Thành viên VIP
               </span>
-            </div>
+
+            </div>)}
           </div>
         </div>
 

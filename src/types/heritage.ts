@@ -1,4 +1,4 @@
-import {CalendarType,SortBy } from "../types/enum";
+import {CalendarType,SortBy, MediaType, OccurrenceType,FestivalFrequency } from "../types/enum";
 
 export interface Heritage {
   id: number;
@@ -94,15 +94,15 @@ export interface HeritageSearchResponse {
 
 
 export interface HeritageDescriptionBlock {
-  type: "paragraph" | "list";
-  content?: string;
-  items?: string[];
+  Type: "paragraph" | "list";
+  Content?: string;
+  Items?: string[];
 }
 export interface HeritageDescription {
-  history: HeritageDescriptionBlock[];
-  rituals: HeritageDescriptionBlock[];
-  values: HeritageDescriptionBlock[];
-  preservation: HeritageDescriptionBlock[];
+  History: HeritageDescriptionBlock[];
+  Rituals: HeritageDescriptionBlock[];
+  Values: HeritageDescriptionBlock[];
+  Preservation: HeritageDescriptionBlock[];
 }
 
 export interface HeritageAdmin {
@@ -186,5 +186,68 @@ export interface HeritageDetail {
 
 export interface HeritageName {
   id: number;
+  name: string;
+}
+
+export interface ContributionHeritageTag {
+  heritageId: number;
+  heritageName: string;
+  count: number
+}
+
+
+export interface ContentBlock {
+  type: string;
+  content?: string;
+  items?: string[];
+}
+
+export interface HeritageDescriptionRequest {
+  history: ContentBlock[];
+  rituals: ContentBlock[];
+  values: ContentBlock[];
+  preservation: ContentBlock[];
+}
+
+export interface MediaRequest {
+  url: string;
+  mediaType: MediaType; 
+  description?: string;
+}
+
+export interface LocationRequest {
+  province?: string;
+  district?: string;
+  ward?: string;
+  addressDetail?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface OccurrenceRequest {
+  occurrenceType: OccurrenceType;   
+  calendarType?: CalendarType;   
+  startDay?: number;
+  startMonth?: number;
+  endDay?: number;
+  endMonth?: number;
+  frequency?: FestivalFrequency;     
+  recurrenceRule?: string;
+  description?: string;
+}
+
+
+export interface HeritageCreateRequest {
+  name: string;
+  description: HeritageDescriptionRequest;
+  categoryId: number;
+  media: MediaRequest[];
+  tagIds?: number[];
+  locations?: LocationRequest[];
+  occurrences: OccurrenceRequest[];
+}
+
+export interface HeritageCreateResponse {
+  id: number
   name: string;
 }

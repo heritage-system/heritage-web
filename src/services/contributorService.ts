@@ -145,3 +145,9 @@ export const reactivateContributor = async (
   );
 };
 
+export const isContributorPremiumEligible = async (): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributors/is_contributor_premium_eligible`,
+    { method: "GET" }
+  );
+};

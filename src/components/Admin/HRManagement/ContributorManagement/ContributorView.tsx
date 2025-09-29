@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { getContributorDetail } from "../../../../services/contributorService";
 import { ContributorResponse } from "../../../../types/contributor";
 import { ContributorStatus } from "../../../../types/enum";
-import PortalModal from "../../../Layouts/PortalModal";
+import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
 
 interface ContributorViewProps {
   open: boolean;
@@ -75,12 +75,12 @@ const ContributorView: React.FC<ContributorViewProps> = ({
 
   return (
     <PortalModal
-      open={open}
-      onClose={onClose}
-      size="lg"
-      ariaLabel="Chi tiết cộng tác viên"
-      centered
-      contentClassName="bg-white rounded-2xl p-6 shadow-xl max-w-2xl w-full"
+     open={open}
+  onClose={onClose}
+  size="lg"
+  ariaLabel="Chi tiết cộng tác viên"
+  centered
+  contentClassName="bg-white rounded-2xl p-6 shadow-xl w-[700px] max-w-full"
     >
       <div className="bg-white rounded-xl">
         {/* Header */}
@@ -209,6 +209,23 @@ const ContributorView: React.FC<ContributorViewProps> = ({
                 </div>
               </div>
             )}
+            {/* Premium Eligible */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Quyền đăng bài Premium
+  </label>
+  <div
+    className={`rounded-lg p-3 font-semibold text-sm text-center ${
+      contributorDetail.isPremiumEligible
+        ? "bg-gradient-to-r from-yellow-100 to-red-100 text-red-700 border border-red-300"
+        : "bg-gray-100 text-gray-600 border border-gray-300"
+    }`}
+  >
+    {contributorDetail.isPremiumEligible
+      ? "✔ Được phép đăng bài Premium"
+      : "✖ Chưa được cấp quyền Premium"}
+  </div>
+</div>
 
             {/* Creator and Updater */}
             {(contributorDetail.createdByName ||

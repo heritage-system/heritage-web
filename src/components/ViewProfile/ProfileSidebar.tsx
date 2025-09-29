@@ -12,12 +12,14 @@ interface MenuItem {
   key: string;
   label: string;
   icon: React.ReactNode;
+  contributorOnly: boolean;
 }
 
 interface Profile {
   fullName?: string;
   email?: string;
   avatarUrl?: string;
+  isContributor?: boolean;
 }
 
 interface ProfileSidebarProps {
@@ -27,12 +29,13 @@ interface ProfileSidebarProps {
 }
 
 const MENU: MenuItem[] = [
-  { key: "profile", label: "Thông tin cá nhân", icon: <User className="w-5 h-5" /> },
-  { key: "favorites", label: "Di sản yêu thích", icon: <Heart className="w-5 h-5" /> },
-  { key: "events", label: "Sự kiện đã tham gia", icon: <Calendar className="w-5 h-5" /> },
-  { key: "quiz", label: "Lịch sử quiz", icon: <FileText className="w-5 h-5" /> },
-  { key: "contributions", label: "Đóng góp đã gửi", icon: <Send className="w-5 h-5" /> },
-  { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" /> },
+  { key: "profile", label: "Thông tin cá nhân", icon: <User className="w-5 h-5" />,contributorOnly: false },
+  { key: "favorites", label: "Di sản yêu thích", icon: <Heart className="w-5 h-5" />,contributorOnly: false},
+  { key: "events", label: "Sự kiện đã tham gia", icon: <Calendar className="w-5 h-5" />,contributorOnly: false },
+  { key: "quiz", label: "Lịch sử quiz", icon: <FileText className="w-5 h-5" />,contributorOnly: false },
+  // Hai mục này chỉ hiển thị khi là contributor
+  { key: "contributions", label: "Đóng góp đã gửi", icon: <Send className="w-5 h-5" />, contributorOnly: true },
+  { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" />, contributorOnly: false },
 ];
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ 
@@ -44,7 +47,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     <div className="w-72 bg-gradient-to-b from-yellow-50 via-red-50 to-orange-50 py-8 px-6 flex flex-col border-r border-yellow-200">
       {/* Menu Items */}
       <div className="space-y-2">
-        {MENU.map((item) => (
+        {MENU.filter(item => !item.contributorOnly || profile.isContributor).map((item) => (
           <button
             key={item.key}
             onClick={() => onMenuChange(item.key)}

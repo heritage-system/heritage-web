@@ -33,6 +33,8 @@ const Login: React.FC = () => {
       if(response.code === 200){
         localStorage.setItem("accessToken", response.result!.accessToken);
         localStorage.setItem("refreshToken", response.result!.refreshToken);
+        localStorage.setItem("userName", response.result!.userName);
+        localStorage.setItem("avatarUrl", response.result!.avatarUrl);
 
         toast.success('Đăng nhập thành công! Chào mừng bạn trở lại!', {
           duration: 1000,

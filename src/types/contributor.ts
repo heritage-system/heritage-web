@@ -5,6 +5,7 @@ export interface ContributorCreateRequest {
   userId?: number;      
   bio?: string;
   expertise?: string;
+  isPremiumEligible?: boolean
 }
 
 // Update
@@ -51,7 +52,7 @@ export interface ContributorResponse {
   expertise?: string;
   documentsUrl?: string;
   status: string;
-
+  isPremiumEligible: boolean;
   userId: number;
   userFullName?: string;
   userEmail?: string;
@@ -92,4 +93,15 @@ export interface ContributorApplyResponse {
   documentsUrl?: string;
   status: ContributorStatus | string; // "APPLIED" | "APPROVED" | "ACTIVE" | "REJECTED" | "SUSPENDED"
   createdAt: string;
+}
+
+export interface TrendingContributor {
+  contributorId: number,
+  contributorName: string,
+  avatarUrl: string,
+  totalPosts: number,
+  totalViews: number,
+  totalComments: number,
+  totalSaves: number,
+  score: number
 }

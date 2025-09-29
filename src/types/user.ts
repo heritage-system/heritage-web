@@ -97,6 +97,8 @@ export interface UpdateProfileResponse {
   address?: string;
   dateOfBirth?: string;
   avatarUrl?: string;
+  isPremium?: boolean;
+  isContributor: boolean;
 }
 
 export interface ChangePasswordRequest {
