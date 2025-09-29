@@ -79,6 +79,7 @@ export interface HeritageSearchResponse {
   id: number;
   name: string;
   description: string;
+  content: string;
   categoryIds: number;
   categoryName: string;
   mapUrl: string;
@@ -202,7 +203,7 @@ export interface ContentBlock {
   items?: string[];
 }
 
-export interface HeritageDescriptionRequest {
+export interface HeritageContentRequest {
   history: ContentBlock[];
   rituals: ContentBlock[];
   values: ContentBlock[];
@@ -239,7 +240,8 @@ export interface OccurrenceRequest {
 
 export interface HeritageCreateRequest {
   name: string;
-  description: HeritageDescriptionRequest;
+  description: string;
+  content: HeritageContentRequest;
   categoryId: number;
   media: MediaRequest[];
   tagIds?: number[];

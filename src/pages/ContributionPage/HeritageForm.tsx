@@ -18,7 +18,7 @@ import { createHeritage } from "../../services/heritageService";
 import { uploadImage } from "../../services/uploadService";
 import { fetchCategories } from "../../services/categoryService";
 import { fetchTags } from "../../services/tagService";
-
+import toast from 'react-hot-toast';
 const emptyParagraph = (): ContentBlock => ({ type: "paragraph", content: "" });
 const emptyList = (): ContentBlock => ({ type: "list", items: [] });
 
@@ -28,7 +28,8 @@ export const HeritageForm: React.FC = () => {
 
   const [heritage, setHeritage] = useState<HeritageCreateRequest>({
     name: "",
-    description: {
+    description:"",
+    content: {
       history: [emptyParagraph()],
       rituals: [],
       values: [],
@@ -116,25 +117,25 @@ export const HeritageForm: React.FC = () => {
 
   const addDescBlock = (key: DescKey, type: "paragraph" | "list") => {
     setHeritage(prev => {
-      const arr = [...prev.description[key]];
+      const arr = [...prev.content[key]];
       arr.push(type === "paragraph" ? emptyParagraph() : emptyList());
-      return { ...prev, description: { ...prev.description, [key]: arr } };
+      return { ...prev, content: { ...prev.content, [key]: arr } };
     });
   };
 
   const removeDescBlock = (key: DescKey, idx: number) => {
     setHeritage(prev => {
-      const arr = [...prev.description[key]];
+      const arr = [...prev.content[key]];
       arr.splice(idx, 1);
-      return { ...prev, description: { ...prev.description, [key]: arr } };
+      return { ...prev, content: { ...prev.content, [key]: arr } };
     });
   };
 
   const updateDescBlock = (key: DescKey, idx: number, block: ContentBlock) => {
     setHeritage(prev => {
-      const arr = [...prev.description[key]];
+      const arr = [...prev.content[key]];
       arr[idx] = block;
-      return { ...prev, description: { ...prev.description, [key]: arr } };
+      return { ...prev, content: { ...prev.content, [key]: arr } };
     });
   };
 
@@ -274,32 +275,36 @@ export const HeritageForm: React.FC = () => {
     }
 
     const res = await createHeritage(data);
-    console.log("API response:", res);
-
-    // // reset
-    // setHeritage({
-    //   name: "",
-    //   description: {
-    //     history: [emptyParagraph()],
-    //     rituals: [],
-    //     values: [],
-    //     preservation: [],
-    //   },
-    //   categoryId: 0,
-    //   media: [{ url: "", mediaType: MediaType.IMAGE, description: "" }],
-    //   tagIds: [],
-    //   locations: [{ province: "", district: "", ward: "", addressDetail: "", latitude: 0, longitude: 0 }],
-    //   occurrences: [
-    //     {
-    //       occurrenceType: OccurrenceType.EXACTDATE,
-    //       calendarType: CalendarType.SOLAR,
-    //       frequency: FestivalFrequency.ONETIME,
-    //       startDay: 1,
-    //       startMonth: 1,
-    //     },
-    //   ],
-    // });
-    // setFiles([null]);
+    if (res?.code === 201 || res?.code === 200) {
+        toast.success("Gửi thành công"); 
+        setHeritage({
+          name: "",
+          description: "",
+          content: {
+            history: [emptyParagraph()],
+            rituals: [],
+            values: [],
+            preservation: [],
+          },
+          categoryId: 0,
+          media: [{ url: "", mediaType: MediaType.IMAGE, description: "" }],
+          tagIds: [],
+          locations: [{ province: "", district: "", ward: "", addressDetail: "", latitude: 0, longitude: 0 }],
+          occurrences: [
+            {
+              occurrenceType: OccurrenceType.EXACTDATE,
+              calendarType: CalendarType.SOLAR,
+              frequency: FestivalFrequency.ONETIME,
+              startDay: 1,
+              startMonth: 1,
+            },
+          ],
+        });
+        setFiles([null]);
+      } else {
+        toast.error(res.message || "Gửi thất bại!");    
+      }
+  
   };
 
   // ============ RENDER UI ============
@@ -325,11 +330,11 @@ export const HeritageForm: React.FC = () => {
         </div>
       </div>
 
-      {heritage.description[key].length === 0 && (
+      {heritage.content[key].length === 0 && (
         <div className="text-sm text-gray-500">Chưa có mục nào</div>
       )}
 
-      {heritage.description[key].map((blk, idx) => (
+      {heritage.content[key].map((blk, idx) => (
         <div key={idx} className="border rounded p-3 space-y-2">
           <div className="flex gap-2">
             <select
@@ -574,7 +579,17 @@ export const HeritageForm: React.FC = () => {
           </select>
         </div>
       </div>
-
+            <div>
+  <label className="block font-medium">Description</label>
+  <textarea
+    name="description"
+    value={heritage.description}
+    onChange={handleBasicChange}
+    placeholder="Nhập mô tả ngắn gọn về di sản..."
+    className="border p-2 rounded w-full"
+    rows={3}
+  />
+</div>
      {/* Tags multi-select */}
       <select
         multiple
@@ -624,7 +639,7 @@ export const HeritageForm: React.FC = () => {
           </div>
         ))}
       </div>
-      
+
       {/* Media */}
       <div>
         <div className="flex items-center justify-between">
