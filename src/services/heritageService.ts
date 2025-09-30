@@ -1,6 +1,7 @@
 import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
-import { HeritageSearchRequest, HeritageSearchResponse, HeritageAdmin, HeritageDetail, HeritageName} from "../types/heritage";
+import { HeritageSearchRequest, HeritageSearchResponse, HeritageAdmin, 
+  HeritageDetail, HeritageName, HeritageCreateRequest, HeritageCreateResponse} from "../types/heritage";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 
@@ -109,6 +110,17 @@ export const searchHeritageNames = async (
   );
 };
 
+export const createHeritage = async (
+  data: HeritageCreateRequest
+): Promise<ApiResponse<HeritageCreateResponse>> => {
+  return await fetchInterceptor<HeritageCreateResponse>(
+    `${API_URL}/api/Heritage/create`,
+    {
+      method: "POST",
+      body: data as any,
+    }
+  );
+};
 
 
 

@@ -1,41 +1,22 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   User,
   Calendar,
-  Clock,
   ThumbsUp,
   MessageSquare,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  Star,
+  Eye
 } from "lucide-react";
-
-interface Contributor {
-  id: number;
-  name: string;
-  avatarUrl?: string;
-  profileUrl?: string;
-}
-
-export interface ContributorPost {
-  id: number;
-  title: string;
-  excerpt?: string;
-  coverImage?: string;
-  tags?: string[];
-  createdAt: string;
-  readMinutes?: number;
-  likeCount?: number;
-  commentCount?: number;
-  author: Contributor;
-  url?: string;
-}
-
+import { ContributionSearchResponse } from "../../types/contribution";
+import { Link } from "react-router-dom";
 interface Props {
-  posts?: ContributorPost[];
-  onOpenPost?: (post: ContributorPost) => void;
-  onOpenAuthor?: (author: Contributor) => void;
+  posts?: ContributionSearchResponse[];
+  onOpenPost?: (post: ContributionSearchResponse) => void;
   rightSlot?: React.ReactNode;
+  loading?: boolean;
 }
 
 const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: React.ReactNode }> =
@@ -57,23 +38,11 @@ const fmtDate = (iso: string) => {
 export const HeritageContributorPosts: React.FC<Props> = ({
   posts,
   onOpenPost,
-  onOpenAuthor,
   rightSlot,
+  loading,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const fallback: ContributorPost[] = Array.from({ length: 4 }).map((_, i) => ({
-    id: i + 1,
-    title: `Bài viết của cộng tác viên #${i + 1}`,
-    excerpt: "Tóm tắt ngắn về nghi thức, lịch sử và trải nghiệm tham dự lễ hội…",
-    createdAt: new Date().toISOString(),
-    readMinutes: 5 + i,
-    likeCount: 8 * (i + 1),
-    commentCount: 3 * (i + 1),
-    author: { id: 100 + i, name: `Contributor ${i + 1}` },
-  }));
-
-  const data = posts?.length ? posts : fallback;
+  const [expandedTags, setExpandedTags] = useState<Set<number>>(new Set());
 
   const scroll = (dir: "left" | "right") => {
     if (containerRef.current) {
@@ -83,6 +52,8 @@ export const HeritageContributorPosts: React.FC<Props> = ({
       });
     }
   };
+
+  if (!posts || posts.length === 0) return null;
 
   return (
     <SectionCard title="Bài viết bạn có thể quan tâm" right={rightSlot}>
@@ -101,36 +72,36 @@ export const HeritageContributorPosts: React.FC<Props> = ({
           className="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar pb-2"
           style={{ scrollbarWidth: "none" }}
         >
-          {data.map((post) => (
-            <article
-              key={post.id}
-              className="flex-shrink-0 w-72 border rounded-xl overflow-hidden bg-white hover:shadow-sm transition"
-            >
-              <div className="h-36 bg-gray-100">
-                {post.coverImage ? (
-                  <img
-                    src={post.coverImage}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                    Không có ảnh
-                  </div>
-                )}
-              </div>
+          {posts.map((post) => {
+            const tags = post.contributionHeritageTags || [];
+            const isExpanded = expandedTags.has(post.id);
 
-              <div className="p-3 space-y-3">
-                {/* Tác giả */}
-                <div className="flex items-center gap-2">
-                  <button
-                    className="flex items-center gap-2"
-                    onClick={() => onOpenAuthor?.(post.author)}
-                  >
-                    {post.author.avatarUrl ? (
+            return (
+              <article
+                key={post.id}
+                className="flex-shrink-0 w-72 border rounded-xl overflow-hidden bg-white hover:shadow-sm transition"
+              >
+                <div className="h-36 bg-gray-100">
+                  {post.mediaUrl ? (
+                    <img
+                      src={post.mediaUrl}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                      Không có ảnh
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 space-y-3">
+                  {/* Tác giả */}
+                  <div className="flex items-center gap-2">
+                    {post.avatarUrl ? (
                       <img
-                        src={post.author.avatarUrl}
-                        alt={post.author.name}
+                        src={post.avatarUrl}
+                        alt={post.contributorName}
                         className="w-7 h-7 rounded-full object-cover"
                       />
                     ) : (
@@ -139,64 +110,69 @@ export const HeritageContributorPosts: React.FC<Props> = ({
                       </div>
                     )}
                     <span className="text-sm font-medium text-gray-900 hover:underline">
-                      {post.author.name}
+                      {post.contributorName}
                     </span>
-                  </button>
-                </div>
-
-                {/* Tiêu đề */}
-                <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
-                  {post.title}
-                </h3>
-
-                {/* Meta */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-                  <span className="inline-flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" /> {fmtDate(post.createdAt)}
-                  </span>
-                  {post.readMinutes && (
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> {post.readMinutes} phút đọc
-                    </span>
+                    {post.isPremium && <Star className="w-4 h-4 text-yellow-500" />}
+                  </div>
+                  {/* Tiêu đề + Premium */}
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2 flex items-center gap-1">
+                    <span className="flex-1">{post.title}</span>               
+                  </h3>
+                  {/* Heritage tags */}
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {(isExpanded ? tags : tags.slice(0, 1)).map((tag) => (
+                        <span
+                          key={tag.id}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                        >
+                          {tag.name}
+                        </span>
+                      ))}
+                      {tags.length > 1 && (
+                        <button
+                          onClick={() => {
+                            const next = new Set(expandedTags);
+                            if (isExpanded) next.delete(post.id);
+                            else next.add(post.id);
+                            setExpandedTags(next);
+                          }}
+                          className="text-xs text-yellow-700 hover:underline"
+                        >
+                          {isExpanded ? "Ẩn bớt" : `+${tags.length - 1} xem thêm`}
+                        </button>
+                      )}
+                    </div>
                   )}
-                </div>
 
-                {/* Excerpt */}
-                {post.excerpt && (
-                  <p className="text-sm text-gray-700 line-clamp-3">{post.excerpt}</p>
-                )}
-
-                {/* Actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                  {/* Meta */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                     <span className="inline-flex items-center gap-1">
-                      <ThumbsUp className="w-4 h-4" /> {post.likeCount ?? 0}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <MessageSquare className="w-4 h-4" /> {post.commentCount ?? 0}
+                      <Calendar className="w-3.5 h-3.5" /> {fmtDate(post.publishedAt)}
                     </span>
                   </div>
-                  {post.url ? (
-                    <a
-                      href={post.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-yellow-700 hover:underline"
-                    >
-                      Xem <ExternalLink className="w-4 h-4" />
-                    </a>
-                  ) : (
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <span className="inline-flex items-center gap-1">
+                        <Eye className="w-4 h-4" /> {post.view ?? 0}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <MessageSquare className="w-4 h-4" /> {post.comments ?? 0}
+                      </span>
+                    </div>
                     <button
                       onClick={() => onOpenPost?.(post)}
                       className="text-sm text-yellow-700 hover:underline inline-flex items-center gap-1"
                     >
                       Xem <ExternalLink className="w-4 h-4" />
                     </button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
 
         {/* Nút phải */}

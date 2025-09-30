@@ -46,6 +46,7 @@ import {
   ChevronLeft,
   Home
 } from "lucide-react";
+import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 
 // Import all management components
 import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement";
@@ -96,7 +97,7 @@ import DataVisualization from "../../components/Admin/ReportsAnalytics/DataVisua
 // import PolicyManagement from "../../components/Admin/Compliance/PolicyManagement";
 import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
-import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement";
+import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -331,17 +332,25 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
     return (
       <div className="flex-1 p-4 space-y-1 overflow-y-auto">
         {onBackToDashboard ? (
-          <button
-            onClick={onBackToDashboard}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 mb-4"
-          >
-            <Home size={18} />
-            {!sidebarCollapsed && "Về Dashboard"}
-          </button>
+        <button
+          onClick={() => navigate("/admin/adminHomeDashboard")}
+          className={`flex items-center rounded-lg text-sm font-medium mb-4 transition
+            text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700
+            ${sidebarCollapsed ? "justify-center p-2" : "w-full gap-3 px-4 py-2"}
+          `}
+          title={sidebarCollapsed ? "Về Dashboard" : ""}
+        >
+          <Home size={18} />
+          {!sidebarCollapsed && "Về Dashboard"}
+        </button>
         ) : (
-          <button
-            onClick={() => navigate(-1)} // Fallback to browser back if no onBackToDashboard
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 mb-4"
+         <button
+            onClick={() => navigate("/admin/adminHomeDashboard")}
+            className={`flex items-center rounded-lg text-sm font-medium mb-4 transition
+              text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700
+              ${sidebarCollapsed ? "justify-center p-2" : "w-full gap-3 px-4 py-2"}
+            `}
+            title={sidebarCollapsed ? "Về Dashboard" : ""}
           >
             <Home size={18} />
             {!sidebarCollapsed && "Về Dashboard"}
@@ -359,15 +368,16 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
           )}
         </div>
 
-        {currentModule.subModules.map((subModule) => (
+       {currentModule.subModules.map((subModule) => (
           <button
             key={subModule.id}
             onClick={() => setActiveSubModule(subModule.id)}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition ${
-              activeSubModule === subModule.id
+            className={`flex items-center rounded-lg text-sm font-medium transition
+              ${activeSubModule === subModule.id
                 ? "bg-blue-600 text-white shadow"
-                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-            }`}
+                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"}
+              ${sidebarCollapsed ? "justify-center p-2" : "w-full gap-3 px-4 py-2"}
+            `}
             title={sidebarCollapsed ? subModule.name : ""}
           >
             <subModule.icon size={18} />
@@ -424,21 +434,40 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
     <div className="h-screen flex bg-gray-100 dark:bg-gray-900 overflow-hidden">
       {/* Sidebar */}
       <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-800 border-r shadow-md flex flex-col transition-all duration-300`}>
-        {/* Logo */}
-        <div className="p-6 border-b dark:border-gray-700 flex items-center gap-2">
-          <div className="w-20 h-10 bg-blue-600 text-white flex items-center justify-center rounded-lg font-bold">
-            VTFP
-          </div>
-          {!sidebarCollapsed && (
-            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">VTFP Admin</h1>
-          )}
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="ml-auto p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+       {/* Logo */}
+          <div
+            className={`flex items-center gap-2 border-b dark:border-gray-700 transition-all duration-300 ${
+              sidebarCollapsed ? "p-2 justify-center" : "p-6"
+            }`}
           >
-            <ChevronLeft className={`w-4 h-4 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
+            <div className={`relative ${sidebarCollapsed ? "w-10 h-10" : "w-16 h-16"}`}>
+              <img
+                src={VTFPLogo}
+                alt="Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
+            </div>
+
+            {!sidebarCollapsed && (
+              <h1 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                VTFP Admin
+              </h1>
+            )}
+
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="ml-auto flex items-center justify-center w-8 h-8 rounded-md border 
+                        border-gray-300 dark:border-gray-600 
+                        hover:bg-blue-500 hover:text-white transition-colors"
+              title={sidebarCollapsed ? "Mở Sidebar" : "Thu gọn Sidebar"}
+            >
+              <ChevronLeft
+                className={`w-4 h-4 transition-transform ${
+                  sidebarCollapsed ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          </div>
 
         {/* Navigation */}
         {renderSidebar()}
@@ -455,7 +484,7 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-black dark:text-gray-100">
             {getPageTitle()}
           </h2>
           <div className="flex items-center gap-4">

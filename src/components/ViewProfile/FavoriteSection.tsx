@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { 
+  Heart, 
+ 
+} from 'lucide-react';
 import { FavoriteHeritage } from "../../types/favorite";
 import { getFavorites, removeFavorite } from "../../services/favoriteService";
 import { authToast } from "../../utils/authToast";
@@ -9,7 +13,7 @@ interface FavoriteHeritageListProps {
   onRefresh?: () => void;
 }
 
-const FavoriteHeritageList: React.FC<FavoriteHeritageListProps> = ({ onRefresh }) => {
+const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  => {
   const [favorites, setFavorites] = useState<FavoriteHeritage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [removingId, setRemovingId] = useState<number | null>(null);
@@ -94,9 +98,23 @@ const FavoriteHeritageList: React.FC<FavoriteHeritageListProps> = ({ onRefresh }
   const handlePageChange = (newPage: number) => setPage(newPage);
 
   const noResults = !loading && favorites.length === 0;
-
   return (
-    <div className="space-y-4">
+    <div className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 rounded-3xl p-8 min-h-[700px]">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-700 to-yellow-600 bg-clip-text text-black mb-3 flex items-center gap-3">
+            <Heart className="w-10 h-10 text-red-500" />
+            Di sản yêu thích
+          </h2>
+          <p className="text-gray-700 text-lg">Những di sản văn hóa mà bạn đã yêu thích</p>
+        </div>
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-yellow-300/50 shadow-lg">
+          <div className="text-3xl font-bold text-yellow-700">{totalElements}</div>
+          <div className="text-sm text-yellow-600 font-medium">Di sản yêu thích</div>
+        </div>
+      </div>
+      <div className="bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-yellow-200">
+        <div className="space-y-4">
       {/* Search bar luôn hiển thị */}
       <div className="flex items-center gap-2">
         <input
@@ -219,7 +237,9 @@ const FavoriteHeritageList: React.FC<FavoriteHeritageListProps> = ({ onRefresh }
         </div>
       )}
     </div>
+      </div>
+    </div>
   );
 };
 
-export default FavoriteHeritageList;
+export default FavoriteSection;

@@ -26,6 +26,7 @@ import ContributionFormPage from './pages/ContributionPage/ContributionFormPage'
 import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
+import HeritageForm from './pages/ContributionPage/HeritageForm'
 import AIPredictPage from './pages/DiscoveryPage/AIPredictPage';
 import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
 const App: React.FC = () => {
@@ -57,6 +58,7 @@ const App: React.FC = () => {
         <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />   
+        <Route path="/heritage-form" element={<MainLayout><HeritageForm /></MainLayout>} /> 
       </Routes>
 
       {/* <ChatBoxAI /> */}

@@ -2,9 +2,9 @@ import React from "react";
 import { HeritageDescription } from "../../types/heritage";
 
 interface Props {
-  activeTab: "history" | "rituals" | "values" | "preservation";
-  description: HeritageDescription | null;
-  onTabChange: (tab: "history" | "rituals" | "values" | "preservation") => void;
+  activeTab: "History" | "Rituals" | "Values" | "Preservation";
+  content: HeritageDescription | null;
+  onTabChange: (tab: "History" | "Rituals" | "Values" | "Preservation") => void;
 }
 
 const SectionCard: React.FC<{
@@ -23,18 +23,18 @@ const SectionCard: React.FC<{
 
 export const HeritageContentTabs: React.FC<Props> = ({
   activeTab,
-  description,
+  content,
   onTabChange,
 }) => {
   const tabs = [
-    { key: "history", label: "Lịch sử" },
-    { key: "rituals", label: "Nghi lễ" },
-    { key: "values", label: "Giá trị" },
-    { key: "preservation", label: "Bảo tồn" },
+    { key: "History", label: "Lịch sử" },
+    { key: "Rituals", label: "Nghi lễ" },
+    { key: "Values", label: "Giá trị" },
+    { key: "Preservation", label: "Bảo tồn" },
   ] as const;
 
   // Lấy danh sách block theo tab đang chọn
-  const contentBlocks = description?.[activeTab] || [];
+  const contentBlocks = content?.[activeTab] || [];
 
   return (
     <SectionCard
@@ -60,14 +60,14 @@ export const HeritageContentTabs: React.FC<Props> = ({
       <div className="prose max-w-none prose-p:leading-relaxed">
         {contentBlocks.length > 0 ? (
           contentBlocks.map((block, idx) => {
-            if (block.type === "paragraph") {
-              return <p key={idx}>{block.content}</p>;
+            if (block.Type === "paragraph") {
+              return <p key={idx}>{block.Content}</p>;
             }
-            if (block.type === "list" && block.items) {
+            if (block.Type === "list" && block.Items) {
               return (
                 <ul key={idx}>
-                  {block.items.map((item, i) => (
-                    <li key={i}>{item}</li>
+                  {block.Items.map((Item, i) => (
+                    <li key={i}>{Item}</li>
                   ))}
                 </ul>
               );

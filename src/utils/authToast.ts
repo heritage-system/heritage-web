@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 export const authToast = {
     success: (message: string, provider?: string) => {
         const emoji = provider === 'facebook' ? '🎉' : provider === 'google' ? '🎊' : '✅';
-        toast.success(`${message} ${emoji}`, {
+        toast.success(`${message}`, {
             duration: 3000,
             position: 'top-right',
             style: {

@@ -49,11 +49,8 @@ export const toggleLikeReview = async (
   payload: LikeReviewRequest
 ): Promise<ApiResponse<LikeReviewResponse>> => {
   return await fetchInterceptor(`${API_URL}/api/v1/reviews/like`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    method: "POST",  
+    body: payload as any,
   });
 };
 
