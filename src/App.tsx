@@ -26,6 +26,8 @@ import ContributionFormPage from './pages/ContributionPage/ContributionFormPage'
 import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
+import AIPredictPage from './pages/DiscoveryPage/AIPredictPage';
+import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
 const App: React.FC = () => {
   return (
     <Router>
@@ -33,6 +35,8 @@ const App: React.FC = () => {
         <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
+        <Route path="DiscoveryPage/AIPredictPage" element={<MainLayout><AIPredictPage/></MainLayout>} />
+         <Route path="DiscoveryPage/AIpredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
         <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} />
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
         <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
