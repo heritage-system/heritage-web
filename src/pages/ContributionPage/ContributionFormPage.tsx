@@ -1,5 +1,6 @@
 // pages/ContributionFormPage.tsx
 import React, { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import CoverUploader from "../../components/ContributionForm/CoverUploader";
 import RichTextEditor from "../../components/ContributionForm/RichTextEditor";
 import ContentPreview from "../../components/ContributionForm/ContentPreview";
@@ -7,21 +8,30 @@ import { useContributionForm } from "../../hooks/useContributionForm";
 import HeritageMultiSelect from "../../components/ContributionForm/HeritageMultiSelect";
 import { ContributionPremiumTypes } from "../../types/enum";
 import { CheckCircle } from "lucide-react";
-import { isContributorPremiumEligible } from "../../services/contributorService";
-const ContributionFormPage: React.FC = () => {
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
+import { ArrowLeft } from "lucide-react";
+interface ContributionFormPageProps {
+  contributionId?: number; 
+}
+
+const ContributionFormPage: React.FC<ContributionFormPageProps> = () => {
+  const { id } = useParams<{ id: string }>();
+  const contributionId = id ? Number(id) : undefined;
   const {
     // State
     title,
     cover,
-    html,
     delta,
     saving,
-    blobMap,
     canSubmit,
     selectedHeritages,
     premiumType,
     submitted,
-
+    isUpdateMode,
+    updated,
+    allHeritages, 
+    isPremiumEligible,
+    loading,
     // Handlers
     setSubmitted,
     setTitle,
@@ -32,8 +42,11 @@ const ContributionFormPage: React.FC = () => {
     handleContentChange,
     resetForm,
     onSubmit,
-  } = useContributionForm();
+  
+    onUpdate,
+  } = useContributionForm(contributionId);
 
+  
   // Toggle giữa "edit" và "preview"
   const [view, setView] = useState<"edit" | "preview">("edit");
 
@@ -42,8 +55,7 @@ const ContributionFormPage: React.FC = () => {
 
   const simulatedProgress = useMemo(() => progress, [progress]);
 
-  const [isPremiumEligible, setPremiumEligible] = useState(false);
-
+  
   useEffect(() => {
     let t: number | undefined;
 
@@ -66,52 +78,55 @@ const ContributionFormPage: React.FC = () => {
     };
   }, [saving]);
 
-  useEffect(() => {
-    const isPremiumEligible = async () => {
-      try {
-        const res = await isContributorPremiumEligible();
-        setPremiumEligible(res.result || false);
-      } catch (err) {
-        console.error("Không thể tải:", err);
-      }
-    };
-    isPremiumEligible();      
-  }, []);
-
-  if (submitted) {
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 px-4 pt-24">
-        <CheckCircle className="w-16 h-16 text-green-600 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Gửi bài thành công!
-        </h2>
-        <p className="text-gray-600 mb-6 text-center max-w-md">
-          Bài viết của bạn đã được gửi và sẽ được đội ngũ xét duyệt trước khi hiển thị lên website.
-        </p>
+      <div className="min-h-screen bg-gradient-to-br flex items-center justify-center pb-60">
+        <div className="text-center">
+          <div className="mb-4">
+            <Spinner size={40} thickness={5}/>
+          </div>
+          <div className="text-xl font-semibold text-gray-700">Đang tạo cấu trúc...</div>
+          <div className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</div>
+        </div>
+      </div>
+    );
+  }
+  if (submitted || updated) {
+  return (
+    <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 px-4 pt-24">
+      <CheckCircle className="w-16 h-16 text-green-600 mb-4" />
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        {submitted ? "Gửi bài thành công!" : "Cập nhật bài viết thành công!"}
+      </h2>
+      <p className="text-gray-600 mb-6 text-center max-w-md">
+        {submitted
+          ? "Bài viết của bạn đã được gửi và sẽ được đội ngũ xét duyệt trước khi hiển thị lên website."
+          : "Bài viết đã được cập nhật và sẽ hiển thị sau khi xét duyệt."}
+      </p>
 
-        <div className="flex gap-4">
-          {/* Về trang bài viết */}
-          <button
-            onClick={() => (window.location.href = "/view-profile?tab=contributions")}
-            className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-700 to-red-700 text-white font-medium hover:brightness-110 shadow"
-          >
-            Quay về danh sách
-          </button>
+      <div className="flex gap-4">
+        <button
+          onClick={() => (window.location.href = "/view-profile?tab=contributions")}
+          className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-700 to-red-700 text-white font-medium hover:brightness-110 shadow"
+        >
+          Quay về danh sách
+        </button>
 
-          {/* Đăng bài mới */}
+        {!isUpdateMode && (
           <button
             onClick={() => {
-              resetForm();   // dọn form cũ
-              setSubmitted(false); // quay lại form viết bài
+              resetForm();
+              setSubmitted(false);
             }}
             className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 shadow"
           >
             Đăng bài viết mới
           </button>
-        </div>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
+}
   else  {
   return (
     <div className="max-w-6xl mx-auto pt-6 space-y-6 relative mb-5">
@@ -153,12 +168,28 @@ const ContributionFormPage: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-700 to-red-700 bg-clip-text text-transparent">
-          Đăng bài cộng tác
-        </h1>
-        <p className="text-gray-600">Chia sẻ kiến thức và trải nghiệm của bạn với cộng đồng</p>
-      </div>
+      <div className="flex items-center justify-center relative text-center space-y-2">
+  {/* Nút quay lại */}
+  <button
+  onClick={() => window.history.back()}
+  className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-2 px-4 py-2 
+             rounded-lg bg-gradient-to-r from-yellow-700 to-red-700 text-white font-medium 
+             shadow-lg hover:brightness-110 transition-all"
+  title="Quay lại"
+>
+  <ArrowLeft className="w-5 h-5" />
+  <span>Quay lại</span>
+</button>
+
+  <div>
+    <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-700 to-red-700 bg-clip-text text-transparent">
+      Đăng bài cộng tác
+    </h1>
+    <p className="text-gray-600">
+      Chia sẻ kiến thức và trải nghiệm của bạn với cộng đồng
+    </p>
+  </div>
+</div>
 
       {/* Main Form Layout */}
       <div className="grid lg:grid-cols-3 gap-6">
@@ -183,7 +214,7 @@ const ContributionFormPage: React.FC = () => {
 
           {/* Heritage Multi Select */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">         
-            <HeritageMultiSelect selected={selectedHeritages} onChange={setSelectedHeritages} />
+            <HeritageMultiSelect selected={selectedHeritages} onChange={setSelectedHeritages} allHeritages={allHeritages} />
           </div>
 
           {/* Premium Type Toggle */}
@@ -235,35 +266,28 @@ const ContributionFormPage: React.FC = () => {
           {/* Action Buttons */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <div className="flex flex-col gap-3">
-              <button
-                disabled={!canSubmit || saving}
-                onClick={onSubmit}
-                type="button"
-                className={`w-full py-3 rounded-lg text-white font-medium transition-all duration-200 flex items-center justify-center gap-2
-                  bg-gradient-to-r from-yellow-700 to-red-700
-                  hover:brightness-110 hover:shadow-lg hover:scale-[1.02]
-                  disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
-              >
-                {saving ? (
-                  <>
-                    <div className="animate-spin h-5 w-5 border-2 border-white/80 border-t-transparent rounded-full"></div>
-                    Đang upload...
-                  </>
-                ) : (
-                  <>
-                    
-                    Đăng bài
-                  </>
-                )}
-              </button>
+             <button
+              disabled={!canSubmit || saving}
+              onClick={isUpdateMode ? onUpdate : onSubmit}
+              type="button"
+              className={`
+                w-full py-3 rounded-lg font-medium transition-colors
+                ${saving || !canSubmit
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-yellow-700 to-red-700 text-white hover:brightness-110"}
+              `}
+            >
+              {saving ? "Đang xử lý..." : isUpdateMode ? "Cập nhật" : "Đăng bài"}
+            </button>
 
-              <button
+
+              {!isUpdateMode && (<button
                 onClick={resetForm}
                 className="w-full py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors font-medium text-gray-700"
                 type="button"
               >
                 Dọn dẹp
-              </button>
+              </button>)}
             </div>
           </div>
         </div>
@@ -318,7 +342,7 @@ const ContributionFormPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="min-h-[500px]">
+                <div className="h-[120vh] overflow-y-auto relative scrollbar-hide">
                   <ContentPreview title={title} cover={cover} delta={delta} heritageTags={selectedHeritages}/>
                 </div>
               )}

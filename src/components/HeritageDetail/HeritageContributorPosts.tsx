@@ -23,7 +23,7 @@ const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: 
   ({ title, right, children }) => (
     <section className="bg-white rounded-2xl shadow-sm border p-5 relative">
       <header className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
         {right}
       </header>
       <div>{children}</div>
@@ -59,17 +59,17 @@ export const HeritageContributorPosts: React.FC<Props> = ({
     <SectionCard title="Bài viết bạn có thể quan tâm" right={rightSlot}>
       <div className="relative">
         {/* Nút trái */}
-        <button
-          onClick={() => scroll("left")}
-          className="absolute -left-10 top-1/2 -translate-y-1/2 z-10 bg-white border rounded-full p-2 shadow hover:bg-gray-50"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
+         <button
+                    onClick={() => scroll("left")}
+                    className="absolute -left-10 top-1/2 -translate-y-1/2 z-10 bg-white border rounded-full p-3 shadow hover:bg-gray-50"
+                    aria-label="Trước"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
         {/* Danh sách */}
         <div
           ref={containerRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar pb-2"
+          className="flex gap-6 overflow-x-auto px-1 scroll-smooth no-scrollbar pb-2"
           style={{ scrollbarWidth: "none" }}
         >
           {posts.map((post) => {
@@ -81,7 +81,7 @@ export const HeritageContributorPosts: React.FC<Props> = ({
                 key={post.id}
                 className="flex-shrink-0 w-72 border rounded-xl overflow-hidden bg-white hover:shadow-sm transition"
               >
-                <div className="h-36 bg-gray-100">
+                <div className="h-44 bg-gray-100 overflow-hidden">
                   {post.mediaUrl ? (
                     <img
                       src={post.mediaUrl}
@@ -115,9 +115,18 @@ export const HeritageContributorPosts: React.FC<Props> = ({
                     {post.isPremium && <Star className="w-4 h-4 text-yellow-500" />}
                   </div>
                   {/* Tiêu đề + Premium */}
-                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2 flex items-center gap-1">
-                    <span className="flex-1">{post.title}</span>               
+             
+                  <h3 className="text-base font-semibold text-gray-900 flex items-center gap-1 overflow-hidden relative">
+                    <span
+                      className="flex-1 whitespace-nowrap inline-block animate-marquee"
+                      style={{ animationDuration: "8s" }}
+                      title={post.title}
+                    >
+                      {post.title}
+                    </span>
                   </h3>
+
+
                   {/* Heritage tags */}
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
@@ -176,12 +185,13 @@ export const HeritageContributorPosts: React.FC<Props> = ({
         </div>
 
         {/* Nút phải */}
-        <button
-          onClick={() => scroll("right")}
-          className="absolute -right-10 top-1/2 -translate-y-1/2 z-10 bg-white border rounded-full p-2 shadow hover:bg-gray-50"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
+       <button
+                   onClick={() => scroll("right")}
+                   className="absolute -right-10 top-1/2 -translate-y-1/2 z-10 bg-white border rounded-full p-3 shadow hover:bg-gray-50"
+                   aria-label="Tiếp"
+                 >
+                   <ChevronRight className="w-6 h-6" />
+                 </button>
       </div>
     </SectionCard>
   );

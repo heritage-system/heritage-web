@@ -207,7 +207,7 @@ const clearAllFilters = () => {
 
           {/* Tags */}
           <div>
-            <h4 className="font-medium mb-2">Tags</h4>
+            <h4 className="font-medium mb-2">Thể loại</h4>
             <div className="flex flex-wrap gap-2">
               {(filters.tagIds?.length
                 ? (tags || []).filter((t) => filters.tagIds?.includes(t.id))

@@ -35,7 +35,7 @@ const MENU: MenuItem[] = [
   { key: "quiz", label: "Lịch sử quiz", icon: <FileText className="w-5 h-5" />,contributorOnly: false },
   // Hai mục này chỉ hiển thị khi là contributor
   { key: "contributions", label: "Đóng góp đã gửi", icon: <Send className="w-5 h-5" />, contributorOnly: true },
-  { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" />, contributorOnly: false },
+  // { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" />, contributorOnly: false },
 ];
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ 

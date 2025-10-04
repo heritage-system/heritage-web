@@ -11,8 +11,11 @@ import { toast } from 'react-hot-toast';
 import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 // Services & Types
 import { getProfile, updateProfile, updatePassword } from "../../services/userService";
+import { getListContributionOverview } from "../../services/contributionService";
 import { UpdateProfileResponse, UpdateProfileRequest } from "../../types/user";
-
+import {
+  ContributionOverviewItemListResponse 
+} from "../../types/contribution";
 // Thêm interface cho Change Password (sync với backend)
 interface ChangePasswordFormData {
   currentPassword: string;
@@ -20,10 +23,6 @@ interface ChangePasswordFormData {
   confirmPassword: string;
 }
 
-interface ContributionItem {
-  title: string;
-  status: string;
-}
 
 interface ContributionForm {
   title: string;
@@ -31,11 +30,6 @@ interface ContributionForm {
   type: string;
 }
 
-const mockContributions: ContributionItem[] = [
-  { title: "Bài viết về Chùa Một Cột", status: "Đã duyệt" },
-  { title: "Ảnh Lễ hội Đền Hùng", status: "Chờ duyệt" },
-  { title: "Video giới thiệu Phố cổ Hội An", status: "Đã duyệt" },
-];
 
 const ViewProfile: React.FC = () => {
   // State management
@@ -49,9 +43,11 @@ const ViewProfile: React.FC = () => {
     description: "",
     type: "Bài viết",
   });
-  const [contributions, setContributions] = useState<ContributionItem[]>(mockContributions);
+  const [contributions, setContributions] = useState<ContributionOverviewItemListResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [passwordLoading, setPasswordLoading] = useState(false);  
+  const [selectedContributionId, setSelectedContributionId] = useState<number | null>(null);
+
 
   // Load profile data
   useEffect(() => {
@@ -81,6 +77,30 @@ const ViewProfile: React.FC = () => {
     };
     loadProfile();
   }, []);
+
+  // // sau khi load profile thành công
+  // useEffect(() => {
+  //   const loadContributions = async () => {
+  //     if (!profile) return;
+
+  //     try {
+  //       const res = await getListContributionOverview({     
+  //         page: 1,
+  //         pageSize: 10,
+  //       });
+
+  //       if (res.code === 200 && res.result) {
+  //         setContributions(res.result.items); 
+  //       }
+  //     } catch (err) {
+  //       console.error("Error loading contributions:", err);
+  //       toast.error("Không thể tải danh sách đóng góp");
+  //     }
+  //   };
+
+  //   loadContributions();
+  // },[profile]);
+
 
   // Event handlers
   const handleMenuChange = (key: string) => {
@@ -145,12 +165,7 @@ const ViewProfile: React.FC = () => {
     if (!contributionForm.title.trim() || !contributionForm.description.trim()) {
       showNotification("Vui lòng điền đầy đủ tiêu đề và mô tả!", "error");
       return;
-    }
-    
-    setContributions([
-      ...contributions,
-      { title: contributionForm.title, status: "Chờ duyệt" },
-    ]);
+    }   
     
     setContributionForm({ title: "", description: "", type: "Bài viết" });
     handleMenuChange("contributions");
@@ -292,10 +307,12 @@ const ViewProfile: React.FC = () => {
                   currentTab={currentTab}
                   contributionForm={contributionForm}
                   contributions={contributions}
+                  selectedContributionId={selectedContributionId ?? 0}
                   onMenuChange={handleMenuChange}
                   onContributionChange={handleContributionChange}
                   onContributionSubmit={handleContributionSubmit}
                   onContributionCancel={handleContributionCancel}
+                  onSelectContribution={setSelectedContributionId}
                 />
               )}
             </div>

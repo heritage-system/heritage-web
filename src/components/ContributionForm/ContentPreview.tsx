@@ -80,7 +80,7 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
         </h1>
 
         {/* Meta Info */}
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+        {publishedAt != null && view != null && ( <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4" />
             <span>{displayDate}</span>
@@ -89,7 +89,7 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
             <Eye className="w-4 h-4" />
             <span>{viewsCount} lượt xem</span>
           </div>
-        </div>
+        </div>)}
       </div>
 
       {/* Article Content */}
