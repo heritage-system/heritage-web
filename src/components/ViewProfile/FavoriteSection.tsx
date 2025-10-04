@@ -8,7 +8,7 @@ import { getFavorites, removeFavorite } from "../../services/favoriteService";
 import { authToast } from "../../utils/authToast";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../Layouts/Pagination";
-
+import Spinnner from "../Layouts/LoadingLayouts/Spinner";
 interface FavoriteHeritageListProps {
   onRefresh?: () => void;
 }
@@ -153,8 +153,8 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
           mỗi trang
         </label>
         {loading && (
-          <span className="flex items-center gap-2 text-sm text-gray-500">
-            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></span>
+          <span className="flex items-center gap-2 text-sm text-gray-500 ml-1">          
+              <Spinnner size={20}/>          
             Đang tải...
           </span>
         )}

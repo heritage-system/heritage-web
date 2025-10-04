@@ -44,7 +44,7 @@ const App: React.FC = () => {
         <Route path="/heritagedetail/:id" element={<MainLayout><HeritageDetailPage /></MainLayout>} />
         <Route path="/quizdetailview" element={<MainLayout><QuizDetailView /></MainLayout>} />
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
-        <Route path="/contribution-form" element={<MainLayout><ContributionFormPage /></MainLayout>} />
+        <Route path="/contribution-form/:id?" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
         <Route path="/admin/adminPanelmanagement" element={<AdminPanelPage />} />
         <Route path="/admin/heritage/:id" element={<HeritageDetailManagement />} />

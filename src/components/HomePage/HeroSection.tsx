@@ -10,15 +10,15 @@ const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
   {/* ✅ Video Background */}
-  <video
-  className="absolute inset-0 w-full h-full object-cover z-0"
+ <video
+  className="absolute inset-0 w-full h-full object-cover"
   autoPlay
   muted
   loop
   playsInline
 >
   <source
-    src="https://res.cloudinary.com/dlsgtrtdl/video/upload/v1751090106/XINCHAOVIETNAM_nmyncl.mp4"
+    src="https://res.cloudinary.com/dea92gqx4/video/upload/v1759586137/Trailer_xjy6kb.mp4"
     type="video/mp4"
   />
   Trình duyệt của bạn không hỗ trợ video.

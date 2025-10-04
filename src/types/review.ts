@@ -10,7 +10,7 @@ export interface Review {
   likedByMe?: boolean;        // Track if current user liked this review
   createdByMe? : boolean;
   createdAt: string;         
-  updatedAt: string;
+  isUpdated: boolean;
   replies?: Review[];         // Nested replies
   reviewMedias?: ReviewMedia[]; // Media attached to review
 }
@@ -27,8 +27,8 @@ export interface ReviewCreateRequest {
   comment: string;
   parentReviewId?: number;
   media?: {
-    file: File;       // ✅ actual file, not string
-    type: string;     // "IMAGE" | "VIDEO" | "DOCUMENT"
+    url: string;      
+    type: number;    
   }[];
 }
 export interface LikeReviewRequest {

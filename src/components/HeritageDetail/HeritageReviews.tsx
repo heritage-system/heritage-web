@@ -5,21 +5,16 @@ import { getReviewsByHeritageId } from "../../services/reviewService";
 import { createReview } from "../../services/reviewService";
 import { ReviewCreateRequest } from "../../types/review";
 import { deleteReview  } from "../../services/reviewService";
-
+import { useAuth } from '../../hooks/useAuth';
+import { uploadImage } from '../../services/uploadService';
+import ReviewItem from "./ReviewItem"
 interface Props {
-  heritageId: number;   // ✅ new prop
+  heritageId: number; 
   onSubmitReview?: (payload: { comment: string; media?: File[] }) => Promise<void> | void;
   onReply?: (payload: { parentReviewId: number; comment: string; media?: File[] }) => Promise<void> | void;
   currentUserName?: string;
   currentUserAvatar?: string;
 }
-const timeVi = (iso: string) =>
-    new Date(iso).toLocaleString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      day: "2-digit",
-      month: "2-digit",
-    });
 export const addReplyToTree = (
   reviews: Review[],
   parentId: number,
@@ -38,7 +33,7 @@ const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: 
 }) => (
   <section className="bg-white rounded-2xl shadow-sm border p-5">
     <header className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
       {right}
     </header>
     <div>{children}</div>
@@ -55,7 +50,8 @@ export const HeritageReviews: React.FC<Props> = ({
   const [openModal, setOpenModal] = React.useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+  
   useEffect(() => {
     if (!heritageId) return;
     setLoading(true);
@@ -98,12 +94,12 @@ const handleDeleteFromModal = async (id: number) => {
   try {
     const res = await deleteReview({ id });
 
-    if (!res.result?.success) {
-      // rollback if API fails
-      const fresh = await getReviewsByHeritageId(heritageId);
-      setReviews(fresh.result ?? []);
-      alert(res.result?.message || "Xóa bình luận thất bại");
-    }
+    // if (!res.result?.success) {
+    //   // rollback if API fails
+    //   const fresh = await getReviewsByHeritageId(heritageId);
+    //   setReviews(fresh.result ?? []);
+    //   alert(res.result?.message || "Xóa bình luận thất bại");
+    // }
   } catch (err) {
     console.error(err);
     const fresh = await getReviewsByHeritageId(heritageId);
@@ -131,6 +127,7 @@ const handleEditFromModal = (
             mediaType: m.type,
           }))
         : r.reviewMedias,
+        isUpdated: true
     }))
   );
 };
@@ -139,16 +136,31 @@ const handleEditFromModal = (
 
 const handleCreateReview = async (payload: { comment: string; media?: { file: File; type: string }[] }) => {
   try {
+    // Upload tất cả media trước
+    const uploaded: { url: string; type: number }[] = [];
+
+    if (payload.media && payload.media.length > 0) {
+      for (const m of payload.media) {
+        var ref = await uploadImage(m.file); 
+        if (ref.result) {
+          uploaded.push({
+            url: ref.result,
+            type: m.type === "IMAGE" ? 1 : m.type === "VIDEO" ? 2 : 3, // map sang enum/type number của backend
+          });
+        }
+      }
+    }
+
     const res = await createReview({
       heritageId,
       comment: payload.comment,
-      media: payload.media,
+      media: uploaded, 
     });
 
     if (res.result) {
       const newReview: Review = {
         ...res.result,
-        createdByMe: true, // ✅ force it for new reviews
+        createdByMe: true,
       };
       setReviews((prev) => [newReview, ...prev]);
     }
@@ -158,13 +170,28 @@ const handleCreateReview = async (payload: { comment: string; media?: { file: Fi
 };
 
 
+
 const handleReply = async (payload: { parentReviewId: number; comment: string; media?: { file: File; type: string }[] }) => {
   try {
+    const uploaded: { url: string; type: number }[] = [];
+
+    if (payload.media && payload.media.length > 0) {
+      for (const m of payload.media) {
+        var ref = await uploadImage(m.file); 
+        if (ref.result) {
+          uploaded.push({
+            url: ref.result,
+            type: m.type === "IMAGE" ? 1 : m.type === "VIDEO" ? 2 : 3, // map sang enum/type number của backend
+          });
+        }
+      }
+    }
+
     const res = await createReview({
       heritageId,
       comment: payload.comment,
       parentReviewId: payload.parentReviewId,
-      media: payload.media,
+      media: uploaded,
     });
 
     if (res.result) {
@@ -184,7 +211,7 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
   return (
     <>
       <SectionCard
-  title="Đánh giá (Review)"
+  title="Bình luận"
   right={
     displayedReviews.length > 0 ? (
       <button
@@ -195,53 +222,72 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
         Xem tất cả
       </button>
     ) : (
-      <button
-        type="button"
-        onClick={() => setOpenModal(true)}
-        className="text-sm text-yellow-700 hover:underline"
-      >
-        Viết đánh giá
-      </button>
+      isLoggedIn && (
+        <button
+          type="button"
+          onClick={() => setOpenModal(true)}
+          className="text-sm text-yellow-700 hover:underline"
+        >
+          Viết bình luận
+        </button>
+      )
     )
   }
 >
   {loading ? (
-    <div className="text-sm text-gray-500">Đang tải đánh giá...</div>
+    <div className="text-sm text-gray-500">Đang tải bình luận...</div>
   ) : displayedReviews.length === 0 ? (
-    <div className="text-sm text-gray-500">
-      Chưa có đánh giá nào.{" "}
-      <button
-        type="button"
-        onClick={() => setOpenModal(true)}
-        className="text-yellow-700 hover:underline"
-      >
-        Viết đánh giá đầu tiên
-      </button>
-    </div>
+    isLoggedIn ? (
+      <div className="text-sm text-gray-500">
+        Chưa có bình luận nào.{" "}
+        <button
+          type="button"
+          onClick={() => setOpenModal(true)}
+          className="text-yellow-700 hover:underline"
+        >
+          Viết bình luận đầu tiên
+        </button>
+      </div>
+    ) : (
+      <div className="text-sm text-gray-500">Chưa có bình luận nào.{" "}
+        <button
+          type="button"
+          onClick={() => (window.location.href = `/login`)}
+          className="text-yellow-700 hover:underline"
+        > Đăng nhập để viết bình luận.
+        </button>
+      </div>
+    )
   ) : (
-    <div className="space-y-3">
-      {displayedReviews.slice(0, 3).map((review) => (
-        <div key={review.id} className="border-b last:border-b-0 pb-3 last:pb-0">
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-medium text-gray-900">{review.username}</span>
-            <span className="text-xs text-gray-500 ml-1">
-              {new Date(review.updatedAt).toLocaleDateString("vi-VN")}
-            </span>
-          </div>
-          <p className="text-sm text-gray-700">{review.comment}</p>
-        </div>
+    <div className="space-y-4">
+  {reviews.length > 0 &&
+    reviews
+      .slice(0, 3) 
+      .map((review) => (
+        <ReviewItem
+          key={review.id}
+          review={review}
+          expanded={{}}
+          onToggleReplies={() => {}}
+          onReplyClick={undefined}
+          isLoggedIn={isLoggedIn}
+          variant="compact"
+        />
       ))}
 
-      <button
-        type="button"
-        onClick={() => setOpenModal(true)}
-        className="text-sm text-yellow-700 hover:underline"
-      >
-        Xem thêm {displayedReviews.length} bình luận
-      </button>
-    </div>
+  {reviews.length > 3 && (
+    <button
+      type="button"
+      onClick={() => setOpenModal(true)}
+      className="text-sm text-yellow-700 hover:underline mt-2"
+    >
+      Xem thêm {reviews.length - 3} bình luận
+    </button>
+  )}
+</div>
   )}
 </SectionCard>
+
 
 
       {/* Full Review Modal */}
@@ -253,8 +299,9 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
   onReply={handleReply}
   onDeleteReview={handleDeleteFromModal}
   onEditReview={handleEditFromModal}
-  currentUserName={currentUserName}
-  currentUserAvatar={currentUserAvatar}
+  currentUserName={userName || undefined}
+  currentUserAvatar={avatarUrl || undefined}
+  isLoggedIn={isLoggedIn}
 />
 
 
@@ -263,3 +310,4 @@ const handleReply = async (payload: { parentReviewId: number; comment: string; m
     </>
   );
 };
+

@@ -76,6 +76,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, [initialDelta, onChange, onTempImage, onImagesChanged]);
 
+ const hasInitialized = useRef(false);
+
+useEffect(() => {
+  if (quillRef.current && initialDelta && !hasInitialized.current) {
+    quillRef.current.setContents(initialDelta);
+    hasInitialized.current = true; 
+  }
+}, [initialDelta]);
+
   return (
     <div ref={wrapperRef} className="relative h-[720px] rounded-md  flex flex-col overflow-hidden">
       <div
@@ -129,7 +138,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </div>
       </div>
 
-      <div ref={containerRef} className="flex-1 overflow-auto p-3 min-h-[320px]" />
+      <div ref={containerRef} className="flex-1 overflow-auto p-3 min-h-[320px] scrollbar-hide" />
     </div>
   );
 };

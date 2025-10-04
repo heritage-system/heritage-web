@@ -4,15 +4,14 @@ import React, { ChangeEvent } from 'react';
 import FavoriteSection from './FavoriteSection';
 import EventsSection from './EventsSection';
 import QuizSection from './QuizSection';
-import ContributionsSection from './ContributionsSection';
-import AddContributionForm from './AddContributionForm';
+import ContributionsSection from './Contribution/ContributionsSection';
+import ContributionDetailSection from './Contribution/ContributionDetailSection';
 import CollaboratorRequestSection from './CollaboratorRequestSection/CollaboratorRequestSection';
 import ContributionFormPage from '../../pages/ContributionPage/ContributionFormPage';
+import {
+  ContributionOverviewItemListResponse 
+} from "../../types/contribution";
 
-interface ContributionItem {
-  title: string;
-  status: string;
-}
 
 interface ContributionForm {
   title: string;
@@ -23,11 +22,13 @@ interface ContributionForm {
 interface TabContentProps {
   currentTab: string;
   contributionForm: ContributionForm;
-  contributions: ContributionItem[];
+  selectedContributionId: number;
+  contributions: ContributionOverviewItemListResponse[];
   onMenuChange: (key: string) => void;
   onContributionChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onContributionSubmit: () => void;
   onContributionCancel: () => void;
+  onSelectContribution: (id: number | null) => void;
 }
 
 const TabContent: React.FC<TabContentProps> = ({
@@ -37,7 +38,9 @@ const TabContent: React.FC<TabContentProps> = ({
   onMenuChange,
   onContributionChange,
   onContributionSubmit,
-  onContributionCancel
+  onContributionCancel,
+  selectedContributionId,
+  onSelectContribution
 }) => {
   // Tab content rendering
   switch (currentTab) {
@@ -51,12 +54,17 @@ const TabContent: React.FC<TabContentProps> = ({
       return <QuizSection />;
 
     case "contributions":
-      return (
-        <ContributionsSection 
-          contributions={contributions}
+      return selectedContributionId ? (
+        <ContributionDetailSection contributionId={selectedContributionId} 
+          onBack={() => onSelectContribution(null)}
+        />
+      ) : (
+        <ContributionsSection
           onMenuChange={onMenuChange}
+          onSelectContribution={onSelectContribution} 
         />
       );
+
 
     case "add-contribution":
       return (
@@ -68,6 +76,11 @@ const TabContent: React.FC<TabContentProps> = ({
         // />
         <ContributionFormPage />
       );
+    // case "view-contribution":
+    //   return (
+       
+    //     <ContributionDetailSection contributionId={contributionId} />
+    //   );
 
     case "collaborator-request":
       return <CollaboratorRequestSection />;

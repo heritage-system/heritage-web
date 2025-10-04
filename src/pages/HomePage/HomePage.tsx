@@ -60,7 +60,7 @@ const HomePage: React.FC = () => {
     lat: 21.0285,
     lng: 105.8542,
     description: "Nghệ thuật múa rối nước truyền thống của Việt Nam.",
-    image: "https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a?w=400&h=240&fit=crop",
+    image: "https://consosukien.vn/pic/News/Nam_2022/ro-i-nuo-c-loa-i-hi-nh-nghe-thuat-dan-gian-doc-dao-cua-vie-t-nam.jpg",
     location: "Hà Nội",
     date: "25/02/2025",
     rating: 4.6,
