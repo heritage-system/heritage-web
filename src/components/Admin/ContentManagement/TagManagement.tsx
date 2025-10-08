@@ -354,32 +354,102 @@ const clearSearch = () => {
         totalItems={0}
       />
 
-      {/* ---- Modal: View ---- */}
-      {showView && selectedTag && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 w-96 relative">
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-black"
-              onClick={() => setShowView(false)}
-            >
-              <X size={18} />
-            </button>
-            <h3 className="text-lg font-bold mb-2">{selectedTag.name}</h3>
-<p className="mb-2">ID: {selectedTag.id}</p>
-<p className="mb-2">Tên : {selectedTag.name} </p>
-<p className="mb-2">ID người tạo : {selectedTag.createdBy}  </p>
-<p className="mb-2">Tạo bởi : {selectedTag.createByName}  </p>
-<p className="mb-2">Email người tạo : {selectedTag.createByEmail} </p>
-<p className="mb-2">Ngày tạo : {selectedTag.createdAt}</p>
-<p className="mb-2">ID người cập nhật : {selectedTag.updatedBy}  </p>
-<p className="mb-2">Cập nhật bởi : {selectedTag.updatedByName}</p>
-<p className="mb-2">Email người cập nhật : {selectedTag.updatedByEmail} </p>
-<p className="mb-2">Ngày cập nhật : {selectedTag.updatedAt}</p>
-<p className="mb-2">Số lượng di sản : {selectedTag.count}</p>
-            
-          </div>
+     {/* ---- Modal: View ---- */}
+{showView && selectedTag && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl relative">
+      {/* Header */}
+      <div className="border-b px-6 py-4 flex items-center justify-between">
+        <h3 className="text-xl font-bold text-gray-900">{selectedTag.name}</h3>
+        <button
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+          onClick={() => setShowView(false)}
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 space-y-4">
+        {/* Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tên thẻ
+          </label>
+          <p className="text-gray-900">{selectedTag.name}</p>
         </div>
-      )}
+
+        {/* Count */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tổng số di sản
+          </label>
+          <p className="text-gray-900">{selectedTag.count}</p>
+        </div>
+
+        {/* Creator and Updater */}
+        {(selectedTag.createByName || selectedTag.updatedByName) && (
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Thông tin tạo/cập nhật
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {selectedTag.createByName && (
+                <div>
+                  <span className="text-gray-500">Tạo bởi: </span>
+                  <span className="text-gray-900">
+                    {selectedTag.createByName}
+                  </span>
+                  {selectedTag.createByEmail && (
+                    <span className="text-gray-500">
+                      {" "}
+                      ({selectedTag.createByEmail})
+                    </span>
+                  )}
+                  <br />
+                  <span className="text-gray-500">
+                    {new Date(selectedTag.createdAt).toLocaleString('vi-VN')}
+                  </span>
+                </div>
+              )}
+
+              {selectedTag.updatedByName && (
+                <div>
+                  <span className="text-gray-500">Cập nhật bởi: </span>
+                  <span className="text-gray-900">
+                    {selectedTag.updatedByName}
+                  </span>
+                  {selectedTag.updatedByEmail && (
+                    <span className="text-gray-500">
+                      {" "}
+                      ({selectedTag.updatedByEmail})
+                    </span>
+                  )}
+                  <br />
+                  <span className="text-gray-500">
+                    {selectedTag.updatedAt 
+                      ? new Date(selectedTag.updatedAt).toLocaleString('vi-VN') 
+                      : "—"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t px-6 py-4 flex justify-end">
+        <button
+          onClick={() => setShowView(false)}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ---- Modal: Add/Edit Form ---- */}
       {showForm && (

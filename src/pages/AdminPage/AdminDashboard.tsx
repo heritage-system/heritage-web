@@ -36,10 +36,12 @@ import {
   Wifi,
   Cloud,
   Zap,
+  LogOut,
   LucideProps,
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { Module, ModuleGroup } from "../../types/adminDashboard";
+import { useAuth } from '../../hooks/useAuth';
 
 type LucideIcon = React.ForwardRefExoticComponent<
   Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
@@ -48,6 +50,14 @@ type LucideIcon = React.ForwardRefExoticComponent<
 const AdminHomeDashboard = () => {
   const [selectedModule, setSelectedModule] = useState<ModuleGroup | null>(null);
   const navigate = useNavigate();
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handleLogout = () => {
+    authLogout();
+    setIsDropdownOpen(false);
+    navigate('/login');
+  };
 
   const moduleGroups: ModuleGroup[] = [
     {
@@ -305,9 +315,14 @@ const AdminHomeDashboard = () => {
               <Bell className="w-5 h-5 text-gray-400 hover:text-[#374151] cursor-pointer transition-colors" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
             </div>
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center hover:bg-opacity-90 cursor-pointer transition-all">
-              <span className="text-white font-medium text-sm">A</span>
-            </div>
+           <button
+              onClick={() => handleLogout()}
+              className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-md transition"
+              title="Đăng xuất khỏi hệ thống"
+            >
+              <LogOut size={16} />
+              <span>Đăng xuất</span>
+            </button>
           </div>
         </div>
       </header>
