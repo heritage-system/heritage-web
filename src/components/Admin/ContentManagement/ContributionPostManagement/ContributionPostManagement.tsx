@@ -1,33 +1,29 @@
-import React, { useState } from "react";
-import { FileText, Clock, XCircle, CheckCircle } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { FileText, Clock, XCircle, CheckCircle, Search } from "lucide-react";
+import {
+  getListContributionsOverviewForStaff,
+  approveContributionAcceptance,
+  rejectContributionAcceptance,
+  getContributionOverviewForStaff,
+} from "../../../../services/contributionAcceptanceService";
+import {
+  ContributionOverviewItemListResponse,
+  ContributionOverviewSearchRequest,
+  ContributionOverviewResponse,
+} from "../../../../types/contribution";
+import { PageResponse } from "../../../../types/pageResponse";
 import ContributionTable from "./ContributionTable";
 import ContributionView from "./ContributionView";
 import ConfirmDialog from "./ConfirmDialog";
+import RejectDialog from "./RejectDialog";
+import { ContributionStatus, SortBy } from "../../../../types/enum";
 
-// Enums - updated to match backend
-const ContributionStatus = {
-  PENDING: "PENDING",
-  APPROVED: "APPROVED",
-  REJECTED: "REJECTED",
-};
-
-// Interfaces
-interface Contribution {
-  id: number;
-  title: string;
-  coverImageUrl: string;
-  htmlContent: string;
-  contributorName: string;
-  contributorEmail: string;
-  status: string;
-  premiumType: string;
-  createdAt: string;
-  approvedAt?: string;
-  heritageTags: string[];
-  staffApprovals: number[];
-  requiredApprovals: number;
-  assignedStaffIds: number[];
-}
+const TABS = [
+  { key: "pending" as const, label: "Chờ duyệt", icon: Clock, status: ContributionStatus.PENDING },
+  { key: "approved" as const, label: "Đã duyệt", icon: CheckCircle, status: ContributionStatus.APPROVED },
+  { key: "rejected" as const, label: "Đã từ chối", icon: XCircle, status: ContributionStatus.REJECTED },
+  { key: "all" as const, label: "Tất cả", icon: FileText, status: undefined },
+];
 
 interface TabCounts {
   pending: number;
@@ -35,34 +31,6 @@ interface TabCounts {
   rejected: number;
   all: number;
 }
-
-// Tab definitions
-const TABS = [
-  {
-    key: "pending" as const,
-    label: "Chờ duyệt",
-    icon: Clock,
-    status: ContributionStatus.PENDING,
-  },
-  {
-    key: "approved" as const,
-    label: "Đã duyệt",
-    icon: CheckCircle,
-    status: ContributionStatus.APPROVED,
-  },
-  {
-    key: "rejected" as const,
-    label: "Đã từ chối",
-    icon: XCircle,
-    status: ContributionStatus.REJECTED,
-  },
-  {
-    key: "all" as const,
-    label: "Tất cả",
-    icon: FileText,
-    status: undefined,
-  },
-];
 
 const ContributionPostManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<keyof TabCounts>("pending");
@@ -72,111 +40,187 @@ const ContributionPostManagement: React.FC = () => {
     rejected: 0,
     all: 0,
   });
+
+  const [contributions, setContributions] = useState<ContributionOverviewItemListResponse[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [keyword, setKeyword] = useState("");
+  const [sortBy, setSortBy] = useState<SortBy>(SortBy.IdDesc);
+
   const [showView, setShowView] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedContribution, setSelectedContribution] = useState<Contribution | null>(null);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [selectedContribution, setSelectedContribution] = useState<ContributionOverviewItemListResponse | null>(null);
+  const [selectedContributionDetail, setSelectedContributionDetail] = useState<ContributionOverviewResponse | null>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const handleView = (contribution: Contribution) => {
-    setSelectedContribution(contribution);
-    setShowView(true);
-  };
-
-  const handleAction = (contribution: Contribution, action: "approve" | "reject") => {
-    setSelectedContribution(contribution);
-    setActionType(action);
-    setShowConfirm(true);
-  };
-
-  const confirmAction = async () => {
-    if (!selectedContribution || !actionType) return;
-
-    setLoading(true);
-
-    try {
-      // TODO: Replace with actual API calls
-      if (actionType === "approve") {
-        // Example API call:
-        // await fetch(`/api/contributions/${selectedContribution.id}/approve`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ staffId: CURRENT_STAFF_ID })
-        // });
-        
-        console.log("Approving contribution:", selectedContribution.id);
-      } else if (actionType === "reject") {
-        // Example API call:
-        // await fetch(`/api/contributions/${selectedContribution.id}/reject`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ staffId: CURRENT_STAFF_ID })
-        // });
-        
-        console.log("Rejecting contribution:", selectedContribution.id);
-      }
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setLoading(false);
-      setShowConfirm(false);
-      setActionType(null);
-      setSelectedContribution(null);
-      
-      // Trigger refresh to reload data
-      setRefreshTrigger((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error performing action:", error);
-      setLoading(false);
-      // TODO: Show error notification
-    }
-  };
-
-  const getActionMessage = () => {
-    if (!selectedContribution) return "";
-
-    switch (actionType) {
-      case "approve":
-        const currentApprovals = selectedContribution.staffApprovals?.length || 0;
-        const requiredApprovals = selectedContribution.requiredApprovals || 1;
-        const newCount = currentApprovals + 1;
-        
-        if (newCount >= requiredApprovals) {
-          return `Bạn có chắc muốn duyệt bài "${selectedContribution.title}"? Bài viết sẽ được chuyển sang trạng thái ĐÃ DUYỆT (${newCount}/${requiredApprovals} người duyệt).`;
-        } else {
-          return `Bạn có chắc muốn duyệt bài "${selectedContribution.title}"? Tiến độ: ${newCount}/${requiredApprovals} người duyệt.`;
-        }
-      case "reject":
-        return `Bạn có chắc muốn từ chối bài "${selectedContribution.title}"? Bài viết sẽ bị từ chối ngay lập tức.`;
-      default:
-        return "";
-    }
-  };
 
   const currentTabStatus = TABS.find((tab) => tab.key === activeTab)?.status;
 
+  // 🔹 Fetch all tab counts
+  const fetchAllTabCounts = useCallback(async () => {
+    try {
+      const fetchCount = async (status?: ContributionStatus) => {
+        const params: ContributionOverviewSearchRequest = {
+          contributionStatus: status,
+          page: 1,
+          pageSize: 1, // Chỉ lấy 1 item để đếm totalElements
+        };
+        const response = await getListContributionsOverviewForStaff(params);
+        return response?.result?.totalElements || 0;
+      };
+
+      const [pending, approved, rejected, all] = await Promise.all([
+        fetchCount(ContributionStatus.PENDING),
+        fetchCount(ContributionStatus.APPROVED),
+        fetchCount(ContributionStatus.REJECTED),
+        fetchCount(undefined),
+      ]);
+
+      setTabCounts({ pending, approved, rejected, all });
+    } catch (error) {
+      console.error("❌ Error fetching tab counts:", error);
+    }
+  }, []);
+
+  // 🔹 Fetch contributions for current tab
+  const fetchContributions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params: ContributionOverviewSearchRequest = {
+        keyword: keyword || undefined,
+        contributionStatus: currentTabStatus,
+        sortBy,
+        page,
+        pageSize,
+      };
+
+      const response = await getListContributionsOverviewForStaff(params);
+      if (response?.result) {
+        const data: PageResponse<ContributionOverviewItemListResponse> = response.result;
+        setContributions(data.items);
+        setTotalItems(data.totalElements);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching contributions:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [keyword, currentTabStatus, sortBy, page, pageSize]);
+
+  // Load counts once on mount and after actions
+  useEffect(() => {
+    fetchAllTabCounts();
+  }, [fetchAllTabCounts, refreshTrigger]);
+
+  // Load contributions when filters change
+  useEffect(() => {
+    fetchContributions();
+  }, [fetchContributions]);
+
+  const handleView = async (item: ContributionOverviewItemListResponse) => {
+    setSelectedContribution(item);
+    setShowView(true);
+    setLoadingDetail(true);
+    setSelectedContributionDetail(null);
+
+    try {
+      const response = await getContributionOverviewForStaff(item.id);
+      if (response?.result) {
+        setSelectedContributionDetail(response.result);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching contribution detail:", error);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleAction = (item: ContributionOverviewItemListResponse, action: "approve" | "reject") => {
+    setSelectedContribution(item);
+    setActionType(action);
+    if (action === "approve") setShowConfirm(true);
+    else setShowRejectDialog(true);
+  };
+
+  const confirmApprove = async () => {
+  if (!selectedContribution) return;
+  setLoading(true);
+  try {
+    await approveContributionAcceptance(selectedContribution.acceptanceId);
+    
+    setContributions((prev) =>
+      prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId)
+    );
+
+    setTabCounts((prev) => ({
+      ...prev,
+      pending: Math.max(prev.pending - 1, 0),
+      approved: prev.approved + 1,
+    }));
+
+    setShowConfirm(false);
+    setSelectedContribution(null);
+
+    if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
+  } catch (error) {
+    console.error("❌ Error approving contribution:", error);
+    alert("Có lỗi xảy ra khi duyệt bài!");
+  } finally {
+    setLoading(false);
+  }
+};
+
+const confirmReject = async (note: string) => {
+  if (!selectedContribution) return;
+  setLoading(true);
+  try {
+    await rejectContributionAcceptance(selectedContribution.acceptanceId, note);
+    
+    setContributions((prev) =>
+      prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId)
+    );
+
+    setTabCounts((prev) => ({
+      ...prev,
+      pending: Math.max(prev.pending - 1, 0),
+      rejected: prev.rejected + 1,
+    }));
+
+    setShowRejectDialog(false);
+    setSelectedContribution(null);
+
+    if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
+  } catch (error) {
+    console.error("❌ Error rejecting contribution:", error);
+    alert("Có lỗi xảy ra khi từ chối bài!");
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Quản Lý Bài Đăng Đóng Góp
-        </h2>
-      </div>
+      <h2 className="text-2xl font-bold mb-6 text-gray-900">Quản Lý Bài Đăng Đóng Góp</h2>
 
-      <div className="border-b border-gray-200 mb-6">
+      {/* Tabs */}
+      <div className="border-b border-gray-200 mb-4">
         <nav className="-mb-px flex space-x-8">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
             const count = tabCounts[tab.key];
-
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  setPage(1);
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                   isActive
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -184,47 +228,84 @@ const ContributionPostManagement: React.FC = () => {
               >
                 <Icon size={16} />
                 {tab.label}
-                {count > 0 && (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      isActive
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    isActive ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
         </nav>
       </div>
 
+      {/* Filters */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="relative w-64">
+          <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm..."
+            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg w-full text-sm"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && fetchContributions()}
+          />
+        </div>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortBy)}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        >
+          <option value={SortBy.IdDesc}>Mới nhất</option>
+          <option value={SortBy.IdAsc}>Cũ nhất</option>
+          <option value={SortBy.NameAsc}>Tên A-Z</option>
+          <option value={SortBy.NameDesc}>Tên Z-A</option>
+        </select>
+      </div>
+
+      {/* Table */}
       <ContributionTable
-        filterStatus={currentTabStatus}
+        data={contributions}
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalItems}
+        onPageChange={setPage}
         onView={handleView}
         onAction={handleAction}
-        refreshTrigger={refreshTrigger}
-        onCountsUpdate={setTabCounts}
+        loading={loading}
       />
 
+      {/* View & Dialogs */}
       <ContributionView
         open={showView}
-        onClose={() => setShowView(false)}
-        contribution={selectedContribution}
+        onClose={() => {
+          setShowView(false);
+          setSelectedContributionDetail(null);
+        }}
+        contribution={selectedContributionDetail}
+        loading={loadingDetail}
       />
 
       <ConfirmDialog
         open={showConfirm}
-        onClose={() => {
-          setShowConfirm(false);
-          setActionType(null);
-        }}
-        onConfirm={confirmAction}
-        title="Xác nhận thao tác"
-        message={getActionMessage()}
-        type={actionType === "reject" ? "danger" : "info"}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={confirmApprove}
+        title="Xác nhận duyệt bài"
+        message={`Bạn có chắc muốn duyệt bài "${selectedContribution?.title}"?`}
+        confirmText="Duyệt"
+        cancelText="Hủy"
+        type="info"
+        loading={loading}
+      />
+
+      <RejectDialog
+        open={showRejectDialog}
+        onClose={() => setShowRejectDialog(false)}
+        onConfirm={confirmReject}
         loading={loading}
       />
     </div>

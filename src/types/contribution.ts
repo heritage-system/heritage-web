@@ -118,6 +118,7 @@ export interface ContributionOverviewItemListResponse {
   saves: number,
   isPremium: true,
   status: string,
+  acceptanceId: number;
 }
 
 export interface ContributionDetailUpdatedResponse {
@@ -137,4 +138,8 @@ export interface ContributionUpdateRequest {
   mediaUrl: string,
   tagHeritageIds?: number[],
   premiumType?: number,
+}
+
+export interface ContributionAcceptanceDecisionRequest {
+  note?: string;
 }
