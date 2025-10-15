@@ -138,3 +138,14 @@ export interface ContributionUpdateRequest {
   tagHeritageIds?: number[],
   premiumType?: number,
 }
+
+export interface ContributionSaveResponse{
+  id: number,
+  contributionId: number,
+  contributorId: number,
+  contributorName: string,
+  avatarUrl: string,
+  title: string,
+  mediaUrl: string,
+  contributionHeritageTags: HeritageName[]
+}

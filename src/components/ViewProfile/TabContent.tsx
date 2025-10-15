@@ -4,6 +4,7 @@ import React, { ChangeEvent } from 'react';
 import FavoriteSection from './FavoriteSection';
 import EventsSection from './EventsSection';
 import QuizSection from './QuizSection';
+import ContributionSaveSection from './ContributionSaveSection';
 import ContributionsSection from './Contribution/ContributionsSection';
 import ContributionDetailSection from './Contribution/ContributionDetailSection';
 import CollaboratorRequestSection from './CollaboratorRequestSection/CollaboratorRequestSection';
@@ -46,6 +47,9 @@ const TabContent: React.FC<TabContentProps> = ({
   switch (currentTab) {
     case "favorites":
       return <FavoriteSection />;
+    
+    case "contribution_saves":
+      return <ContributionSaveSection />;
 
     case "events":
       return <EventsSection />;

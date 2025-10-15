@@ -8,7 +8,7 @@ import CommunityPage from './pages/CommunityPage/CommunityPage';
 import Login from './pages/AuthPage/Login';
 import MainLayout from './components/HomePage/MainLayout';
 import Register from './pages/AuthPage/Register';
-import QuizzPage from './pages/QuizzPage/QuizzPage';
+import QuizzPage from './pages/QuizzPage/QuizPage';
 import ForgotPassword from './pages/AuthPage/ForgotPassword';
 import ResetPassword from './pages/AuthPage/ResetPassword'; 
 import ChangePassword from './pages/AuthPage/ChangePassword';
@@ -27,6 +27,8 @@ import ContributionSearchResponse from './pages/ContributionPage/ContributionPag
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 import HeritageForm from './pages/ContributionPage/HeritageForm'
+import BoardGame from './pages/QuizzPage/BoardGame'
+import BoardGameMono from './pages/QuizzPage/BoardGameMono'
 const App: React.FC = () => {
   return (
     <Router>
@@ -55,6 +57,8 @@ const App: React.FC = () => {
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />   
         <Route path="/heritage-form" element={<MainLayout><HeritageForm /></MainLayout>} /> 
+         <Route path="/board-game" element={<MainLayout><BoardGame /></MainLayout>} />
+         <Route path="/board-game-mono" element={<MainLayout><BoardGameMono /></MainLayout>} />
       </Routes>
 
       {/* <ChatBoxAI /> */}
