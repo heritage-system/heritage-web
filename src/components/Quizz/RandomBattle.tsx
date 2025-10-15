@@ -56,54 +56,50 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
   const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
   // 🔌 Kết nối SignalR khi mở trang
   useEffect(() => {
+  const connect = async () => {
     const conn = new signalR.HubConnectionBuilder()
-      .withUrl(HUB_URL)
+      .withUrl(HUB_URL, { withCredentials: true })
       .withAutomaticReconnect()
       .build();
 
-    conn.start().then(() => console.log("✅ Connected to GameHub"));
-    setConnection(conn);
+    try {
+      await conn.start();
+      console.log("✅ Connected to GameHub");
+      setConnection(conn);
+    } catch (err) {
+      console.error("❌ Failed to connect SignalR:", err);
+    }
 
-    // Lắng nghe các sự kiện từ server
+    // 🎧 Sự kiện
     conn.on("WaitingForOpponent", () => {
       console.log("⏳ Waiting for opponent...");
       setIsSearching(true);
       setWaitingTime(0);
 
-      // Xoá timer cũ nếu có
       if (waitingTimerRef.current) clearInterval(waitingTimerRef.current);
-
-      // Tạo timer mới
       waitingTimerRef.current = setInterval(() => {
         setWaitingTime((prev) => prev + 1);
       }, 1000);
     });
 
-
     conn.on("MatchFound", (roomId: string, sessionData: any) => {
       console.log("🎮 Match found:", sessionData);
-      setRoomCode(roomId); // ✅ giữ nguyên GUID, KHÔNG thêm "#"
+      setRoomCode(roomId);
       setSession(sessionData);
 
-      // Lấy player và opponent thật từ server
       const me = sessionData.players.find((p: any) => p.username === name);
       const opp = sessionData.players.find((p: any) => p.username !== name);
 
       setPlayer({
         id: me?.id || "",
         name: me?.username || name || "Bạn",
-        avatar:
-          me?.avatarUrl ||
-          avatar ||
-          "https://api.dicebear.com/7.x/adventurer/svg?seed=Player",
+        avatar: me?.avatarUrl || avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Player",
       });
 
       setOpponent({
         id: opp?.id || "",
         name: opp?.username || "Đối thủ",
-        avatar:
-          opp?.avatarUrl ||
-          "https://api.dicebear.com/7.x/adventurer/svg?seed=Opponent",
+        avatar: opp?.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=Opponent",
       });
 
       setCountdown(5);
@@ -117,21 +113,40 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
       setIsSearching(false);
     });
 
+    // cleanup
     return () => {
       conn.stop();
     };
-  }, [name]);
+  };
+
+  connect();
+}, [name]);
 
   // 🔘 Nhấn nút tìm đối thủ
   const handleFindMatch = async () => {
-    if (!connection) return;
-    setIsSearching(true);
+  if (!connection) {
+    console.warn("⚠️ Chưa có kết nối SignalR!");
+    return;
+  }
+
+  if (connection.state !== signalR.HubConnectionState.Connected) {
     try {
-      await connection.invoke("FindMatch", name || "Bạn", avatar || "");
+      console.log("🔄 Reconnecting to hub...");
+      await connection.start();
     } catch (err) {
-      console.error("❌ Match invoke error:", err);
+      console.error("❌ Reconnect failed:", err);
+      return;
     }
-  };
+  }
+
+  setIsSearching(true);
+  try {
+    await connection.invoke("FindMatch", name || "Bạn", avatar || "");
+  } catch (err) {
+    console.error("❌ Match invoke error:", err);
+  }
+};
+
 
   // ⏱️ Đếm ngược 5s trước khi vào trận
   useEffect(() => {
