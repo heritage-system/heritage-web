@@ -1,0 +1,302 @@
+import { useState, useEffect, useRef } from "react";
+import * as signalR from "@microsoft/signalr";
+import { Landmark, PartyPopper, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import PlayerCard from "./PlayerInfoCard";
+import BattlePlay from "./BattlePlay";
+import Spinner from "../Layouts/LoadingLayouts/Spinner"
+import { API_URL } from "../../utils/baseUrl";
+const HUB_URL = `${API_URL}/gamehub`;
+
+const categories = [
+  {
+    key: "le",
+    title: "Phần Lễ",
+    desc: "Khám phá tín ngưỡng, nghi lễ cổ truyền",
+    icon: <Landmark className="w-7 h-7 text-yellow-700" />,
+    gradient: "from-amber-400/20 to-yellow-100/10",
+    active: "from-amber-400/80 to-yellow-600/70",
+  },
+  {
+    key: "hoi",
+    title: "Phần Hội",
+    desc: "Thử sức với trò chơi dân gian sôi động",
+    icon: <PartyPopper className="w-7 h-7 text-red-700" />,
+    gradient: "from-red-400/20 to-pink-100/10",
+    active: "from-pink-500/70 to-red-700/70",
+  },
+  {
+    key: "mix",
+    title: "Hỗn hợp",
+    desc: "Kết hợp cả phần Lễ và Hội",
+    icon: <Sparkles className="w-7 h-7 text-purple-700" />,
+    gradient: "from-indigo-400/20 to-purple-100/10",
+    active: "from-indigo-600/70 to-purple-700/70",
+  },
+];
+
+interface RandomBattleProps {
+  name?: string;
+  avatar?: string;
+  onBack: () => void;
+}
+
+const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [isBattleStarted, setIsBattleStarted] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const [player, setPlayer] = useState<any>(null);
+  const [opponent, setOpponent] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
+
+  const [waitingTime, setWaitingTime] = useState(0);
+  const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // 🔌 Kết nối SignalR khi mở trang
+  useEffect(() => {
+    const conn = new signalR.HubConnectionBuilder()
+      .withUrl(HUB_URL)
+      .withAutomaticReconnect()
+      .build();
+
+    conn.start().then(() => console.log("✅ Connected to GameHub"));
+    setConnection(conn);
+
+    // Lắng nghe các sự kiện từ server
+    conn.on("WaitingForOpponent", () => {
+      console.log("⏳ Waiting for opponent...");
+      setIsSearching(true);
+      setWaitingTime(0);
+
+      // Xoá timer cũ nếu có
+      if (waitingTimerRef.current) clearInterval(waitingTimerRef.current);
+
+      // Tạo timer mới
+      waitingTimerRef.current = setInterval(() => {
+        setWaitingTime((prev) => prev + 1);
+      }, 1000);
+    });
+
+
+    conn.on("MatchFound", (roomId: string, sessionData: any) => {
+      console.log("🎮 Match found:", sessionData);
+      setRoomCode(roomId); // ✅ giữ nguyên GUID, KHÔNG thêm "#"
+      setSession(sessionData);
+
+      // Lấy player và opponent thật từ server
+      const me = sessionData.players.find((p: any) => p.username === name);
+      const opp = sessionData.players.find((p: any) => p.username !== name);
+
+      setPlayer({
+        id: me?.id || "",
+        name: me?.username || name || "Bạn",
+        avatar:
+          me?.avatarUrl ||
+          avatar ||
+          "https://api.dicebear.com/7.x/adventurer/svg?seed=Player",
+      });
+
+      setOpponent({
+        id: opp?.id || "",
+        name: opp?.username || "Đối thủ",
+        avatar:
+          opp?.avatarUrl ||
+          "https://api.dicebear.com/7.x/adventurer/svg?seed=Opponent",
+      });
+
+      setCountdown(5);
+    });
+
+    conn.on("OpponentDisconnected", () => {
+      alert("❌ Đối thủ đã rời trận!");
+      setIsBattleStarted(false);
+      setRoomCode(null);
+      setOpponent(null);
+      setIsSearching(false);
+    });
+
+    return () => {
+      conn.stop();
+    };
+  }, [name]);
+
+  // 🔘 Nhấn nút tìm đối thủ
+  const handleFindMatch = async () => {
+    if (!connection) return;
+    setIsSearching(true);
+    try {
+      await connection.invoke("FindMatch", name || "Bạn", avatar || "");
+    } catch (err) {
+      console.error("❌ Match invoke error:", err);
+    }
+  };
+
+  // ⏱️ Đếm ngược 5s trước khi vào trận
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown <= 0) {
+      setCountdown(null);
+      setIsBattleStarted(true);
+      return;
+    }
+    const timer = setTimeout(() => setCountdown((c) => (c ?? 0) - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  // ⚔️ Khi trận bắt đầu
+  if (isBattleStarted && opponent && player) {
+    return (
+      <BattlePlay
+        player={player}
+        opponent={opponent}
+        roomId={roomCode!}
+        connection={connection!}
+        onFinish={() => {
+          setIsBattleStarted(false);
+          setRoomCode(null);
+          setIsSearching(false);
+          setSelectedCategory(null);
+          setOpponent(null);
+        }}
+      />
+    );
+  }
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // 💡 UI chọn chủ đề & tìm đối thủ
+  return (
+    <div className="p-8 bg-white/70 backdrop-blur-lg rounded-2xl shadow-lg space-y-8 border border-gray-100">
+      <AnimatePresence mode="wait">
+        {/* STEP 1: chọn chủ đề */}
+        {!isSearching && !roomCode && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <h3 className="text-3xl font-semibold text-gray-900 text-center">
+              Chọn chủ đề bạn muốn thi đấu
+            </h3>
+
+            <div className="text-center">
+              <button
+                onClick={onBack}
+                className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition"
+              >
+                ← Quay lại
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+              {categories.map((c) => (
+                <div
+                  key={c.key}
+                  onClick={() => setSelectedCategory(c.key)}
+                  className={`rounded-2xl p-6 text-center cursor-pointer border transition-all backdrop-blur-sm hover:scale-105 ${
+                    selectedCategory === c.key
+                      ? `bg-gradient-to-br ${c.active} text-white border-transparent shadow-xl`
+                      : `bg-gradient-to-br ${c.gradient} border-gray-200 hover:border-gray-300`
+                  }`}
+                >
+                  <div className="flex justify-center mb-3">{c.icon}</div>
+                  <h4
+                    className={`text-lg font-semibold ${
+                      selectedCategory === c.key ? "text-white" : "text-gray-800"
+                    }`}
+                  >
+                    {c.title}
+                  </h4>
+                  <p
+                    className={`text-sm mt-1 ${
+                      selectedCategory === c.key ? "text-white/80" : "text-gray-500"
+                    }`}
+                  >
+                    {c.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-8">
+              <button
+                disabled={!selectedCategory}
+                onClick={handleFindMatch}
+                className={`px-10 py-3 rounded-xl font-semibold text-white text-lg transition-all ${
+                  selectedCategory
+                    ? "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:shadow-lg"
+                    : "bg-gray-300 cursor-not-allowed"
+                }`}
+              >
+                Tìm đối thủ
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* STEP 2: Đang tìm đối thủ */}
+        {isSearching && !roomCode && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center space-y-4 py-8"
+          >
+            <span className="mx-auto" ><Spinner size={40} thickness={6}/></span>
+            <h3 className="text-xl font-semibold text-gray-800">
+              Đang tìm đối thủ phù hợp...
+            </h3>
+            <p className="text-xl font-bold text-gray-800"> {formatTime(waitingTime)}</p>
+          </motion.div>
+        )}
+
+        {/* STEP 3: Ghép thành công + đếm ngược */}
+        {roomCode && !isBattleStarted && opponent && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center space-y-8"
+          >
+            <h3 className="text-2xl font-bold text-gray-900">
+              Đã tìm thấy phòng #{roomCode.substring(0, 4)}
+            </h3>
+
+            <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-20">
+              <PlayerCard name={player?.name || "Bạn"} score={0} avatar={player?.avatar} />
+
+              <div className="relative flex items-center justify-center">
+                <div className="relative w-24 h-24 rounded-full flex items-center justify-center bg-gradient-to-br from-amber-400 to-orange-600 text-white font-extrabold text-3xl shadow-lg">
+                  <div className="absolute inset-0 rounded-full bg-yellow-400/40 blur-2xl animate-pulse" />
+                  <span className="relative z-10 tracking-wider drop-shadow-md">
+                    {countdown !== null ? countdown : "VS"}
+                  </span>
+                </div>
+              </div>
+
+              <PlayerCard
+                name={opponent?.name || "Đối thủ"}
+                score={0}
+                avatar={opponent?.avatar}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default RandomBattle;

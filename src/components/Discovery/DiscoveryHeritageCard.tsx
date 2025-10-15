@@ -7,6 +7,8 @@ import {
   HeritageOccurrence,
 } from "../../types/heritage";
 import FavoriteButton from "../Layouts/ButtonLayouts/FavoriteButton";
+import { useAuth } from '../../hooks/useAuth';
+
 interface DiscoveryHeritageCardProps {
   heritage: HeritageSearchResponse;
 }
@@ -18,6 +20,7 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const [showAllLocations, setShowAllLocations] = useState(false);
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
 
   const handleCardClick = () => {
     navigate(`/heritagedetail/${heritage.id}`);
@@ -110,7 +113,7 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
             e.stopPropagation();
           }}
         >
-          <FavoriteButton heritageId={heritage.id} isFavorite={heritage.isSave} size="md" />
+          {isLoggedIn &&(<FavoriteButton heritageId={heritage.id} isFavorite={heritage.isSave} size="md" />)}
         </div>
       </div>
 

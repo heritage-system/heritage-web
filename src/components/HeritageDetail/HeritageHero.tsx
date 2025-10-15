@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { HeritageDetailResponse } from "../../types/heritage";
 import FavoriteButton from "../Layouts/ButtonLayouts/FavoriteButton";
+import { useAuth } from '../../hooks/useAuth';
 
 interface Props {
   heritage: HeritageDetailResponse;
@@ -45,7 +46,7 @@ export const HeritageHero: React.FC<Props> = ({
 }) => {
   const firstOcc = heritage.heritageOccurrences?.[0];
   const firstLoc = heritage.heritageLocations?.[0];
-
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
   // helper để build địa chỉ
   const formatLocation = (loc?: {
     province?: string;
@@ -158,7 +159,7 @@ export const HeritageHero: React.FC<Props> = ({
                 )}
               </div>
 
-              <FavoriteButton heritageId={heritage.id} isFavorite={heritage.isSave} size="md" />
+              {isLoggedIn && (<FavoriteButton heritageId={heritage.id} isFavorite={heritage.isSave} size="md" />)}
             </div>
 
             {/* Quick intro */}
