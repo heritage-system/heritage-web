@@ -10,11 +10,12 @@ import {
   Tag,
   Image as ImageIcon,
 } from "lucide-react";
-import { HeritageSearchResponse } from "../../types/heritage";
-import FavoriteButton from "../Heritage/FavoriteButton";
+import { HeritageDetailResponse } from "../../types/heritage";
+import FavoriteButton from "../Layouts/ButtonLayouts/FavoriteButton";
+import { useAuth } from '../../hooks/useAuth';
 
 interface Props {
-  heritage: HeritageSearchResponse;
+  heritage: HeritageDetailResponse;
   liked: boolean;
   bookmarked: boolean;
   heroImage?: string;
@@ -45,7 +46,7 @@ export const HeritageHero: React.FC<Props> = ({
 }) => {
   const firstOcc = heritage.heritageOccurrences?.[0];
   const firstLoc = heritage.heritageLocations?.[0];
-
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
   // helper để build địa chỉ
   const formatLocation = (loc?: {
     province?: string;
@@ -65,6 +66,7 @@ export const HeritageHero: React.FC<Props> = ({
     return parts.length > 0 ? parts.join(", ") : "Không xác định";
   };
 
+   
   return (
     <div className="relative">
       {/* <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/10 pointer-events-none rounded-b-3xl"/> */}
@@ -126,7 +128,7 @@ export const HeritageHero: React.FC<Props> = ({
                       <MapPin className="w-4 h-4" /> {formatLocation(firstLoc)}
                     </Pill>
                   )}
-                  {firstOcc && (
+                  {/* {firstOcc && (
                     <Pill>
                       <Calendar className="w-4 h-4" />
                       {firstOcc.startDay}/{firstOcc.startMonth} (
@@ -134,7 +136,7 @@ export const HeritageHero: React.FC<Props> = ({
                         firstOcc.calendarTypeName}
                       )
                     </Pill>
-                  )}
+                  )} */}
                   <Pill>
                     <Users className="w-4 h-4" />{" "}
                     {heritage.categoryName || "Danh mục"}
@@ -157,7 +159,7 @@ export const HeritageHero: React.FC<Props> = ({
                 )}
               </div>
 
-              <FavoriteButton heritageId={heritage.id} size="md" />
+              {isLoggedIn && (<FavoriteButton heritageId={heritage.id} isFavorite={heritage.isSave} size="md" />)}
             </div>
 
             {/* Quick intro */}

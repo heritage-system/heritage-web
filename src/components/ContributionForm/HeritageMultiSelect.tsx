@@ -1,37 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { HeritageName } from "../../types/heritage";
 import { searchHeritageNames } from "../../services/heritageService";
 
 interface Props {
   selected: HeritageName[];
   onChange: (heritages: HeritageName[]) => void;
+  allHeritages: HeritageName[];
 }
 
-const HeritageMultiSelect: React.FC<Props> = ({ selected, onChange }) => {
+const HeritageMultiSelect: React.FC<Props> = ({ selected, onChange, allHeritages }) => {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<HeritageName[]>([]);
-  const [open, setOpen] = useState(false); // 👈 quản lý hiển thị khung gợi ý
+  const [open, setOpen] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch gợi ý
-  useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
+  // Lọc client-side
+  const filtered = useMemo(() => {
+    if (!query.trim()) return allHeritages;
+    const lower = query.toLowerCase();
+    return allHeritages.filter(h => h.name.toLowerCase().includes(lower) || h.nameUnsigned.includes(lower));
+  }, [query, allHeritages]);
 
-    const fetchData = async () => {
-      const res = await searchHeritageNames(query);
-      setSuggestions(res.result || []);
-      setOpen(true);
-    };
-
-    fetchData();
-  }, [query]);
-
-  // Detect click outside -> đóng gợi ý
+ 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -62,13 +52,13 @@ const HeritageMultiSelect: React.FC<Props> = ({ selected, onChange }) => {
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Nhập tên di sản..."
         className="w-full rounded-xl border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-700/40"
-        onFocus={() => suggestions.length > 0 && setOpen(true)} // focus thì mở
+        onFocus={() => filtered.length > 0 && setOpen(true)} // focus thì mở
       />
 
       {/* Suggest list */}
-      {open && suggestions.length > 0 && (
+      {open && filtered.length > 0 && (
         <div className="absolute mt-1 w-full border rounded-lg bg-white shadow-sm max-h-48 overflow-y-auto z-10">
-          {suggestions.map((h) => (
+          {filtered.map((h) => (
             <button
               key={h.id}
               onClick={() => toggleSelect(h)}

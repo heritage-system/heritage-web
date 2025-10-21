@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import { HeritageSearchResponse,HeritageSearchRequest, HeritageDescription } from "../../types/heritage";
+import { HeritageDetailResponse,HeritageSearchRequest, HeritageDescription, HeritageRelatedRequest,HeritageRelatedResponse } from "../../types/heritage";
 import { getHeritageDetail } from "../../services/heritageService";
 import { getContributionRelated } from "../../services/contributionService";
 // Import các components con
@@ -13,14 +13,14 @@ import { HeritageReviews } from "../../components/HeritageDetail/HeritageReviews
 import { HeritageRelated } from "../../components/HeritageDetail/HeritageRelated";
 import { HeritageSidebar } from "../../components/HeritageDetail/HeritageSidebar";
 import { HeritageContributorPosts } from "../../components/HeritageDetail/HeritageContributorPosts";
-import { searchHeritage } from "../../services/heritageService";
+import { getHeritageRelated } from "../../services/heritageService";
 import {ContributionSearchResponse} from "../../types/contribution";
 import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 const HeritageDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
 
-  const [heritage, setHeritage] = useState<HeritageSearchResponse | null>(null);
+  const [heritage, setHeritage] = useState<HeritageDetailResponse | null>(null);
   const [content, setContent] = useState<HeritageDescription | null>(null);
 
   const [tab, setTab] = useState<"History" | "Rituals" | "Values" | "Preservation">("History");
@@ -28,7 +28,7 @@ const HeritageDetailPage: React.FC = () => {
   const [bookmarked, setBookmarked] = useState(false);
 
   // NEW: related
-  const [related, setRelated] = useState<HeritageSearchResponse[]>([]);
+  const [related, setRelated] = useState<HeritageRelatedResponse[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
 
   const [relatedPosts, setRelatedPosts] = useState<ContributionSearchResponse[]>([]);
@@ -58,23 +58,19 @@ const HeritageDetailPage: React.FC = () => {
     const run = async () => {
       if (!heritage) return;
       setLoadingRelated(true);
-      const req: HeritageSearchRequest = {
-       
-        categoryIds: heritage.categoryIds ? [heritage.categoryIds] : undefined,
+      const req: HeritageRelatedRequest = {
+        keyword: heritage.name,
+        categoryIds: heritage.categoryIds,
         tagIds: (heritage.heritageTagIds && heritage.heritageTagIds.length) ? heritage.heritageTagIds : undefined,
-      
+        heritageId: heritage.id
       };
 
       try {
-        const res = await searchHeritage(req);
-        const items = res?.result?.items || [];
-
-        // loại chính nó + tránh trùng
-        const filtered = items
-          .filter((h) => h.id !== heritage.id)
-          .filter((h, idx, arr) => arr.findIndex(x => x.id === h.id) === idx);
-
-        setRelated(filtered);
+        const res = await getHeritageRelated(req);
+        
+        if(res.code === 200 && res.result){
+          setRelated(res.result);
+        }   
       } catch (e) {
         console.error("fetch related error:", e);
         setRelated([]);

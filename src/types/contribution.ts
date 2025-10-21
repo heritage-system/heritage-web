@@ -20,7 +20,7 @@ export interface ContributionCreateResponse {
 
 export interface ContributionSearchRequest {
     keyword?: string;   
-    contributorIds?: number[];
+    contributorId?: number;
     tagHeritageIds?: number[];
     sortBy?: SortBy;             
     page?: number;
@@ -76,4 +76,76 @@ export interface SearchRequest {
   sortBy: string;
   page: number;
   pageSize: number;
+}
+
+export interface ContributionOverviewSearchRequest {
+    keyword?: string;   
+    contributionStatus?: ContributionStatus;
+    sortBy?: SortBy;             
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ContributionOverviewResponse {
+  id: number;  
+  content?: string;
+  title: string;
+  mediaUrl?: string;
+  contributionHeritageTags:  HeritageName[]; 
+  publishedAt: string;
+  createdAt: string; 
+  status: string,
+  view: number,
+  save: number,
+  comments: number,
+  reports: number,
+  isPremium: boolean,
+  monthlyViews: 
+  {
+    month: number,
+    year: number,
+    views: number
+  }[]
+}
+
+export interface ContributionOverviewItemListResponse {
+  id: number,
+  title: string,
+  mediaUrl: string,
+  contributionHeritageTags: HeritageName[],
+  view: number,
+  comments: number,
+  saves: number,
+  isPremium: true,
+  status: string,
+}
+
+export interface ContributionDetailUpdatedResponse {
+  id: number,
+  title: string,
+  content: string,
+  mediaUrl: string,
+  contributionHeritageTags?: HeritageName[],
+  status: ContributionStatus,
+  isPremium?: boolean,
+}
+
+export interface ContributionUpdateRequest {
+  id: number,
+  title: string,
+  content: string,
+  mediaUrl: string,
+  tagHeritageIds?: number[],
+  premiumType?: number,
+}
+
+export interface ContributionSaveResponse{
+  id: number,
+  contributionId: number,
+  contributorId: number,
+  contributorName: string,
+  avatarUrl: string,
+  title: string,
+  mediaUrl: string,
+  contributionHeritageTags: HeritageName[]
 }

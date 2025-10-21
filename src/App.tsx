@@ -8,7 +8,7 @@ import CommunityPage from './pages/CommunityPage/CommunityPage';
 import Login from './pages/AuthPage/Login';
 import MainLayout from './components/HomePage/MainLayout';
 import Register from './pages/AuthPage/Register';
-import QuizzPage from './pages/QuizzPage/QuizzPage';
+import QuizzPage from './pages/QuizzPage/QuizPage';
 import ForgotPassword from './pages/AuthPage/ForgotPassword';
 import ResetPassword from './pages/AuthPage/ResetPassword'; 
 import ChangePassword from './pages/AuthPage/ChangePassword';
@@ -27,7 +27,9 @@ import ContributionSearchResponse from './pages/ContributionPage/ContributionPag
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 import HeritageForm from './pages/ContributionPage/HeritageForm'
-import AIPredictPage from './pages/DiscoveryPage/AIPredictPage';
+import BoardGame from './pages/QuizzPage/BoardGame'
+import BoardGameMono from './pages/QuizzPage/BoardGameMono'
+
 import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
 const App: React.FC = () => {
   return (
@@ -36,7 +38,7 @@ const App: React.FC = () => {
         <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
-        <Route path="DiscoveryPage/AIPredictPage" element={<MainLayout><AIPredictPage/></MainLayout>} />
+     
          <Route path="DiscoveryPage/AIpredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
         <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} />
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
@@ -48,7 +50,7 @@ const App: React.FC = () => {
         <Route path="/heritagedetail/:id" element={<MainLayout><HeritageDetailPage /></MainLayout>} />
         <Route path="/quizdetailview" element={<MainLayout><QuizDetailView /></MainLayout>} />
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
-        <Route path="/contribution-form" element={<MainLayout><ContributionFormPage /></MainLayout>} />
+        <Route path="/contribution-form/:id?" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
         <Route path="/admin/adminPanelmanagement" element={<AdminPanelPage />} />
         <Route path="/admin/heritage/:id" element={<HeritageDetailManagement />} />
@@ -59,6 +61,8 @@ const App: React.FC = () => {
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />   
         <Route path="/heritage-form" element={<MainLayout><HeritageForm /></MainLayout>} /> 
+         <Route path="/board-game" element={<MainLayout><BoardGame /></MainLayout>} />
+         <Route path="/board-game-mono" element={<MainLayout><BoardGameMono /></MainLayout>} />
       </Routes>
 
       {/* <ChatBoxAI /> */}

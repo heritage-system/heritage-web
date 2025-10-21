@@ -13,7 +13,7 @@ const SectionCard: React.FC<{ title: string; right?: React.ReactNode; children: 
   = ({ title, right, children }) => (
   <section className="bg-white rounded-2xl shadow-sm border p-5">
     <header className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
       {right}
     </header>
     <div>{children}</div>
@@ -35,6 +35,20 @@ const toYouTubeEmbed = (url: string) => {
 const toVimeoEmbed = (url: string) => {
   const idMatch = url.match(/vimeo\.com\/(\d+)/)?.[1] || "";
   return idMatch ? `https://player.vimeo.com/video/${idMatch}` : url;
+};
+
+const getVideoThumbnail = (url: string) => {
+  if (isYouTube(url)) {
+    const idMatch =
+      url.match(/youtu\.be\/([^?&]+)/)?.[1] ||
+      url.match(/[?&]v=([^?&]+)/)?.[1];
+    if (idMatch) return `https://img.youtube.com/vi/${idMatch}/hqdefault.jpg`;
+  }
+  if (isVimeo(url)) {
+    // TODO: call API hoặc backend trả thumbnail
+    return "/default-vimeo-thumb.jpg";
+  }
+  return null;
 };
 
 type Combined = (HeritageMedia & { kind: "image" | "video" });
@@ -117,11 +131,15 @@ export const HeritageMediaGallery: React.FC<Props> = ({
     }
     // Ảnh
     return (
-      <img
-        src={item.url}
-        alt={item.description || heritageName}
-        className="max-h-[80vh] max-w-full object-contain rounded-xl"
-      />
+  <div className="aspect-video w-full max-w-4xl flex items-center justify-center backdrop-blur-sm opacity-100 rounded-xl scrollbar-hide">
+    <img
+      src={item.url}
+      alt={item.description || heritageName}
+      className="max-h-full max-w-full object-contain scrollbar-hide"
+    />
+  </div>
+
+
     );
   };
 
@@ -156,20 +174,39 @@ export const HeritageMediaGallery: React.FC<Props> = ({
 
         {/* Video */}
         {visibleVideos.map((v, j) => {
-          const overallIndex = visibleImages.length + j;
-          return (
-            <button
-              key={`vid-${v.id}`}
-              type="button"
-              onClick={() => openAt(overallIndex)}
-              className="relative overflow-hidden rounded-xl border h-36 flex items-center justify-center bg-black/80 text-white group"
-              title="Xem video"
-            >
-              <Play className="w-8 h-8" />
-              <span className="sr-only">Xem video</span>
-            </button>
-          );
-        })}
+  const overallIndex = visibleImages.length + j;
+  const thumb = getVideoThumbnail(v.url);
+
+  return (
+    <button
+    key={`vid-${v.id}`}
+    type="button"
+    onClick={() => openAt(overallIndex)}
+    className="relative overflow-hidden rounded-xl border h-36 group"
+    title="Xem video"
+  >
+    {thumb ? (
+      <img
+        src={thumb}
+        alt={v.description || heritageName}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+      />
+    ) : (
+      <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white">
+        <Play className="w-8 h-8" />
+      </div>
+    )}
+
+    {/* Nút Play overlay luôn hiển thị */}
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="bg-black/40 rounded-full p-3 transition-transform group-hover:scale-110">
+        <Play className="w-8 h-8 text-white" />
+      </div>
+    </div>
+  </button>
+  );
+})}
+
 
         {images.length === 0 && videos.length === 0 && (
           <div className="col-span-full text-center text-gray-500 py-8">

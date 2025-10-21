@@ -1,4 +1,4 @@
-import { Map } from "lucide-react";
+import { Map, LayoutGrid  } from "lucide-react";
 import React from "react";
 
 interface DiscoveryViewToggleProps {
@@ -17,7 +17,8 @@ const DiscoveryViewToggle: React.FC<DiscoveryViewToggleProps> = ({ view, onViewC
             : "text-gray-600 hover:text-yellow-700"
         }`}
       >
-        Lưới
+        <LayoutGrid className="w-4 h-4 inline mr-1" />
+        Trang
       </button>
       <button
         onClick={() => onViewChange("map")}

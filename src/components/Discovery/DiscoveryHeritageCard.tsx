@@ -6,7 +6,9 @@ import {
   HeritageLocation,
   HeritageOccurrence,
 } from "../../types/heritage";
-import FavoriteButton from "../Heritage/FavoriteButton";
+import FavoriteButton from "../Layouts/ButtonLayouts/FavoriteButton";
+import { useAuth } from '../../hooks/useAuth';
+
 interface DiscoveryHeritageCardProps {
   heritage: HeritageSearchResponse;
 }
@@ -18,11 +20,12 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const [showAllLocations, setShowAllLocations] = useState(false);
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
 
   const handleCardClick = () => {
     navigate(`/heritagedetail/${heritage.id}`);
   };
-  const imageUrl = heritage.media?.[0]?.url || DEFAULT_IMAGE;
+  const imageUrl = heritage.media?.url || DEFAULT_IMAGE;
 
   const formatLocation = (loc: HeritageLocation) => {
     return [loc.province, loc.district, loc.ward, loc.addressDetail]
@@ -81,11 +84,16 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
   };
 
   const dateLabel = occurrence
-    ? `${occurrence.startDay}/${occurrence.startMonth} (${
-        calendarLabelMap[occurrence.calendarTypeName] ||
-        occurrence.calendarTypeName
-      })`
-    : "Không xác định";
+  ? `${occurrence.startDay}/${occurrence.startMonth}${
+      occurrence.occurrenceTypeName !== "EXACTDATE" &&
+      occurrence.endDay &&
+      occurrence.endMonth
+        ? ` - ${occurrence.endDay}/${occurrence.endMonth}`
+        : ""
+    } (${calendarLabelMap[occurrence.calendarTypeName] || occurrence.calendarTypeName})`
+  : "Không xác định";
+
+
 
   return (
     <div
@@ -105,7 +113,7 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
             e.stopPropagation();
           }}
         >
-          <FavoriteButton heritageId={heritage.id} size="md" />
+          {isLoggedIn &&(<FavoriteButton heritageId={heritage.id} isFavorite={heritage.isSave} size="md" />)}
         </div>
       </div>
 
@@ -130,7 +138,7 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
           {heritage.categoryName || "Chưa rõ danh mục"}
         </p>
         <p className="text-xs text-gray-500 mb-3">
-          <strong>Tags:</strong>{" "}
+          <strong>Thể loại:</strong>{" "}
           {heritage.heritageTags.length
             ? heritage.heritageTags.join(", ")
             : "Chưa có tag"}

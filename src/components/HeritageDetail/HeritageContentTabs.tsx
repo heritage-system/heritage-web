@@ -14,7 +14,7 @@ const SectionCard: React.FC<{
 }> = ({ title, right, children }) => (
   <section className="bg-white rounded-2xl shadow-sm border p-5">
     <header className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
       {right}
     </header>
     <div>{children}</div>
@@ -47,7 +47,7 @@ export const HeritageContentTabs: React.FC<Props> = ({
               onClick={() => onTabChange(key)}
               className={`px-3 py-1.5 text-sm rounded-lg transition ${
                 activeTab === key
-                  ? "bg-white shadow-sm border"
+                  ? "bg-gradient-to-r from-yellow-700 to-red-700 shadow-sm border text-white"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >

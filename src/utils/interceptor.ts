@@ -9,20 +9,22 @@ const PUBLIC_ONLY_ENDPOINTS: string[] = [
   '/api/v1/users',
   '/api/v1/auth/forgot-password',
   '/api/v1/auth/reset-password',
-  '/api/v1/auth/verify-email',
-  '/api/v1/users/search_heritage',
+  '/api/v1/auth/verify-email',  
   '/api/v1/Category',
   '/api/v1/Tags',
-  '/api/v1/users/heritageDetail',
   '/api/v1/Reviews',
   '/api/v1/contributions/top_contribution_heritage_tag',
   '/api/v1/contributions/top_contributor',
-  '/api/v1/contributions/contribution_related'
+  '/api/v1/contributions/contribution_related',
+  '/api/Heritage/heritage_related'
 ];
 const OPTIONAL_AUTH_ENDPOINTS: string[] = [
   '/api/v1/contributions/get_contribution_detail',
   '/api/v1/contribution_reviews/get_contribution_reviews',
-  '/api/v1/contributions/search_contribution'
+  '/api/v1/contributions/search_contribution',
+  '/api/Heritage/search_heritage',
+  '/api/Heritage/heritage_detail',
+  '/api/v1/reviews/reviewByheritage',
 ]
 
 // Helpers nhận diện body

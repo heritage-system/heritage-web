@@ -49,6 +49,8 @@ export interface HeritageOccurrence {
   calendarTypeName: string;   
   startDay: number;
   startMonth: number;
+  endDay: number;
+  endMonth: number;
   frequencyName: string;      
   description: string;
 }
@@ -80,17 +82,30 @@ export interface HeritageSearchResponse {
   name: string;
   description: string;
   content: string;
+  categoryName: string;
+  isSave: boolean;
+  isFeatured: boolean;
+  heritageOccurrences: HeritageOccurrence[];
+  media: HeritageMedia;
+  heritageTags: string[]; 
+  heritageTagIds: number[];
+  heritageLocations: HeritageLocation[];   
+}
+
+export interface HeritageDetailResponse {
+  id: number;
+  name: string;
+  description: string;
+  content: string;
   categoryIds: number;
   categoryName: string;
-  mapUrl: string;
+  isSave: boolean;
   isFeatured: boolean;
   heritageOccurrences: HeritageOccurrence[];
   media: HeritageMedia[];
   heritageTags: string[]; 
   heritageTagIds: number[];
   heritageLocations: HeritageLocation[]; 
-  nameUnsigned: string;
-  descriptionUnsigned: string;
 }
 
 
@@ -158,7 +173,7 @@ export interface HeritageDetail {
   description: string;
   categoryId: number;
   categoryName: string;
-  mapUrl: string;
+  isSave: boolean;
   isFeatured: boolean;
   createdAt: string;
   updatedAt: string;
@@ -188,6 +203,7 @@ export interface HeritageDetail {
 export interface HeritageName {
   id: number;
   name: string;
+  nameUnsigned: string;
 }
 
 export interface ContributionHeritageTag {
@@ -254,3 +270,22 @@ export interface HeritageCreateResponse {
   name: string;
 }
 
+
+export interface HeritageRelatedResponse {
+  id: number;
+  name: string;
+  description: string;
+  categoryName: string;
+  media: HeritageMedia;
+  heritageTags: string[]; 
+  heritageLocations: HeritageLocation[];   
+}
+
+export interface HeritageRelatedRequest {
+  keyword?: string;
+  categoryIds?: number;
+  tagIds?: number[];
+  locations?: string[];
+  heritageId: number;
+  quantity?: number;
+}

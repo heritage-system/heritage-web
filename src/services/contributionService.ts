@@ -8,7 +8,13 @@ import {
   ContributionResponse,
   ContributionSearchRequest,
   ContributionSearchResponse,
-  ContributionRelatedRequest
+  ContributionRelatedRequest,
+  ContributionOverviewResponse,
+  ContributionOverviewItemListResponse,
+  ContributionOverviewSearchRequest,
+  ContributionDetailUpdatedResponse,
+  ContributionUpdateRequest,
+  ContributionSaveResponse
 } from "../types/contribution";
 import {
   ContributionReviewCreateRequest,
@@ -210,6 +216,86 @@ export const getContributionRelated = async (
 
     const response = await fetchInterceptor<ContributionSearchResponse[]>(
     `${API_URL}/api/v1/contributions/contribution_related?${queryString.toString()}`,
+    { method: "GET" }
+    );
+
+  return response;
+};
+
+export const getContributionOverview = async (id: number): Promise<ApiResponse<ContributionOverviewResponse>> => {
+  const queryString = new URLSearchParams({ id: id.toString() });
+  return await fetchInterceptor<ContributionOverviewResponse>(
+    `${API_URL}/api/v1/contributions/get_contribution_overview?${queryString}`,
+    {
+      method: "GET",
+    }
+  );
+};
+
+export const getListContributionOverview = async (
+  params: ContributionOverviewSearchRequest
+): Promise<ApiResponse<PageResponse<ContributionOverviewItemListResponse>>> => {
+
+    const queryString = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+        value.forEach(v => queryString.append(key, String(v)));
+    } else {
+        queryString.append(key, String(value));
+    }
+    });
+
+    const response = await fetchInterceptor<PageResponse<ContributionOverviewItemListResponse>>(
+    `${API_URL}/api/v1/contributions/get_list_contribution_overview?${queryString.toString()}`,
+    { method: "GET" }
+    );
+
+  return response;
+};
+
+export const getContributionDetailForUpdated = async (id: number): Promise<ApiResponse<ContributionDetailUpdatedResponse>> => {
+  const queryString = new URLSearchParams({ id: id.toString() });
+  return await fetchInterceptor<ContributionDetailUpdatedResponse>(
+    `${API_URL}/api/v1/contributions/get_contribution_updated?${queryString}`,
+    {
+      method: "GET",
+    }
+  );
+};
+
+export const updateContribution = async (
+  data: ContributionUpdateRequest
+): Promise<ApiResponse<ContributionCreateResponse>> => {
+  return await fetchInterceptor<ContributionCreateResponse>(
+    `${API_URL}/api/v1/contributions/updated_contribution`,
+    {
+      method: "PUT",
+      body: data as any,
+    }
+  );
+};
+
+export const getContributionSaves = async (
+  params: ContributionSearchRequest
+): Promise<ApiResponse<PageResponse<ContributionSaveResponse>>> => {
+
+    const queryString = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+        value.forEach(v => queryString.append(key, String(v)));
+    } else {
+        queryString.append(key, String(value));
+    }
+    });
+
+    const response = await fetchInterceptor<PageResponse<ContributionSaveResponse>>(
+    `${API_URL}/api/v1/contributions/get_contribution_save?${queryString.toString()}`,
     { method: "GET" }
     );
 
