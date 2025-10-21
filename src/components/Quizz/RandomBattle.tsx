@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
-import { Landmark, PartyPopper, Sparkles } from "lucide-react";
+import { Landmark, PartyPopper, Sparkles, Users, Share2, KeyRound } from "lucide-react"; // 🆕 thêm icon
 import { motion, AnimatePresence } from "framer-motion";
 import PlayerCard from "./PlayerInfoCard";
 import BattlePlay from "./BattlePlay";
@@ -54,99 +54,161 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
 
   const [waitingTime, setWaitingTime] = useState(0);
   const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🆕 FRIEND MODE
+  const [mode, setMode] = useState<"random" | "friend">("random");
+  const [friendRoomCode, setFriendRoomCode] = useState<string>("");
+  const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
+  const [isWaitingFriend, setIsWaitingFriend] = useState(false);
+
   // 🔌 Kết nối SignalR khi mở trang
   useEffect(() => {
-  const connect = async () => {
-    const conn = new signalR.HubConnectionBuilder()
-      .withUrl(HUB_URL, { withCredentials: true })
-      .withAutomaticReconnect()
-      .build();
+    let conn: signalR.HubConnection | null = null;
 
-    try {
-      await conn.start();
-      console.log("✅ Connected to GameHub");
-      setConnection(conn);
-    } catch (err) {
-      console.error("❌ Failed to connect SignalR:", err);
-    }
+    const connect = async () => {
+      conn = new signalR.HubConnectionBuilder()
+        .withUrl(HUB_URL, { withCredentials: true })
+        .withAutomaticReconnect()
+        .build();
 
-    // 🎧 Sự kiện
-    conn.on("WaitingForOpponent", () => {
-      console.log("⏳ Waiting for opponent...");
-      setIsSearching(true);
-      setWaitingTime(0);
+      try {
+        await conn.start();
+        console.log("✅ Connected to GameHub");
+        setConnection(conn);
+      } catch (err) {
+        console.error("❌ Failed to connect SignalR:", err);
+      }
 
-      if (waitingTimerRef.current) clearInterval(waitingTimerRef.current);
-      waitingTimerRef.current = setInterval(() => {
-        setWaitingTime((prev) => prev + 1);
-      }, 1000);
-    });
-
-    conn.on("MatchFound", (roomId: string, sessionData: any) => {
-      console.log("🎮 Match found:", sessionData);
-      setRoomCode(roomId);
-      setSession(sessionData);
-
-      const me = sessionData.players.find((p: any) => p.username === name);
-      const opp = sessionData.players.find((p: any) => p.username !== name);
-
-      setPlayer({
-        id: me?.id || "",
-        name: me?.username || name || "Bạn",
-        avatar: me?.avatarUrl || avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Player",
+      // 🎧 Sự kiện
+      conn.on("WaitingForOpponent", () => {
+        console.log("⏳ Waiting for opponent...");
+        setIsSearching(true);
+        setWaitingTime(0);
+        if (waitingTimerRef.current) clearInterval(waitingTimerRef.current);
+        waitingTimerRef.current = setInterval(() => setWaitingTime((prev) => prev + 1), 1000);
       });
 
-      setOpponent({
-        id: opp?.id || "",
-        name: opp?.username || "Đối thủ",
-        avatar: opp?.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=Opponent",
+      conn.on("MatchFound", (roomId: string, sessionData: any) => {
+        console.log("🎮 Match found:", sessionData);
+        setRoomCode(roomId);
+        setSession(sessionData);
+
+        const me = sessionData.players.find((p: any) => p.username === name);
+        const opp = sessionData.players.find((p: any) => p.username !== name);
+
+        setPlayer({
+          id: me?.id || "",
+          name: me?.username || name || "Bạn",
+          avatar: me?.avatarUrl || avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Player",
+        });
+
+        setOpponent({
+          id: opp?.id || "",
+          name: opp?.username || "Đối thủ",
+          avatar: opp?.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=Opponent",
+        });
+
+        setCountdown(5);
       });
 
-      setCountdown(5);
-    });
+      conn.on("OpponentDisconnected", () => {
+        alert("❌ Đối thủ đã rời trận!");
+        setIsBattleStarted(false);
+        setRoomCode(null);
+        setOpponent(null);
+        setIsSearching(false);
+      });
 
-    conn.on("OpponentDisconnected", () => {
-      alert("❌ Đối thủ đã rời trận!");
-      setIsBattleStarted(false);
-      setRoomCode(null);
-      setOpponent(null);
-      setIsSearching(false);
-    });
+      // 🆕 Friend Mode - Event
+      conn.on("RoomCreated", (code: string) => {
+        console.log("🏠 Room created:", code);
+        setCreatedRoomCode(code);
+        setIsWaitingFriend(true);
+      });
 
-    // cleanup
-    return () => {
-      conn.stop();
+      conn.on("RoomJoined", (code: string, sessionData: any) => {
+        console.log("👫 Room joined:", code, sessionData);
+        setRoomCode(code);
+        setSession(sessionData);
+
+        const me = sessionData.players.find((p: any) => p.username === name);
+        const opp = sessionData.players.find((p: any) => p.username !== name);
+
+        setPlayer({
+          id: me?.id || "",
+          name: me?.username || name || "Bạn",
+          avatar: me?.avatarUrl || avatar,
+        });
+
+        setOpponent({
+          id: opp?.id || "",
+          name: opp?.username || "Đối thủ",
+          avatar: opp?.avatarUrl,
+        });
+
+        setCountdown(5);
+      });
+
+      conn.on("RoomNotFound", () => alert("❌ Mã phòng không tồn tại!"));
+      conn.on("RoomFull", () => alert("⚠️ Phòng đã đủ người!"));
     };
-  };
 
-  connect();
-}, [name]);
+    connect();
+
+    // ✅ Cleanup thật sự của React
+    return () => {
+      console.log("🚪 Leaving page → cancel matchmaking");
+      if (conn && conn.state === signalR.HubConnectionState.Connected) {
+        conn.invoke("CancelFindMatch").catch(() => {});
+      }
+      conn?.stop();
+    };
+  }, [name]);
 
   // 🔘 Nhấn nút tìm đối thủ
   const handleFindMatch = async () => {
-  if (!connection) {
-    console.warn("⚠️ Chưa có kết nối SignalR!");
-    return;
-  }
-
-  if (connection.state !== signalR.HubConnectionState.Connected) {
-    try {
-      console.log("🔄 Reconnecting to hub...");
-      await connection.start();
-    } catch (err) {
-      console.error("❌ Reconnect failed:", err);
+    if (!connection) {
+      console.warn("⚠️ Chưa có kết nối SignalR!");
       return;
     }
-  }
 
-  setIsSearching(true);
-  try {
-    await connection.invoke("FindMatch", name || "Bạn", avatar || "");
-  } catch (err) {
-    console.error("❌ Match invoke error:", err);
-  }
-};
+    if (connection.state !== signalR.HubConnectionState.Connected) {
+      try {
+        console.log("🔄 Reconnecting to hub...");
+        await connection.start();
+      } catch (err) {
+        console.error("❌ Reconnect failed:", err);
+        return;
+      }
+    }
 
+    setIsSearching(true);
+    try {
+      await connection.invoke("FindMatch", name || "Bạn", avatar || "");
+    } catch (err) {
+      console.error("❌ Match invoke error:", err);
+    }
+  };
+
+  // 🆕 FRIEND MODE: Tạo phòng
+  const handleCreateRoom = async () => {
+    if (!connection) return;
+    try {
+      await connection.invoke("CreateRoom", name || "Bạn", avatar || "");
+    } catch (err) {
+      console.error("❌ Create room error:", err);
+    }
+  };
+
+  // 🆕 FRIEND MODE: Tham gia phòng
+  const handleJoinRoom = async () => {
+    if (!connection || !friendRoomCode.trim()) return;
+    try {
+      await connection.invoke("JoinRoom", friendRoomCode.trim().toUpperCase(), name || "Bạn", avatar || "");
+    } catch (err) {
+      console.error("❌ Join room error:", err);
+    }
+  };
 
   // ⏱️ Đếm ngược 5s trước khi vào trận
   useEffect(() => {
@@ -174,6 +236,8 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
           setIsSearching(false);
           setSelectedCategory(null);
           setOpponent(null);
+          setIsWaitingFriend(false);
+          setCreatedRoomCode(null);
         }}
       />
     );
@@ -189,8 +253,29 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
   return (
     <div className="p-8 bg-white/70 backdrop-blur-lg rounded-2xl shadow-lg space-y-8 border border-gray-100">
       <AnimatePresence mode="wait">
-        {/* STEP 1: chọn chủ đề */}
-        {!isSearching && !roomCode && (
+        {/* STEP 1: chọn chế độ */}
+        {!isSearching && !roomCode && !isWaitingFriend && (
+          <div className="text-center space-y-6">
+            <h3 className="text-3xl font-semibold text-gray-900">Chọn chế độ thi đấu</h3>
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => setMode("random")}
+                className={`px-6 py-3 rounded-xl flex items-center gap-2 ${mode === "random" ? "bg-gradient-to-r from-yellow-400 to-red-500 text-white shadow-lg" : "bg-gray-100 hover:bg-gray-200"}`}
+              >
+                <Users className="w-5 h-5" /> Ngẫu nhiên
+              </button>
+              <button
+                onClick={() => setMode("friend")}
+                className={`px-6 py-3 rounded-xl flex items-center gap-2 ${mode === "friend" ? "bg-gradient-to-r from-purple-400 to-indigo-500 text-white shadow-lg" : "bg-gray-100 hover:bg-gray-200"}`}
+              >
+                <KeyRound className="w-5 h-5" /> Bạn bè
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 1B: Chọn chủ đề */}
+        {!isSearching && !roomCode && !isWaitingFriend && (
           <motion.div
             key="step1"
             initial={{ opacity: 0, y: 20 }}
@@ -242,16 +327,63 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
             </div>
 
             <div className="flex justify-center mt-8">
+              {mode === "random" ? (
+                <button
+                  disabled={!selectedCategory}
+                  onClick={handleFindMatch}
+                  className={`px-10 py-3 rounded-xl font-semibold text-white text-lg transition-all ${
+                    selectedCategory
+                      ? "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:shadow-lg"
+                      : "bg-gray-300 cursor-not-allowed"
+                  }`}
+                >
+                  Tìm đối thủ ngẫu nhiên
+                </button>
+              ) : (
+                <div className="space-x-3">
+                  <button
+                    onClick={handleCreateRoom}
+                    className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold hover:shadow-lg"
+                  >
+                    Tạo phòng
+                  </button>
+                  <input
+                    value={friendRoomCode}
+                    onChange={(e) => setFriendRoomCode(e.target.value)}
+                    placeholder="Nhập mã phòng..."
+                    className="border rounded-lg px-4 py-2 w-40 text-center focus:ring focus:ring-indigo-300"
+                  />
+                  <button
+                    onClick={handleJoinRoom}
+                    className="px-6 py-3 rounded-xl bg-indigo-500 text-white font-semibold hover:shadow-md"
+                  >
+                    Vào phòng
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* 🆕 STEP 2B: Đang chờ bạn bè */}
+        {isWaitingFriend && !roomCode && (
+          <motion.div
+            key="wait-friend"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-center py-8 space-y-4"
+          >
+            <Spinner size={40} thickness={6} />
+            <h3 className="text-xl font-semibold text-gray-800">Chờ bạn bè tham gia phòng...</h3>
+            <p className="text-lg text-gray-600">Mã phòng của bạn:</p>
+            <div className="flex justify-center items-center gap-3">
+              <span className="text-3xl font-bold tracking-widest bg-gray-100 px-4 py-2 rounded-lg shadow">{createdRoomCode}</span>
               <button
-                disabled={!selectedCategory}
-                onClick={handleFindMatch}
-                className={`px-10 py-3 rounded-xl font-semibold text-white text-lg transition-all ${
-                  selectedCategory
-                    ? "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:shadow-lg"
-                    : "bg-gray-300 cursor-not-allowed"
-                }`}
+                onClick={() => navigator.clipboard.writeText(createdRoomCode || "")}
+                className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
               >
-                Tìm đối thủ
+                <Share2 className="w-4 h-4" /> Copy
               </button>
             </div>
           </motion.div>
@@ -267,7 +399,7 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
             transition={{ duration: 0.4 }}
             className="text-center space-y-4 py-8"
           >
-            <span className="mx-auto" ><Spinner size={40} thickness={6}/></span>
+            <span className="mx-auto"><Spinner size={40} thickness={6}/></span>
             <h3 className="text-xl font-semibold text-gray-800">
               Đang tìm đối thủ phù hợp...
             </h3>

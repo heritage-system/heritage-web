@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import PlayerInfoCardBattle from "./PlayerInfoCardBattle";
-import { CheckCircle, Trophy } from "lucide-react";
+import PlayerInfoCardBattleV1 from "./PlayerInfoCardBattleV1";
+import BattleResult from "./BattleResult";
+import { CheckCircle, Trophy, Feather, Flame, Gem } from "lucide-react";
 import * as signalR from "@microsoft/signalr";
 
 interface Question {
@@ -49,6 +50,8 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
   const startTimeRef = useRef<number>(0);
   const delayTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasRequested = useRef(false);
+  const [readingTimeLeft, setReadingTimeLeft] = useState(0);
+  const readingTimerRef = useRef<number | null>(null);
   // ===== INIT =====
   useEffect(() => {
     if (!connection || !roomId || hasRequested.current) return;
@@ -59,27 +62,48 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
   }, [connection, roomId]);
 
   const handleStartQuestion = (q: any) => {
-      console.log("📜 StartQuestion:", q);
-      stopAllTimers(); // 💥 dừng mọi timer cũ
+    console.log("📜 StartQuestion:", q);
+    stopAllTimers();
 
-      setQuestion({ ...q, type: "multiple", points: 1 });
-      setPlayerAnswer(null);
-      setLocked(false);
-      setShowResult(false);
-      setOpponentAnswered(false);
-      setOpponentAnswerTime(null);
-      setTimeLeft(QUESTION_TIME);
-      setOpponentTimeLeft(QUESTION_TIME);
-      setShowOptions(false);
-      //startTimeRef.current = Date.now();
-      console.log(q.startTimeUtcMs)
-      startTimeRef.current = q.startTimeUtcMs;
+    const readingTime = q.readingDuration || 3;
+    const answerTime = q.answerDuration || QUESTION_TIME;
 
-      delayTimerRef.current = setTimeout(() => {
-        setShowOptions(true);
-        startTimers();
-      }, 3000);
+    setQuestion({ ...q, type: "multiple" });
+    setPlayerAnswer(null);
+    setLocked(false);
+    setShowResult(false);
+    setOpponentAnswered(false);
+    setOpponentAnswerTime(null);
+    setTimeLeft(answerTime);
+    setOpponentTimeLeft(answerTime);
+    setShowOptions(false);
+    startTimeRef.current = q.startTimeUtcMs;
+
+    // ✅ Bắt đầu “thời gian đọc”
+    setReadingTimeLeft(readingTime);
+    startReadingTimer(readingTime, () => {
+      setShowOptions(true);
+      startTimers(answerTime);
+    });
+  };
+
+
+    const startReadingTimer = (duration: number, onComplete: () => void) => {
+      const end = Date.now() + duration * 1000;
+
+      const tick = () => {
+        const remain = Math.max(0, (end - Date.now()) / 1000);
+        setReadingTimeLeft(remain);
+        if (remain <= 0) {
+          readingTimerRef.current = null;
+          onComplete();
+        } else {
+          readingTimerRef.current = requestAnimationFrame(tick);
+        }
+      };
+      tick();
     };
+
 
     const handleRevealAnswer = (data: any) => {
       console.log("✅ RevealAnswer:", data);
@@ -134,9 +158,7 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
   // ===== SIGNALR =====
   useEffect(() => {
     if (!connection) return;
-
     
-
     connection.on("StartQuestion", handleStartQuestion);
     connection.on("AnswerSubmitted", handleAnswerSubmitted);
     connection.on("GameFinished", handleGameFinished);
@@ -168,7 +190,7 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
   }, []);
 
   // ===== TIMER =====
-  const startTimers = () => {
+  const startTimers = (duration: number) => {
   stopAllTimers();
 
   const updatePlayerTimer = () => {
@@ -257,30 +279,20 @@ const stopOpponentTimer = () => {
   
     
 
-  const playerPercent = (timeLeft / QUESTION_TIME) * 100;
-  const opponentPercent = (opponentTimeLeft / QUESTION_TIME) * 100;
+  
 
   // ===== FINISHED =====
   if (isFinished)
     return (
-      <motion.div
-        className="bg-white rounded-2xl shadow-lg p-8 text-center max-w-md mx-auto"
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-        <h2 className="text-3xl font-bold mb-2">Kết thúc trận đấu</h2>
-        <p className="text-gray-700 text-lg mb-6">
-          <strong>{player.name}</strong>: {playerScore} điểm <br />
-          <strong>{opponent.name}</strong>: {opponentScore} điểm
-        </p>
-        <button
-          onClick={onFinish}
-          className="px-8 py-3 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-xl font-semibold hover:shadow-lg transition"
-        >
-          Quay lại
-        </button>
-      </motion.div>
+    <BattleResult
+      player={player}
+      opponent={opponent}
+      playerScore={playerScore}
+      opponentScore={opponentScore}
+      onFinish={() => {
+    setTimeout(() => onFinish?.(), 100); // ⏳ đợi React cleanup
+  }}
+    />
     );
 
   if (!question)
@@ -288,13 +300,14 @@ const stopOpponentTimer = () => {
 
   // ===== RENDER MAIN =====
   return (
-  <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 relative max-w-5xl mx-auto w-full">
+  <div className="bg-dragon rounded-none md:rounded-2xl shadow-lg p-4 md:p-8 relative w-full min-h-screen md:min-h-0 ">
     {/* Grid desktop */}
-    <div className="hidden md:grid grid-cols-9 gap-6 md:items-start">
+    <div className="hidden md:block">
+      <div className="grid grid-cols-9 gap-6 md:items-start px-20 lg:px-12">
       {/* 🧍‍♂️ Player bên trái */}
       <div className="md:col-span-2 space-y-3 text-left">
-        <PlayerInfoCardBattle
-          name={player.name + " (Bạn)"}
+        <PlayerInfoCardBattleV1
+          name={player.name }
           score={playerScore}
           avatar={player.avatar}
           timeLeft={timeLeft}
@@ -307,23 +320,87 @@ const stopOpponentTimer = () => {
       {/* 🧠 Câu hỏi */}
       <motion.div
         key={question.id}
-        className="md:col-span-5 bg-white rounded-xl shadow-sm p-5 border border-gray-100"
+        className="md:col-span-5  rounded-xl shadow-sm p-5 border border-gray-100"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
         <div className="flex items-center justify-between mb-4">
-          <span className="bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-lg">
+          <span className="gap-3 bg-white/70 backdrop-blur-sm text-amber-700 border border-amber-200 shadow-md transition hover:scale-105 font-bold px-4 py-2 rounded-lg">
             Câu {question.id}
           </span>
-          <span className="text-sm md:text-base font-semibold text-purple-700">
-            {question.difficulty}
+          <span
+            className={`flex items-center gap-1 font-bold ${
+              question.difficulty === "EASY"
+                ? "text-green-600"
+                : question.difficulty === "MEDIUM"
+                ? "text-yellow-600"
+                : "text-red-600"
+            } text-base text-sm`}
+          >
+            {question.difficulty === "EASY" && (
+              <>
+                <Feather className="w-5 h-5" /> KHỞI ĐỘNG
+              </>
+            )}
+            {question.difficulty === "MEDIUM" && (
+              <>
+                <Flame className="w-5 h-5" /> THỬ THÁCH
+              </>
+            )}
+            {question.difficulty === "HARD" && (
+              <>
+                <Gem className="w-5 h-5" /> ĐỈNH CAO
+              </>
+            )}
           </span>
         </div>
         
         <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
           {question.question}
         </h3>
+
+        {!showOptions && (
+  <div className="flex flex-col items-center justify-center mt-20">
+    <div className="relative w-24 h-24">
+      <svg className="absolute inset-0" viewBox="0 0 36 36">
+        <defs>
+          <linearGradient id="readingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ca8a04" /> {/* yellow-600 */}
+            <stop offset="50%" stopColor="#b91c1c" /> {/* red-700 */}
+            <stop offset="100%" stopColor="#92400e" /> {/* amber-900 */}
+          </linearGradient>
+        </defs>
+        <path
+          className="text-gray-900"
+          strokeWidth="3"
+          stroke="#e5e7eb"
+          fill="none"
+          d="M18 2.0845
+             a 15.9155 15.9155 0 0 1 0 31.831
+             a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+        <path
+          className="text-amber-700"
+          strokeWidth="3"
+          strokeDasharray={`${(readingTimeLeft / 3) * 100}, 100`}
+          strokeLinecap="round"
+          stroke="url(#readingGradient)"
+          fill="none"
+          d="M18 2.0845
+             a 15.9155 15.9155 0 0 1 0 31.831
+             a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-lg font-bold bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 
+             bg-clip-text text-transparent drop-shadow-sm">
+        {Math.ceil(readingTimeLeft)}
+      </span>
+    </div>
+    <p className="mt-2 text-sm text-gray-500 italic">Thời gian đọc câu hỏi...</p>
+  </div>
+)}
+
 
         <div className="space-y-3 relative overflow-hidden min-h-[200px] flex flex-col justify-center">
   {/* Ẩn đáp án trong 3s đầu */}
@@ -383,7 +460,7 @@ const stopOpponentTimer = () => {
 
       {/* 🧍‍♀️ Opponent */}
       <div className="md:col-span-2 space-y-3 text-right">
-        <PlayerInfoCardBattle
+        <PlayerInfoCardBattleV1
           name={opponent.name}
           score={opponentScore}
           avatar={opponent.avatar}
@@ -394,6 +471,7 @@ const stopOpponentTimer = () => {
         />
       </div>
     </div>
+     </div>
 
     {/* Layout mobile: Câu hỏi trên, 2 người chơi dưới cùng hàng */}
     <div className="md:hidden flex flex-col gap-6">
@@ -406,16 +484,79 @@ const stopOpponentTimer = () => {
         transition={{ duration: 0.4 }}
       >
         <div className="flex items-center justify-between mb-4">
-          <span className="bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-lg">
+          <span className="gap-3 bg-white/70 backdrop-blur-sm text-amber-700 border border-amber-200 shadow-md transition hover:scale-105 font-bold px-4 py-2 rounded-lg">
             Câu {question.id}
           </span>
-          <span className="text-sm font-semibold text-purple-700">
-            {question.difficulty} 
+         <span
+            className={`flex items-center gap-1 font-bold ${
+              question.difficulty === "EASY"
+                ? "text-green-600"
+                : question.difficulty === "MEDIUM"
+                ? "text-yellow-600"
+                : "text-red-600"
+            } text-base text-sm`}
+          >
+            {question.difficulty === "EASY" && (
+              <>
+                <Feather className="w-5 h-5" /> KHỞI ĐỘNG
+              </>
+            )}
+            {question.difficulty === "MEDIUM" && (
+              <>
+                <Flame className="w-5 h-5" /> THỬ THÁCH
+              </>
+            )}
+            {question.difficulty === "HARD" && (
+              <>
+                <Gem className="w-5 h-5" /> ĐỈNH CAO
+              </>
+            )}
           </span>
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           {question.question}
         </h3>
+        {!showOptions && (
+  <div className="flex flex-col items-center justify-center mt-20">
+    <div className="relative w-24 h-24">
+      <svg className="absolute inset-0" viewBox="0 0 36 36">
+        <defs>
+          <linearGradient id="readingGradientMb" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ca8a04" /> {/* yellow-600 */}
+            <stop offset="50%" stopColor="#b91c1c" /> {/* red-700 */}
+            <stop offset="100%" stopColor="#92400e" /> {/* amber-900 */}
+          </linearGradient>
+        </defs>
+        <path
+          className="text-gray-900"
+          strokeWidth="3"
+          stroke="#e5e7eb"
+          fill="none"
+          d="M18 2.0845
+             a 15.9155 15.9155 0 0 1 0 31.831
+             a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+        <path
+          className="text-amber-700"
+          strokeWidth="3"
+          strokeDasharray={`${(readingTimeLeft / 3) * 100}, 100`}
+          strokeLinecap="round"
+          stroke="url(#readingGradientMb)"
+          fill="none"
+          d="M18 2.0845
+             a 15.9155 15.9155 0 0 1 0 31.831
+             a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-lg font-bold bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 
+             bg-clip-text text-transparent drop-shadow-sm">
+        {Math.ceil(readingTimeLeft)}
+      </span>
+    </div>
+    <p className="mt-2 text-sm text-gray-500 italic">Thời gian đọc câu hỏi...</p>
+  </div>
+)}
+
         <div className="space-y-3 relative overflow-hidden min-h-[200px] flex flex-col justify-center">
   {/* Ẩn đáp án trong 3s đầu */}
   {!showOptions ? (
@@ -472,31 +613,33 @@ const stopOpponentTimer = () => {
       </motion.div>
 
       {/* ⚔️ Hai người chơi nằm ngang hàng */}
-      <div className="flex items-start justify-around gap-3">
-        <div className="flex-1">
-          <PlayerInfoCardBattle
-            name={player.name + " (Bạn)"}
-            score={playerScore}
-            avatar={player.avatar}
-            timeLeft={timeLeft}
-            maxTime={QUESTION_TIME}
-            answered={locked}
-            isOpponent={false}
-          />
-        </div>
+<div className="flex items-start justify-evenly gap-3 mt-4 mb-2">
 
-        <div className="flex-1">
-          <PlayerInfoCardBattle
-            name={opponent.name}
-            score={opponentScore}
-            avatar={opponent.avatar}
-            timeLeft={opponentTimeLeft}
-            maxTime={QUESTION_TIME}
-            answered={opponentAnswered}
-            isOpponent={true}
-          />
-        </div>
-      </div>
+  <div className="flex-1 max-w-[180px] sm:max-w-[220px]">
+    <PlayerInfoCardBattleV1
+      name={player.name}
+      score={playerScore}
+      avatar={player.avatar}
+      timeLeft={timeLeft}
+      maxTime={QUESTION_TIME}
+      answered={locked}
+      isOpponent={false}
+    />
+  </div>
+
+  <div className="flex-1 max-w-[180px] sm:max-w-[220px]">
+    <PlayerInfoCardBattleV1
+      name={opponent.name}
+      score={opponentScore}
+      avatar={opponent.avatar}
+      timeLeft={opponentTimeLeft}
+      maxTime={QUESTION_TIME}
+      answered={opponentAnswered}
+      isOpponent={true}
+    />
+  </div>
+</div>
+
     </div>
   </div>
 );

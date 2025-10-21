@@ -34,7 +34,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group transform hover:scale-105">
+    <div className="bg-gradient-to-br from-primary to-secondary rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group transform hover:scale-105">
       <div className="relative">
         <img
           src={quiz.image}

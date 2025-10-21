@@ -26,12 +26,12 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onModeSelect }) => {
       desc: "Chọn 3 lễ hội hoặc Random để đấu trí",
       icon: <Sword className="w-8 h-8 text-red-700" />,
     },
-    {
-      key: "friends",
-      title: "Chơi với bạn bè",
-      desc: "Vào phòng hoặc tạo phòng riêng để cùng thử thách",
-      icon: <Users className="w-8 h-8 text-orange-700" />,
-    },
+    // {
+    //   key: "friends",
+    //   title: "Chơi với bạn bè",
+    //   desc: "Vào phòng hoặc tạo phòng riêng để cùng thử thách",
+    //   icon: <Users className="w-8 h-8 text-orange-700" />,
+    // },
   ];
 
   return (

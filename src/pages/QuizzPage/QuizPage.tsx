@@ -1,91 +1,55 @@
 import { useState } from "react";
 import AchievementSection from "../../components/Quizz/AchievementSection";
-import PlayerInfoCard from "../../components/Quizz/PlayerInfoCard";
-import LearningHero from "../../components/Quizz/LearningHero";
-import QuizGrid from "../../components/Quizz/QuizGrid";
-import ModeSelection from "../../components/Quizz/ModeSelection";
-import { Dice5, PartyPopper, Sparkles, Landmark } from "lucide-react";
-import RandomBattle from "../../components/Quizz/RandomBattle";
-import FriendsBattle from "../../components/Quizz/FriendsBattle";
-import { useAuth } from '../../hooks/useAuth';
+import RandomBattleV2 from "../../components/Quizz/RandomBattleV2";
+import { useAuth } from "../../hooks/useAuth";
+import { Sparkles, Gamepad2 } from "lucide-react";
+
 const QuizzPage = () => {
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const categories = [
-    {
-      key: "le",
-      title: "Phần Lễ",
-      desc: "Khám phá tín ngưỡng, nghi lễ, phong tục cổ truyền",
-      icon: <Landmark className="w-8 h-8 text-yellow-700" />,
-      color: "from-yellow-100 to-yellow-200 border-yellow-400",
-      activeColor: "from-yellow-500 to-amber-600 text-white",
-    },
-    {
-      key: "hoi",
-      title: "Phần Hội",
-      desc: "Thử sức với trò chơi dân gian và lễ hội sôi động",
-      icon: <PartyPopper className="w-8 h-8 text-red-600" />,
-      color: "from-red-100 to-red-200 border-red-400",
-      activeColor: "from-red-600 to-pink-700 text-white",
-    },
-    {
-      key: "mix",
-      title: "Hỗn hợp",
-      desc: "Kết hợp cả phần Lễ và Hội — đa dạng và thú vị",
-      icon: <Sparkles className="w-8 h-8 text-purple-600" />,
-      color: "from-purple-100 to-indigo-200 border-purple-400",
-      activeColor: "from-indigo-600 to-purple-700 text-white",
-    },
-  ];
-  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+  const { userName, avatarUrl } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* HERO */}
-      <LearningHero />
-
-      {/* MAIN CONTENT */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 mt-5 grid grid-cols-1 lg:grid-cols-7 gap-8">
-        {/* LEFT */}
-        <div className="lg:col-span-7">
-          {!selectedMode && (
-            <ModeSelection onModeSelect={(mode) => setSelectedMode(mode)} />
-          )}
-
-          {/* === SOLO MODE === */}
-          {selectedMode === "solo" && (
-            <div className="p-6 bg-white rounded-xl shadow space-y-6">
-              <h3 className="text-2xl font-semibold">Chọn lễ hội để chơi</h3>
-              <button
-                onClick={() => setSelectedMode(null)}
-                className="mt-2 px-6 py-2 border rounded-lg text-gray-700 hover:bg-gray-100"
-              >
-                ← Quay lại
-              </button>
-              <QuizGrid />
-            </div>
-          )}
-
-          {/* === 1VS1 RANDOM === */}
-          {selectedMode === "random" && (
-            <RandomBattle name={userName || undefined} avatar={avatarUrl || undefined} onBack={() => setSelectedMode(null)} />
-          )}
-
-          {/* === FRIENDS MODE === */}
-          {selectedMode === "friends" && (
-            <FriendsBattle onBack={() => setSelectedMode(null)} />
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 flex flex-col items-center">
+      {/* === HERO / INTRO SECTION === */}
+      <section className="w-full max-w-5xl text-center px-6 py-16 space-y-6">
+        <div className="inline-flex items-center justify-center gap-2 text-amber-700 font-medium tracking-widest uppercase">
+          <Sparkles className="w-5 h-5 text-amber-500" />
+          <span>Chinh phục kiến thức lễ hội</span>
         </div>
 
-        {/* RIGHT */}
-        {/* <div className="lg:col-span-2">
-          <PlayerInfoCard name={userName || undefined} avatar={avatarUrl || undefined}/>
-        </div> */}
+        <h1 className="text-5xl md:text-4xl font-bold text-gray-800 leading-tight">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900">Thử tài</span> cùng trò chơi đố vui <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900">Lễ hội</span>         
+        </h1>
+
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto text-3xl">
+          Bước vào hành trình tri thức lễ hội Việt Nam — nơi kiến thức, tốc độ và
+          sự may mắn hòa quyện. Hãy sẵn sàng đối đầu với người chơi khác để khẳng định bản lĩnh!
+        </p>
+
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={() => window.scrollTo({top: window.innerHeight * 0.47, behavior: "smooth" })}
+            className="flex items-center gap-3 bg-white/70 backdrop-blur-sm border border-amber-200 shadow-md rounded-full px-8 py-3 transition hover:scale-105"
+          >
+            <Gamepad2 className="w-6 h-6 text-amber-600" />
+            <span className="text-amber-700 font-medium tracking-wide">
+              Bắt đầu ngay
+            </span>
+          </button>
+        </div>
       </section>
 
-      {/* ACHIEVEMENTS */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+      {/* === QUIZ GAME SECTION === */}
+      <section className="w-full bg-gradient-to-b from-amber-50 via-orange-50/30 to-rose-50 pb-16">
+        <RandomBattleV2
+          name={userName || undefined}
+          avatar={avatarUrl || undefined}
+          onBack={() => setSelectedMode(null)}
+        />
+      </section>
+
+      {/* === ACHIEVEMENTS === */}
+      <section className="w-full max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <AchievementSection />
       </section>
     </div>

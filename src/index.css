@@ -5,6 +5,11 @@
 
 /* Leaflet styles */
 @import "leaflet/dist/leaflet.css";
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+
+body {
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
 
 /* Line clamp utilities */
 .line-clamp-2 {
@@ -39,4 +44,11 @@
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE & Edge */
   scrollbar-width: none;     /* Firefox */
+}
+
+.bg-dragon {
+  background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url("https://res.cloudinary.com/dea92gqx4/image/upload/v1760761310/Gemini_Generated_Image_jvaivpjvaivpjvai_q0bprz.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
