@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
-  Heart, 
+  LucideBookMarked,
   HeartCrack
 } from 'lucide-react';
-import { FavoriteHeritage } from "../../types/favorite";
-import { getFavorites, removeFavorite } from "../../services/favoriteService";
-import { authToast } from "../../utils/authToast";
+import { ContributionSaveResponse } from "../../types/contribution";
+import { getContributionSaves, removeContributionSave } from "../../services/contributionService";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../Layouts/Pagination";
 import Spinnner from "../Layouts/LoadingLayouts/Spinner";
-interface FavoriteHeritageListProps {
+import toast from "react-hot-toast";
+interface ContributionSaveListProps {
   onRefresh?: () => void;
 }
 
-const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  => {
-  const [favorites, setFavorites] = useState<FavoriteHeritage[]>([]);
+const ContributionSaveSection: React.FC<ContributionSaveListProps> = ({ onRefresh })  => {
+  const [contributionSaves, setContributionSaves] = useState<ContributionSaveResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [removingId, setRemovingId] = useState<number | null>(null);
 
@@ -46,24 +46,25 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
     const currentId = ++requestIdRef.current;
     try {
       setLoading(true);
-      const response = await getFavorites(
-        p ?? page,
-        ps ?? pageSize,
-        s && s !== "" ? s : undefined
-      );
+      const response = await getContributionSaves({
+        keyword: search || undefined,
+        page: page,
+        pageSize: pageSize
+      });
+
 
       // chỉ nhận kết quả mới nhất
       if (currentId !== requestIdRef.current) return;
 
       if (response.code === 200 && response.result) {
-        setFavorites(response.result.items);
+        setContributionSaves(response.result.items);
         setTotalPages(response.result.totalPages);
         setTotalElements(response.result.totalElements);
       } else {
-        authToast.error("Không thể tải danh sách yêu thích");
+        toast.error("Không thể tải danh sách lưu");
       }
     } catch (error) {
-      authToast.error("Có lỗi xảy ra khi tải danh sách yêu thích");
+      toast.error("Có lỗi xảy ra khi tải danh sách lưu");
     } finally {
       // chỉ tắt loading nếu là request mới nhất
       if (currentId === requestIdRef.current) setLoading(false);
@@ -76,20 +77,20 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, page, pageSize]);
 
-  const handleRemoveFavorite = async (heritageId: number) => {
+  const handleRemoveFavorite = async (contributionId: number) => {
     try {
-      setRemovingId(heritageId);
-      const response = await removeFavorite(heritageId);
+      setRemovingId(contributionId);
+      const response = await removeContributionSave(contributionId);
       if (response.code === 200) {
-        setFavorites((prev) => prev.filter((fav) => fav.heritageId !== heritageId));
+        setContributionSaves((prev) => prev.filter((fav) => fav.contributionId !== contributionId));
         setTotalElements((prev) => Math.max(prev - 1, 0));
-        authToast.success("Đã xóa khỏi danh sách yêu thích");
+        toast.success("Đã xóa khỏi danh sách lưu");
         onRefresh?.();
       } else {
-        authToast.error("Không thể xóa khỏi danh sách yêu thích");
+        toast.error("Không thể xóa khỏi danh sách lưu");
       }
     } catch (error) {
-      authToast.error("Có lỗi xảy ra khi xóa khỏi danh sách yêu thích");
+      toast.error("Có lỗi xảy ra khi xóa khỏi danh sách lưu");
     } finally {
       setRemovingId(null);
     }
@@ -97,20 +98,20 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
 
   const handlePageChange = (newPage: number) => setPage(newPage);
 
-  const noResults = !loading && favorites.length === 0;
+  const noResults = !loading && contributionSaves.length === 0;
   return (
     <div className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 rounded-3xl p-8 min-h-[700px]">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-700 to-yellow-600 bg-clip-text text-black mb-3 flex items-center gap-3">
-            <Heart className="w-10 h-10 text-red-500" />
-            Di sản yêu thích
+            <LucideBookMarked className="w-10 h-10 text-green-500" />
+            Bài viết đã lưu
           </h2>
-          <p className="text-gray-700 text-lg">Những di sản văn hóa mà bạn đã yêu thích</p>
+          <p className="text-gray-700 text-lg">Những bài viết đóng góp mà bạn đã lưu</p>
         </div>
         <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-yellow-300/50 shadow-lg">
           <div className="text-3xl font-bold text-yellow-700">{totalElements}</div>
-          <div className="text-sm text-yellow-600 font-medium">Di sản yêu thích</div>
+          <div className="text-sm text-yellow-600 font-medium">Bài viết lưu</div>
         </div>
       </div>
       <div className="bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-yellow-200">
@@ -124,7 +125,7 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
           onKeyDown={(e) => {
             if (e.key === "Enter") setDebouncedSearch(search.trim()); // search ngay, bỏ qua debounce
           }}
-          placeholder="Tìm theo tên di sản..."
+          placeholder="Tìm theo tên bài viết..."
           className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-200"
         />
         {search && (
@@ -163,52 +164,80 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
       {/* List hoặc Empty state */}
       {!noResults ? (
         <>
-          {favorites.map((favorite) => (
-            <div
-              key={favorite.heritageId}
-              className="bg-white rounded-xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate(`/heritagedetail/${favorite.heritageId}`)}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-800 text-lg">
-                      {favorite.heritageName}
-                    </h3>
-                    <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full">
-                      {favorite.categoryName}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Đã thêm vào{" "}
-                    {new Date(favorite.createdAt).toLocaleDateString("vi-VN")}
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveFavorite(favorite.heritageId);
-                  }}
-                  disabled={removingId === favorite.heritageId}
-                  className="ml-4 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                  title="Xóa khỏi danh sách yêu thích"
-                >
-                  {removingId === favorite.heritageId ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
+          {contributionSaves.map((favorite) => (
+  <div
+    key={favorite.contributionId}
+    className="bg-white rounded-xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow cursor-pointer flex gap-4"
+    onClick={() => navigate(`/contributions/${favorite.contributionId}`)}
+  >
+    {/* Ảnh preview */}
+    <img
+      src={favorite.mediaUrl || "/default-thumbnail.jpg"}
+      alt={favorite.title}
+      className="w-28 h-28 object-cover rounded-lg flex-shrink-0"
+    />
+
+    {/* Nội dung */}
+    <div className="flex-1 min-w-0">
+      {/* Tên di sản */}
+      <h3 className="font-semibold text-gray-800 text-lg truncate">
+        {favorite.title}
+      </h3>
+
+      {/* Tags */}
+      <div className="flex flex-wrap gap-2 my-2">
+        {favorite.contributionHeritageTags?.map((tag) => (
+          <span
+            key={tag.id}
+            className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full"
+          >
+            {tag.name}
+          </span>
+        ))}
+      </div>
+
+      {/* Tác giả */}
+      <div className="flex items-center gap-2 mt-2">
+        <img
+          src={favorite.avatarUrl || "/default-avatar.png"}
+          alt={favorite.contributorName}
+          className="w-6 h-6 rounded-full object-cover"
+        />
+        <span className="text-sm text-gray-700">{favorite.contributorName}</span>
+      </div>
+    </div>
+
+    {/* Nút remove */}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleRemoveFavorite(favorite.contributionId);
+      }}
+      disabled={removingId === favorite.contributionId}
+      className="ml-2 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 self-start"
+      title="Xóa khỏi danh sách lưu"
+    >
+      {removingId === favorite.contributionId ? (
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+      ) : (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
+        </svg>
+      )}
+    </button>
+  </div>
+))}
+
 
           {/* Pagination (ẩn nếu chỉ có 1 trang) */}
           {totalPages > 1 && (
@@ -228,12 +257,12 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
           </div>
           <div className="text-gray-500">
             {debouncedSearch
-              ? `Không tìm thấy di sản nào cho “${debouncedSearch}”`
-              : "Chưa có di sản yêu thích nào"}
+              ? `Không tìm thấy bài viết nào cho “${debouncedSearch}”`
+              : "Chưa có bài viết được lưu nào"}
           </div>
           {!debouncedSearch && (
             <div className="text-sm text-gray-400 mt-1">
-              Hãy khám phá và thêm di sản vào danh sách yêu thích của bạn
+              Hãy khám phá và thêm bài viết vào danh sách lưu của bạn
             </div>
           )}
         </div>
@@ -244,4 +273,4 @@ const FavoriteSection: React.FC<FavoriteHeritageListProps> = ({ onRefresh })  =>
   );
 };
 
-export default FavoriteSection;
+export default ContributionSaveSection;

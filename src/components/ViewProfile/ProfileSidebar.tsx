@@ -5,7 +5,7 @@ import {
   Calendar, 
   FileText, 
   Send, 
-  Users 
+  LucideBookMarked 
 } from 'lucide-react';
 
 interface MenuItem {
@@ -31,6 +31,7 @@ interface ProfileSidebarProps {
 const MENU: MenuItem[] = [
   { key: "profile", label: "Thông tin cá nhân", icon: <User className="w-5 h-5" />,contributorOnly: false },
   { key: "favorites", label: "Di sản yêu thích", icon: <Heart className="w-5 h-5" />,contributorOnly: false},
+  { key: "contribution_saves", label: "Bài viết đã lưu", icon: <LucideBookMarked className="w-5 h-5" />,contributorOnly: false},
   { key: "events", label: "Sự kiện đã tham gia", icon: <Calendar className="w-5 h-5" />,contributorOnly: false },
   { key: "quiz", label: "Lịch sử quiz", icon: <FileText className="w-5 h-5" />,contributorOnly: false },
   // Hai mục này chỉ hiển thị khi là contributor

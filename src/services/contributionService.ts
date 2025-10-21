@@ -13,7 +13,8 @@ import {
   ContributionOverviewItemListResponse,
   ContributionOverviewSearchRequest,
   ContributionDetailUpdatedResponse,
-  ContributionUpdateRequest
+  ContributionUpdateRequest,
+  ContributionSaveResponse
 } from "../types/contribution";
 import {
   ContributionReviewCreateRequest,
@@ -275,4 +276,28 @@ export const updateContribution = async (
       body: data as any,
     }
   );
+};
+
+export const getContributionSaves = async (
+  params: ContributionSearchRequest
+): Promise<ApiResponse<PageResponse<ContributionSaveResponse>>> => {
+
+    const queryString = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+        value.forEach(v => queryString.append(key, String(v)));
+    } else {
+        queryString.append(key, String(value));
+    }
+    });
+
+    const response = await fetchInterceptor<PageResponse<ContributionSaveResponse>>(
+    `${API_URL}/api/v1/contributions/get_contribution_save?${queryString.toString()}`,
+    { method: "GET" }
+    );
+
+  return response;
 };

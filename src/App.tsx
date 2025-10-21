@@ -8,7 +8,7 @@ import CommunityPage from './pages/CommunityPage/CommunityPage';
 import Login from './pages/AuthPage/Login';
 import MainLayout from './components/HomePage/MainLayout';
 import Register from './pages/AuthPage/Register';
-import QuizzPage from './pages/QuizzPage/QuizzPage';
+import QuizzPage from './pages/QuizzPage/QuizPage';
 import ForgotPassword from './pages/AuthPage/ForgotPassword';
 import ResetPassword from './pages/AuthPage/ResetPassword'; 
 import ChangePassword from './pages/AuthPage/ChangePassword';
