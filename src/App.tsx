@@ -29,7 +29,6 @@ import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 import HeritageForm from './pages/ContributionPage/HeritageForm'
 import BoardGame from './pages/QuizzPage/BoardGame'
 import BoardGameMono from './pages/QuizzPage/BoardGameMono'
-
 import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
 const App: React.FC = () => {
   return (
