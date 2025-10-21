@@ -5,6 +5,8 @@ import { HeritageSearchRequest, HeritageSearchResponse, HeritageAdmin, HeritageD
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 
+
+
 export const searchHeritage = async (
   params: HeritageSearchRequest
 ): Promise<ApiResponse<PageResponse<HeritageSearchResponse>>> => {

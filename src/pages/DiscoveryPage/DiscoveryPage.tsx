@@ -14,6 +14,7 @@ import { fetchProvinces } from "../../services/locationSerivce";
 import { fetchCategories } from "../../services/categoryService";
 import { fetchTags } from "../../services/tagService";
 import { latLng } from "leaflet";
+import { Link } from "react-router-dom";
 const DiscoveryPage: React.FC = () => {
   const {
     heritages,
@@ -88,7 +89,12 @@ const DiscoveryPage: React.FC = () => {
     };
     loadTags();
   }, []);
-
+<Link
+  to="/DiscoveryPage/AIPredictPage"
+  className="px-4 py-2 bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600"
+>
+  Dùng AI để nhận diện
+</Link>
   // Handle filter cho map
   const onFiltersChangeForMap = (changes: Partial<HeritageSearchRequest>) => {
     const newFilters = { ...filters, ...changes, page: 0 };
