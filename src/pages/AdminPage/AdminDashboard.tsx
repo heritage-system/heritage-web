@@ -67,7 +67,6 @@ const AdminHomeDashboard = () => {
       description: "Quản lý di sản, danh mục và nội dung số",
       modules: [
         { name: "Quản lý Di sản", icon: "Building" },
-        { name: "Chi tiết Di sản", icon: "FileText" },
         { name: "Quản lý Danh mục", icon: "Layers" },
         { name: "Quản lý Thẻ", icon: "Tags" },
         { name: "Xuất bản Nội dung", icon: "Globe" },

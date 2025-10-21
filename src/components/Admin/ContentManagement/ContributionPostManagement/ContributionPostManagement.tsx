@@ -2,18 +2,18 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FileText, Clock, XCircle, CheckCircle, Search } from "lucide-react";
 import {
   getListContributionsOverviewForStaff,
+  getContributionOverviewForStaff,
   approveContributionAcceptance,
   rejectContributionAcceptance,
-  getContributionOverviewForStaff,
 } from "../../../../services/contributionAcceptanceService";
 import {
   ContributionOverviewItemListResponse,
   ContributionOverviewSearchRequest,
-  ContributionOverviewResponse,
+  ContributionAcceptanceDecisionRequest,
 } from "../../../../types/contribution";
 import { PageResponse } from "../../../../types/pageResponse";
 import ContributionTable from "./ContributionTable";
-import ContributionView from "./ContributionView";
+import ContributionDetailSection from "../../../../components/ViewProfile/Contribution/ContributionDetailSection";
 import ConfirmDialog from "./ConfirmDialog";
 import RejectDialog from "./RejectDialog";
 import { ContributionStatus, SortBy } from "../../../../types/enum";
@@ -48,26 +48,24 @@ const ContributionPostManagement: React.FC = () => {
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>(SortBy.IdDesc);
 
-  const [showView, setShowView] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [selectedContribution, setSelectedContribution] = useState<ContributionOverviewItemListResponse | null>(null);
-  const [selectedContributionDetail, setSelectedContributionDetail] = useState<ContributionOverviewResponse | null>(null);
-  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [selectedContributionId, setSelectedContributionId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const currentTabStatus = TABS.find((tab) => tab.key === activeTab)?.status;
 
-  // 🔹 Fetch all tab counts
+  // Fetch all tab counts
   const fetchAllTabCounts = useCallback(async () => {
     try {
       const fetchCount = async (status?: ContributionStatus) => {
         const params: ContributionOverviewSearchRequest = {
           contributionStatus: status,
           page: 1,
-          pageSize: 1, // Chỉ lấy 1 item để đếm totalElements
+          pageSize: 1,
         };
         const response = await getListContributionsOverviewForStaff(params);
         return response?.result?.totalElements || 0;
@@ -86,7 +84,7 @@ const ContributionPostManagement: React.FC = () => {
     }
   }, []);
 
-  // 🔹 Fetch contributions for current tab
+  // Fetch contributions for current tab
   const fetchContributions = useCallback(async () => {
     try {
       setLoading(true);
@@ -111,6 +109,18 @@ const ContributionPostManagement: React.FC = () => {
     }
   }, [keyword, currentTabStatus, sortBy, page, pageSize]);
 
+  // Load detail for refresh after reject
+  const loadDetail = useCallback(async (acceptanceId: number) => {
+    try {
+      const response = await getContributionOverviewForStaff(acceptanceId);
+      if (response?.result) {
+        setSelectedContribution(response.result as any);
+      }
+    } catch (error) {
+      console.error("❌ Error reloading contribution detail:", error);
+    }
+  }, []);
+
   // Load counts once on mount and after actions
   useEffect(() => {
     fetchAllTabCounts();
@@ -121,174 +131,197 @@ const ContributionPostManagement: React.FC = () => {
     fetchContributions();
   }, [fetchContributions]);
 
-  const handleView = async (item: ContributionOverviewItemListResponse) => {
-    setSelectedContribution(item);
-    setShowView(true);
-    setLoadingDetail(true);
-    setSelectedContributionDetail(null);
-
-    try {
-      const response = await getContributionOverviewForStaff(item.id);
-      if (response?.result) {
-        setSelectedContributionDetail(response.result);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching contribution detail:", error);
-    } finally {
-      setLoadingDetail(false);
-    }
+  const handleView = (item: ContributionOverviewItemListResponse) => {
+    setSelectedContribution(item); 
+    setSelectedContributionId(item.id);
+    setShowDetail(true);
   };
 
   const handleAction = (item: ContributionOverviewItemListResponse, action: "approve" | "reject") => {
     setSelectedContribution(item);
-    setActionType(action);
     if (action === "approve") setShowConfirm(true);
     else setShowRejectDialog(true);
   };
 
+  // Approve từ detail view
+  const handleApproveFromDetail = () => {
+    if (selectedContribution) {
+      setShowConfirm(true);
+    }
+  };
+
+  // Reject từ detail view
+  const handleRejectFromDetail = () => {
+    if (selectedContribution) {
+      setShowRejectDialog(true);
+    }
+  };
+
   const confirmApprove = async () => {
-  if (!selectedContribution) return;
-  setLoading(true);
-  try {
-    await approveContributionAcceptance(selectedContribution.acceptanceId);
-    
-    setContributions((prev) =>
-      prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId)
-    );
+    if (!selectedContribution) return;
+    setLoading(true);
+    try {
+      await approveContributionAcceptance(selectedContribution.acceptanceId);
+      setContributions((prev) => prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId));
 
-    setTabCounts((prev) => ({
-      ...prev,
-      pending: Math.max(prev.pending - 1, 0),
-      approved: prev.approved + 1,
-    }));
+      setTabCounts((prev) => ({
+        ...prev,
+        pending: Math.max(prev.pending - 1, 0),
+        approved: prev.approved + 1,
+      }));
 
-    setShowConfirm(false);
+      setShowConfirm(false);
+      
+      if (showDetail) {
+        setShowDetail(false);
+        setSelectedContributionId(null);
+      }
+      
+      setSelectedContribution(null);
+      if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
+    } catch (error) {
+      console.error("❌ Error approving contribution:", error);
+      alert("Có lỗi xảy ra khi duyệt bài!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmReject = async (note: string) => {
+    if (!selectedContribution) return;
+    setLoading(true);
+    try {
+      const request: ContributionAcceptanceDecisionRequest = { note };
+      await rejectContributionAcceptance(selectedContribution.acceptanceId, request);
+
+      const updatedDetail = await getContributionOverviewForStaff(selectedContribution.acceptanceId);
+      if (updatedDetail?.result) {
+        setSelectedContribution(updatedDetail.result as any);
+      }
+
+      setContributions((prev) =>
+        prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId)
+      );
+
+      setTabCounts((prev) => ({
+        ...prev,
+        pending: Math.max(prev.pending - 1, 0),
+        rejected: prev.rejected + 1,
+      }));
+
+      setShowRejectDialog(false);
+
+      // Nếu đang ở detail view, quay về list
+      if (showDetail) {
+        setShowDetail(false);
+        setSelectedContributionId(null);
+      }
+
+      if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
+    } catch (error) {
+      console.error("❌ Error rejecting contribution:", error);
+      alert("Có lỗi xảy ra khi từ chối bài!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackFromDetail = () => {
+    setShowDetail(false);
+    setSelectedContributionId(null);
     setSelectedContribution(null);
-
-    if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
-  } catch (error) {
-    console.error("❌ Error approving contribution:", error);
-    alert("Có lỗi xảy ra khi duyệt bài!");
-  } finally {
-    setLoading(false);
-  }
-};
-
-const confirmReject = async (note: string) => {
-  if (!selectedContribution) return;
-  setLoading(true);
-  try {
-    await rejectContributionAcceptance(selectedContribution.acceptanceId, note);
-    
-    setContributions((prev) =>
-      prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId)
-    );
-
-    setTabCounts((prev) => ({
-      ...prev,
-      pending: Math.max(prev.pending - 1, 0),
-      rejected: prev.rejected + 1,
-    }));
-
-    setShowRejectDialog(false);
-    setSelectedContribution(null);
-
-    if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
-  } catch (error) {
-    console.error("❌ Error rejecting contribution:", error);
-    alert("Có lỗi xảy ra khi từ chối bài!");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900">Quản Lý Bài Đăng Đóng Góp</h2>
+    <>
+      {/* Main Content */}
+      {showDetail && selectedContributionId ? (
+        <ContributionDetailSection
+          contributionId={selectedContributionId}
+          onBack={handleBackFromDetail}
+          forStaff={true}
+          onApprove={handleApproveFromDetail}
+          onReject={handleRejectFromDetail}
+        />
+      ) : (
+        <div className="p-6">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">Quản Lý Bài Đăng Đóng Góp</h2>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-4">
-        <nav className="-mb-px flex space-x-8">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.key;
-            const count = tabCounts[tab.key];
-            return (
-              <button
-                key={tab.key}
-                onClick={() => {
-                  setActiveTab(tab.key);
-                  setPage(1);
-                }}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                  isActive
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <Icon size={16} />
-                {tab.label}
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    isActive ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+          {/* Tabs */}
+          <div className="border-b border-gray-200 mb-4">
+            <nav className="-mb-px flex space-x-8">
+              {TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.key;
+                const count = tabCounts[tab.key];
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => {
+                      setActiveTab(tab.key);
+                      setPage(1);
+                    }}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                      isActive
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {tab.label}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        isActive ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
 
-      {/* Filters */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="relative w-64">
-          <Search size={16} className="absolute left-3 top-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm..."
-            className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg w-full text-sm"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchContributions()}
+          {/* Filters */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="relative w-64">
+              <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm..."
+                className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg w-full text-sm"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && fetchContributions()}
+              />
+            </div>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortBy)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            >
+              <option value={SortBy.IdDesc}>Mới nhất</option>
+              <option value={SortBy.IdAsc}>Cũ nhất</option>
+              <option value={SortBy.NameAsc}>Tên A-Z</option>
+              <option value={SortBy.NameDesc}>Tên Z-A</option>
+            </select>
+          </div>
+
+          {/* Table */}
+          <ContributionTable
+            data={contributions}
+            page={page}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={setPage}
+            onView={handleView}
+            onAction={handleAction}
+            loading={loading}
+            activeTabStatus={currentTabStatus}
           />
         </div>
-
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as SortBy)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-        >
-          <option value={SortBy.IdDesc}>Mới nhất</option>
-          <option value={SortBy.IdAsc}>Cũ nhất</option>
-          <option value={SortBy.NameAsc}>Tên A-Z</option>
-          <option value={SortBy.NameDesc}>Tên Z-A</option>
-        </select>
-      </div>
-
-      {/* Table */}
-      <ContributionTable
-        data={contributions}
-        page={page}
-        pageSize={pageSize}
-        totalItems={totalItems}
-        onPageChange={setPage}
-        onView={handleView}
-        onAction={handleAction}
-        loading={loading}
-      />
-
-      {/* View & Dialogs */}
-      <ContributionView
-        open={showView}
-        onClose={() => {
-          setShowView(false);
-          setSelectedContributionDetail(null);
-        }}
-        contribution={selectedContributionDetail}
-        loading={loadingDetail}
-      />
+      )}
 
       <ConfirmDialog
         open={showConfirm}
@@ -308,7 +341,7 @@ const confirmReject = async (note: string) => {
         onConfirm={confirmReject}
         loading={loading}
       />
-    </div>
+    </>
   );
 };
 

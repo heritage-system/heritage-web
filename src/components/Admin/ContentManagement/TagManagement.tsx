@@ -515,7 +515,7 @@ onSave: (tag: TagSearchResponse) => void;
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+   <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-lg p-6 w-96 space-y-4 relative"

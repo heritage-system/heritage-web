@@ -106,6 +106,7 @@ export interface ContributionOverviewResponse {
     year: number,
     views: number
   }[]
+  note?: string;
 }
 
 export interface ContributionOverviewItemListResponse {
@@ -119,6 +120,9 @@ export interface ContributionOverviewItemListResponse {
   isPremium: true,
   status: string,
   acceptanceId: number;
+  approvedAt?: string;      
+  publishedAt?: string;    
+  createdAt: string; 
 }
 
 export interface ContributionDetailUpdatedResponse {

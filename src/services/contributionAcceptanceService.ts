@@ -6,6 +6,7 @@ import {
   ContributionOverviewResponse,
   ContributionOverviewItemListResponse,
   ContributionOverviewSearchRequest,
+  ContributionAcceptanceDecisionRequest,
 } from "../types/contribution";
 
 export const getListContributionsOverviewForStaff = async (
@@ -54,22 +55,28 @@ export const approveContributionAcceptance = async (
 
 export const rejectContributionAcceptance = async (
   acceptanceId: number,
-  note: string
+  requestOrNote: string | ContributionAcceptanceDecisionRequest
 ): Promise<ApiResponse<object>> => {
   if (!acceptanceId || acceptanceId <= 0)
     throw new Error("acceptanceId is invalid or missing");
 
-  if (!note || note.trim() === "")
-    throw new Error("note is required for rejection");
+  let request: ContributionAcceptanceDecisionRequest;
+
+  if (typeof requestOrNote === "string") {
+    if (!requestOrNote.trim()) throw new Error("note is required for rejection");
+    request = { note: requestOrNote };
+  } else {
+    if (!requestOrNote.note || requestOrNote.note.trim() === "")
+      throw new Error("note is required for rejection");
+    request = requestOrNote;
+  }
 
   return await fetchInterceptor<object>(
     `${API_URL}/api/v1/contribution-acceptances/staff/acceptances/${acceptanceId}/reject`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ note }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
     }
   );
 };

@@ -52,8 +52,7 @@ import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement";
 import CategoryManagement from "../../components/Admin/ContentManagement/CategoryManagement";
 import TagManagement from "../../components/Admin/ContentManagement/TagManagement";
-import HeritageManagement from "../../components/Admin/ContentManagement/HeritageManagement";
-import HeritageDetailManagement from "../../components/Admin/ContentManagement/HeritageDetailManagement";
+import HeritageManagement from "../../components/Admin/ContentManagement/HeritageManagement.tsx/HeritageManagement";
 import ContributionPostManagement from "../../components/Admin/ContentManagement/ContributionPostManagement/ContributionPostManagement";
 import DigitalAssetManagement from "../../components/Admin/ContentManagement/DigitalAssetManagement";
 import BudgetManagement from "../../components/Admin/FinancialManagement/BudgetManagement";
@@ -122,7 +121,6 @@ const moduleStructure = {
     icon: Building,
     subModules: [
       { id: "heritage", name: "Quản lý di sản", icon: MapPin, component: HeritageManagement },
-      { id: "heritageDetail", name: "Chi tiết di sản", icon: FileText, component: HeritageDetailManagement },
       { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement },
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
       { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },

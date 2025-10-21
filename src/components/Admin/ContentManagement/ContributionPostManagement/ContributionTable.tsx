@@ -12,6 +12,7 @@ interface ContributionTableProps {
   onView: (item: ContributionOverviewItemListResponse) => void;
   onAction: (item: ContributionOverviewItemListResponse, action: "approve" | "reject") => void;
   loading?: boolean;
+  activeTabStatus?: ContributionStatus | undefined; 
 }
 
 const ContributionTable: React.FC<ContributionTableProps> = ({
@@ -23,6 +24,7 @@ const ContributionTable: React.FC<ContributionTableProps> = ({
   onView,
   onAction,
   loading,
+  activeTabStatus,
 }) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -59,6 +61,15 @@ const ContributionTable: React.FC<ContributionTableProps> = ({
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiêu đề</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thẻ di sản</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tạo</th>
+
+            {activeTabStatus === ContributionStatus.APPROVED && (
+              <>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày duyệt</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày xuất bản</th>
+              </>
+            )}
+
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Hành động</th>
           </tr>
@@ -67,7 +78,7 @@ const ContributionTable: React.FC<ContributionTableProps> = ({
         <tbody className="bg-white divide-y divide-gray-200">
           {loading ? (
             <tr>
-              <td colSpan={5} className="p-8 text-center">
+              <td colSpan={8} className="p-8 text-center">
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   <span className="ml-2 text-gray-600">Đang tải...</span>
@@ -76,7 +87,7 @@ const ContributionTable: React.FC<ContributionTableProps> = ({
             </tr>
           ) : data.length === 0 ? (
             <tr>
-              <td colSpan={5} className="p-8 text-center text-gray-500">
+              <td colSpan={8} className="p-8 text-center text-gray-500">
                 Không có dữ liệu
               </td>
             </tr>
@@ -85,10 +96,27 @@ const ContributionTable: React.FC<ContributionTableProps> = ({
               <tr key={c.id} className="hover:bg-gray-50 transition">
                 <td className="px-6 py-4 text-sm">{c.id}</td>
                 <td className="px-6 py-4 text-sm font-medium truncate max-w-xs">{c.title}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">
+                <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={c.contributionHeritageTags?.map((tag) => tag.name).join(", ")}>
                   {c.contributionHeritageTags?.map((tag) => tag.name).join(", ") || "-"}
                 </td>
+
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  {c.createdAt ? new Date(c.createdAt).toLocaleDateString("vi-VN") : "-"}
+                </td>
+
+                {activeTabStatus === ContributionStatus.APPROVED && (
+                  <>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {c.approvedAt ? new Date(c.approvedAt).toLocaleDateString("vi-VN") : "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {c.publishedAt ? new Date(c.publishedAt).toLocaleDateString("vi-VN") : "-"}
+                    </td>
+                  </>
+                )}
+
                 <td className="px-6 py-4">{getStatusBadge(c.status)}</td>
+
                 <td className="px-6 py-4 text-right text-sm">
                   <div className="flex justify-end items-center gap-2">
                     <button
@@ -98,6 +126,7 @@ const ContributionTable: React.FC<ContributionTableProps> = ({
                     >
                       <Eye size={16} />
                     </button>
+
                     {c.status === ContributionStatus.PENDING && (
                       <>
                         <button
