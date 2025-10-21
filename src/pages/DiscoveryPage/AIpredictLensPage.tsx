@@ -1,300 +1,288 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { predictHeritage } from "../../services/AIpredictService";
 import LensCanvas from "../../components/Discovery/LensCanvas";
-import DiscoveryAIUploader from "../../components/Discovery/DiscoveryAIUploader";
-import { PredictResponse } from "../../types/AIpredict";
+import { PredictApiPayload, PredictResponse } from "../../types/AIpredict";
 import AnimeGirlMascot, { GirlStatus } from "../../components/Mascot/AnimeGirlMascot";
 import { useNavigate } from "react-router-dom";
 
-type LayoutMode = "pre" | "post"; // pre: trước khi tìm; post: sau khi có kết quả
-
 const AIpredictLensPage: React.FC = () => {
   const navigate = useNavigate();
-   
-const [lastUrl, setLastUrl] = useState<string | null>(null);
-  const [layout, setLayout] = useState<LayoutMode>("pre");
+  type Rect01 = { x: number; y: number; w: number; h: number };
+
+  const [lastCrop, setLastCrop] = useState<Rect01 | null>(null);
+  const [payload, setPayload] = useState<PredictApiPayload | null>(null);
   const [status, setStatus] = useState<GirlStatus>("idle");
-  const [expression, setExpression] = useState<string>("🙂 Sẵn sàng!");
+
   const [imgUrl, setImgUrl] = useState<string | null>(null);
-  const [results, setResults] = useState<PredictResponse | null>(null);
-const [fullImgUrl, setFullImgUrl] = useState<string | null>(null); // original image URL (never revoke until replaced)
-const [cropUrl, setCropUrl] = useState<string | null>(null);       // latest crop preview URL (safe to revoke on replace)
+  const [fullImgUrl, setFullImgUrl] = useState<string | null>(null);
+  const [cropUrl, setCropUrl] = useState<string | null>(null);
+
+  const mascotRef = useRef<HTMLDivElement | null>(null);
+  const [pipVisible, setPipVisible] = useState(false);
+
+  // PiP observe mascot visibility
+  useEffect(() => {
+    const el = mascotRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setPipVisible(!entry.isIntersecting),
+      { root: null, threshold: 0.2 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const setLastCropSafe = (r: Rect01 | null) =>
+    setLastCrop((prev) => {
+      if (!prev || !r) return r;
+      const same =
+        Math.abs(prev.x - r.x) < 1e-6 &&
+        Math.abs(prev.y - r.y) < 1e-6 &&
+        Math.abs(prev.w - r.w) < 1e-6 &&
+        Math.abs(prev.h - r.h) < 1e-6;
+      return same ? prev : r;
+    });
+
+  const getMatches = (p: PredictApiPayload | null) =>
+    (p && "matches" in p && Array.isArray((p as any).matches) ? (p as any).matches : []) as PredictResponse["matches"];
+
+  const getError = (p: PredictApiPayload | null) =>
+    p && "error" in (p as any) ? (p as any).error : null;
+
+  const ErrorCard: React.FC<{ err: any }> = ({ err }) => {
+    const isStringErr = typeof err === "string";
+    const code = isStringErr ? err : err?.code;
+    const label = !isStringErr ? err?.label : undefined;
+    const confidence = !isStringErr ? err?.confidence : undefined;
+    const size = !isStringErr ? err?.size : undefined;
+  const fallbackMessage =
+  code === "BLUR_EARLY_DROP"      ? "Ảnh quá mờ nên bị từ chối ngay từ đầu."
+: code === "BLUR_AFTER_ENHANCE"   ? "Ảnh vẫn mờ sau khi xử lý tăng chất lượng."
+: code === "INVALID_IMAGE"        ? "Không thể đọc ảnh. Vui lòng tải PNG/JPG/WebP hợp lệ."
+: undefined;
+
+const message = (isStringErr ? null : err?.message) ?? fallbackMessage;
 
 
-  // Gửi file/ảnh đầy đủ
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <div className="font-semibold mb-1">Không thể trả kết quả tìm kiếm</div>
+        <div className="flex flex-col gap-1">
+          <div><span className="font-medium">Mã lỗi:</span> {code}</div>
+          {label && (
+            <div>
+              <span className="font-medium">Phân loại:</span> {label}
+              {typeof confidence === "number" ? ` (độ tin cậy ~ ${Math.round(confidence * 100)}%)` : ""}
+            </div>
+          )}
+          {Array.isArray(size) && size.length === 2 && (
+            <div><span className="font-medium">Kích thước ảnh:</span> {size[0]}×{size[1]} px</div>
+          )}
+          {message && <div className="mt-0.5">{message}</div>}
+
+          {code === "NON_PHOTOGRAPHIC" && (
+            <ul className="list-disc pl-5 mt-1">
+              <li>Tải ảnh CHỤP thực tế (không phải anime/đồ hoạ/ảnh poster).</li>
+              <li>Tránh ảnh màn hình, meme, banner gacha, key visual game…</li>
+            </ul>
+          )}
+          {code === "IMAGE_TOO_SMALL" && (
+            <ul className="list-disc pl-5 mt-1">
+              <li>Dùng ảnh có cạnh dài ≥ 384 px (khuyến nghị ≥ 512 px).</li>
+              <li>Chụp gần hơn hoặc chọn ảnh độ phân giải cao hơn.</li>
+            </ul>
+          )}
+          {(code === "BLUR_EARLY_DROP" || code === "BLUR_AFTER_ENHANCE") && (
+            <ul className="list-disc pl-5 mt-1">
+              <li>Giữ máy chắc tay, đủ sáng; lau sạch ống kính.</li>
+              <li>Chụp lại đối tượng chiếm ≥ 40–60% khung hình.</li>
+            </ul>
+          )}
+
+          <details className="mt-1">
+            <summary className="cursor-pointer">Chi tiết kỹ thuật</summary>
+            <pre className="mt-2 max-h-64 overflow-auto text-xs text-red-900">
+{JSON.stringify(err, null, 2)}
+            </pre>
+          </details>
+        </div>
+      </div>
+    );
+  };
+
   const runPredictFile = async (file: File) => {
-  setStatus("loading"); // 👈 LOADING while waiting
-  setExpression("🔎 Đang nhận diện...");
-  try {
-    const res = await predictHeritage(file, { top_k: 20, results: 5, threshold: 0.65 });
-    if (res.result) {
-      setResults(res.result);
-      setLayout("post");  // show POST layout
+    setStatus("loading");
+    try {
+      const res = await predictHeritage(file, { top_k: 20, results: 5, threshold: 0.65 });
+      const data = res.result ?? null;
 
-      // 👇 Mood = happy/unhappy depending on data
-      if (res.result.matches.length) {
-        setStatus("data");    // happy
-        setExpression("🎉 Tìm thấy kết quả!");
-      } else {
-        setStatus("nodata");  // unhappy
-        setExpression("😿 Không tìm thấy phù hợp");
+      setPayload(data);
+
+      const err = getError(data);
+      if (err) {
+        setStatus("nodata");
+        return;
       }
-    } else {
+
+      const m = getMatches(data);
+      if (m.length) setStatus("data");
+      else setStatus("nodata");
+    } catch (e) {
+      console.error(e);
+      setPayload(null);
       setStatus("idle");
-      setExpression("⚠️ Không thể nhận diện ảnh");
     }
-  } catch (e) {
-    console.error(e);
-    setStatus("idle");
-    setExpression("⚠️ Lỗi khi gọi AI");
-  }
-};
+  }; // ✅ chỉ một dấu đóng cho hàm, không dư
 
-const runPredictBlob = async (blob: Blob) => {
-  const file = new File([blob], `lens-crop-${Date.now()}.png`, { type: "image/png" });
+  const runPredictBlob = async (blob: Blob) => {
+    const file = new File([blob], `lens-crop-${Date.now()}.png`, { type: "image/png" });
+    const url = URL.createObjectURL(blob);
+    if (cropUrl) URL.revokeObjectURL(cropUrl);
+    setCropUrl(url);
+    await runPredictFile(file);
+  };
 
-  // Create a NEW crop preview URL and replace the previous cropUrl only
-  const url = URL.createObjectURL(blob);
-  if (cropUrl) URL.revokeObjectURL(cropUrl);
-  setCropUrl(url);
-  setImgUrl(url);
-
-  await runPredictFile(file); // this will setLayout("post")
-};
-
-
-  // Bố cục responsive theo yêu cầu:
-  // - PRE: khu làm việc (canvas) 8/10; trong đó canvas (ảnh) 6/10 & model 2/10; sidebar phải 2/10.
-  // - POST: trái 6/10 (trên ảnh, dưới model), phải 4/10 là kết quả.
-  const wrapperClass = "min-h-screen bg-gray-50 mt-16";
-  const containerClass = "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6";
+  const wrapperClass =
+    "min-h-screen mt-16 bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50";
+  const containerClass = "mx-auto w-[80%] px-4 sm:px-6 lg:px-8 py-6";
 
   return (
     <div className={wrapperClass}>
       <main className={containerClass}>
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            Tìm kiếm bằng <span className="bg-gradient-to-r from-yellow-500 to-red-600 bg-clip-text text-transparent">AI</span>
+            Tìm kiếm bằng{" "}
+            <span className="bg-gradient-to-r from-yellow-500 to-red-600 bg-clip-text text-transparent">
+              AI
+            </span>
           </h1>
-          <p className="text-gray-600">Chọn ảnh/kéo thả, vẽ vùng cần tìm </p>
+          <p className="text-gray-600">Chọn ảnh/kéo thả, vẽ vùng cần tìm</p>
         </div>
 
-        {/* -------- PRE LAYOUT -------- */}
-        {layout === "pre" && (
-          <div className="flex gap-4">
-            {/* Khu làm việc 8/10 */}
-            <section className="w-4/5">
-              <div className="flex gap-4">
-                {/* Ảnh/canvas 6 phần */}
-                <div className="basis-3/4">
-           <LensCanvas
-  imageUrl={imgUrl}
-onImageSelected={(file) => {
-  const url = URL.createObjectURL(file);
-  if (fullImgUrl) URL.revokeObjectURL(fullImgUrl);
-  setFullImgUrl(url);
-  setImgUrl(url);
-  if (cropUrl) { URL.revokeObjectURL(cropUrl); setCropUrl(null); }
-
-  setResults(null);
-  setLayout("pre");
-  setStatus("idle"); // 👈 NORMAL in PRE
-  setExpression("🖼️ Ảnh đã sẵn sàng, hãy khoanh vùng để tìm!");
-}}
-
- onCropPreview={(url) => {
-  // Replace the transient crop URL only
-  if (cropUrl) URL.revokeObjectURL(cropUrl);
-  setCropUrl(url);
-  setImgUrl(url);  // show the crop preview now
-}}
-
-  onCropConfirm={runPredictBlob}
-  onStatus={(s) => {
-    if (s === "selecting") setExpression("📐 Đang chọn vùng...");
-    else if (s === "ready") setExpression("✅ Vùng đã sẵn sàng, bấm Dự đoán!");
-    else setExpression("🙂 Sẵn sàng!");
-  }}
-/>
-
-                </div>
-
-                {/* Model 2 phần (panel phải của khu làm việc) */}
-                <aside className="basis-1/4">
-                  <div className="h-[70vh] rounded-2xl border bg-white shadow flex flex-col">
-                    <div className="p-3 border-b">
-                      <h3 className="font-semibold">Model</h3>
-                      <p className="text-xs text-gray-500">Placeholder biểu cảm & trạng thái</p>
-                    </div>
-                    <div className="flex-1 flex items-center justify-center">
-                      <AnimeGirlMascot status={status} />
-                    </div>
-                    <div className="p-3 border-t text-sm">
-                      <div className="font-medium mb-1">Trạng thái</div>
-                      <div className="text-gray-700">{expression}</div>
-                    </div>
-                  </div>
-                </aside>
-              </div>
-            </section>
-
-            {/* Sidebar phải 2/10 (gợi ý/trạng thái) */}
-          {/* Sidebar phải 2/10: Gợi ý (chưa có kết quả) / Kết quả (sau khi search) */}
-<aside className="w-1/5">
-  <div className="h-[70vh] rounded-2xl border bg-white shadow p-3 overflow-auto">
-    {!results ? (
-      <>
-        <div className="font-semibold mb-2">Gợi ý</div>
-        <ul className="text-sm list-disc pl-4 space-y-1 text-gray-600">
-          <li>Tải ảnh hoặc chụp ảnh</li>
-          <li>Kéo để khoanh vùng cần nhận diện</li>
-          <li>Bấm “Dự đoán vùng này” để gửi</li>
-        </ul>
-        <div className="mt-4 text-xs text-gray-500">
-          Mẹo: Kéo khung nhỏ quanh đối tượng chính để tăng độ chính xác.
-        </div>
-      </>
-    ) : results.matches.length === 0 ? (
-      <>
-        <div className="font-semibold mb-2">Kết quả</div>
-        <div className="text-sm text-gray-500">Không tìm thấy kết quả phù hợp.</div>
-      </>
-    ) : (
-      <>
-        <div className="font-semibold mb-3">Kết quả</div>
-        <div className="space-y-3">
-          {results.matches.map((m) => (
-            <div
-              key={m.heritage_id}
-              className="p-3 rounded-xl border hover:shadow cursor-pointer transition"
-              onClick={() => navigate(`/heritage/${m.heritage_id}`)}
-            >
-              <div className="font-semibold text-gray-800">
-                {m.name ?? "Không rõ tên"}
-              </div>
-              <div className="text-sm text-gray-600 line-clamp-3">
-                {m.description ?? "—"}
-              </div>
-              {typeof m.score === "number" && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Score: {m.score.toFixed(3)}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </>
-    )}
-  </div>
-</aside>
-
-          </div>
-        )}
-{/* -------- POST LAYOUT: Left 2/10 (crop + model) | Right 6/10 (results) -------- */}
-{layout === "post" && (
-  <div className="flex gap-4">
-    {/* Working area 8/10 */}
-    <section className="w-4/5">
-      <div className="flex gap-4">
-        {/* LEFT = 1/4 of 8/10 = 2/10 */}
-        <aside className="basis-1/4 flex flex-col gap-3">
-          {/* Crop thumbnail */}
-        <button
-  type="button"
-  onClick={() => {
-    setLayout("pre");
-    setImgUrl(fullImgUrl || imgUrl);
-    setStatus("idle"); // 👈 back to NORMAL in PRE
-    setExpression("🖼️ Ảnh đã sẵn sàng, hãy khoanh vùng để tìm!");
-  }}
-            className="rounded-2xl border bg-white shadow p-3 text-left hover:shadow-md transition"
-            title="Chọn lại vùng hoặc ảnh mới"
-          >
-            <div className="text-sm font-medium mb-2">Vùng đã tra cứu</div>
-            {imgUrl ? (
-              <img
-                src={imgUrl}
-                alt="Crop"
-                className="w-full h-36 object-contain rounded-lg bg-neutral-100"
+        {/* Canvas + mascot */}
+        <section className="rounded-2xl border shadow bg-white/70 backdrop-blur-sm overflow-hidden">
+          <div className="grid grid-cols-[1fr_320px] md:grid-cols-[1fr_360px] min-h-[60vh]">
+            {/* LEFT: image canvas */}
+            <div className="relative">
+              <LensCanvas
+                frameClassName="w-full h-full relative bg-neutral-900"
+                imageUrl={imgUrl}
+                initialCrop={lastCrop ?? "full"}
+                onCropRectChange={setLastCropSafe}
+                onImageSelected={async (file) => {
+                  const url = URL.createObjectURL(file);
+                  if (fullImgUrl) URL.revokeObjectURL(fullImgUrl);
+                  setFullImgUrl(url);
+                  setImgUrl(url);
+                  if (cropUrl) {
+                    URL.revokeObjectURL(cropUrl);
+                    setCropUrl(null);
+                  }
+                  setLastCrop({ x: 0, y: 0, w: 1, h: 1 });
+                  await runPredictFile(file); // auto-search on upload
+                }}
+                onCropPreview={(url) => {
+                  if (cropUrl) URL.revokeObjectURL(cropUrl);
+                  setCropUrl(url);
+                }}
+                onCropConfirm={runPredictBlob}
+                onStatus={() => {}}
               />
+            </div>
+
+            {/* RIGHT: mascot */}
+            <div className="relative bg-neutral-900">
+              <div className="absolute left-0 top-0 h-full w-px bg-black/30" />
+              <div className="h-full flex items-end px-4 pt-4 pb-0">
+                <div
+                  ref={mascotRef}
+                  className="w-[240px] h-[60vh] max-h-[520px] mx-auto"
+                >
+                  <AnimeGirlMascot status={status} className="h-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Kết quả */}
+        <section className="w-full mt-4">
+          <div className="rounded-2xl border bg-white shadow p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-lg">Kết quả</h3>
+            </div>
+
+            {!payload ? (
+              <div className="text-sm text-gray-600">...</div>
+            ) : getError(payload) ? (
+              <ErrorCard err={getError(payload)} />
+            ) : getMatches(payload).length === 0 ? (
+              <div className="text-sm text-gray-500">Không tìm thấy kết quả phù hợp.</div>
             ) : (
-              <div className="w-full h-36 rounded-lg bg-neutral-100 grid place-items-center text-xs text-gray-500">
-                Không có ảnh
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {getMatches(payload).map((m: PredictResponse["matches"][number]) => {
+                  const thumbUrl =
+                    m.avatar_url ||
+                    m.evidence.find((e) => !e.is_video)?.url ||
+                    m.evidence[0]?.url ||
+                    null;
+
+                  return (
+                    <article
+                      key={m.heritage_id}
+                      className="rounded-xl border bg-white p-4 hover:shadow transition cursor-pointer"
+                      onClick={() => navigate(`/heritage/${m.heritage_id}`)}
+                      title={m.name ?? "Không rõ tên"}
+                    >
+                      {thumbUrl && (
+                        <div className="mb-3 overflow-hidden rounded-md aspect-[4/3] bg-gray-100">
+                          <img
+                            src={thumbUrl}
+                            alt={m.name ?? "thumbnail"}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            referrerPolicy="no-referrer"
+                            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                              (e.currentTarget as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="font-semibold text-gray-900">
+                        {m.name ?? "Không rõ tên"}
+                      </div>
+                      {m.description && (
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                          {m.description}
+                        </p>
+                      )}
+                    </article>
+                  );
+                })}
               </div>
             )}
-            <div className="mt-2 text-xs text-gray-500">
-              Nhấn để quay lại chọn vùng/ảnh như Google Lens
+          </div>
+        </section>
+
+        {/* PiP mini-mascot */}
+        {pipVisible && (
+          <button
+            type="button"
+            onClick={() =>
+              mascotRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+            className="fixed bottom-4 right-4 z-50"
+            aria-label="Open mascot"
+            title="Quay lại khu vực trợ lý"
+          >
+            <div className="rounded-xl shadow-lg border bg-white/90 backdrop-blur p-2 hover:scale-[1.02] transition">
+              <div className="w-28 h-36 pointer-events-none">
+                <AnimeGirlMascot status={status} />
+              </div>
             </div>
           </button>
-
-          {/* Model panel */}
-          <div className="rounded-2xl border bg-white shadow flex-1 flex flex-col min-h-0">
-    <div className="p-3 border-b">
-      <h3 className="font-semibold">Model</h3>
-      <p className="text-xs text-gray-500">Biểu cảm & trạng thái</p>
-    </div>
-    <div className="flex-1 min-h-0 flex items-center justify-center">
-      <AnimeGirlMascot status={status} />
-    </div>
-    <div className="p-3 border-t text-sm">
-      <div className="font-medium mb-1">Trạng thái</div>
-      <div className="text-gray-700">{expression}</div>
-    </div>
-  </div>
-        </aside>
-
-     {/* RIGHT = 3/4 of 8/10 = 6/10 (Results, vertical list) */}
-<aside className="basis-3/4 rounded-2xl border bg-white shadow p-4 h-[70vh] overflow-auto">
-  <div className="font-semibold mb-4 text-lg">Kết quả</div>
-
-  {!results ? (
-    <div className="text-sm text-gray-500">Chưa có kết quả.</div>
-  ) : results.matches.length === 0 ? (
-    <div className="text-sm text-gray-500">Không tìm thấy kết quả phù hợp.</div>
-  ) : (
-    // 👇 one item per row, stacked vertically
-    <div className="divide-y divide-gray-200">
-      {results.matches.map((m) => (
-        <button
-          key={m.heritage_id}
-          onClick={() => navigate(`/heritage/${m.heritage_id}`)}
-          className="w-full text-left py-3 focus:outline-none hover:bg-gray-50 transition rounded-lg px-3 -mx-3"
-          title={m.name ?? "Không rõ tên"}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="font-medium text-gray-900 truncate">
-                {m.name ?? "Không rõ tên"}
-              </div>
-              {/* (optional) keep a tiny snippet; remove this block if you truly want names only) */}
-              {m.description && (
-                <div className="text-sm text-gray-600 line-clamp-2 mt-0.5">
-                  {m.description}
-                </div>
-              )}
-            </div>
-            {typeof m.score === "number" && (
-              <div className="shrink-0 text-xs text-gray-500 mt-0.5">
-                {m.score.toFixed(3)}
-              </div>
-            )}
-          </div>
-        </button>
-      ))}
-    </div>
-  )}
-</aside>
-
-      </div>
-    </section>
-
-    {/* No right sidebar in post layout */}
-    <div className="w-1/5" />
-  </div>
-)}
-
-
-     
+        )}
       </main>
     </div>
   );

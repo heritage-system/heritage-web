@@ -1,4 +1,4 @@
-import { PredictResponse } from "../types/AIpredict";
+import { PredictApiPayload, PredictResponse } from "../types/AIpredict";
 import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
 
@@ -7,7 +7,7 @@ import { fetchInterceptor } from "../utils/interceptor";
 export const predictHeritage = async (
   file: File,
   params?: { top_k?: number; results?: number; threshold?: number }
-): Promise<ApiResponse<PredictResponse>> => {
+): Promise<ApiResponse<PredictApiPayload>> => {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -16,12 +16,8 @@ export const predictHeritage = async (
   if (params?.results) query.append("results", params.results.toString());
   if (params?.threshold) query.append("threshold", params.threshold.toString());
 
-  return await fetchInterceptor<PredictResponse>(
+  return await fetchInterceptor<PredictApiPayload>(
     `${AI_API_URL}/predict?${query.toString()}`,
-    {
-      method: "POST",
-      body: formData,
-      // skipAuth: true, // 👉 Nếu predict API của bạn KHÔNG yêu cầu login thì bật dòng này
-    }
+    { method: "POST", body: formData }
   );
 };

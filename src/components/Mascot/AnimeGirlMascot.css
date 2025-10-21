@@ -1,16 +1,4 @@
-.l2d-wrap {
-  width: 100%;
-  height: 280px;
-  position: relative;
-}
-
-.l2d-canvas-holder {
-  width: 100%;
-  height: 100%;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 10px 20px rgba(0,0,0,.18);
-  background: radial-gradient(120% 100% at 50% 30%, rgba(255,215,0,.08), transparent 60%),
-              linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.06));
-  cursor: default; /* canvas clicks are allowed, but voice only when hitting model */
-}
+/* AnimeGirlMascot.css */
+.l2d-wrap { width: 100%; height: 100%; }
+.l2d-canvas-holder { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.l2d-canvas-holder canvas { display: block; width: 100% !important; height: 100% !important; }
