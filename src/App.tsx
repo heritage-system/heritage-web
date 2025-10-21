@@ -29,6 +29,7 @@ import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 import HeritageForm from './pages/ContributionPage/HeritageForm'
 import BoardGame from './pages/QuizzPage/BoardGame'
 import BoardGameMono from './pages/QuizzPage/BoardGameMono'
+import QuizPageV1 from './pages/QuizzPage/QuizPageV1';
 const App: React.FC = () => {
   return (
     <Router>
@@ -58,7 +59,7 @@ const App: React.FC = () => {
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />   
         <Route path="/heritage-form" element={<MainLayout><HeritageForm /></MainLayout>} /> 
          <Route path="/board-game" element={<MainLayout><BoardGame /></MainLayout>} />
-         <Route path="/board-game-mono" element={<MainLayout><BoardGameMono /></MainLayout>} />
+         <Route path="/quizzz" element={<MainLayout><QuizPageV1 /></MainLayout>} />
       </Routes>
 
       {/* <ChatBoxAI /> */}
