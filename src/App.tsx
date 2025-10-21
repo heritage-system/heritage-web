@@ -40,8 +40,7 @@ const App: React.FC = () => {
         <Route path="/forgot-password" element={<MainLayout><ForgotPassword /></MainLayout>} />
         <Route path="/reset-password" element={<MainLayout><ResetPassword /></MainLayout>} />
         <Route path="/change-password" element={<MainLayout><ChangePassword /></MainLayout>} />
-        <Route path="/heritagedetail/:id" element={<MainLayout><HeritageDetailPage /></MainLayout>} />
-        <Route path="/quizdetailview" element={<MainLayout><QuizDetailView /></MainLayout>} />
+        <Route path="/heritagedetail/:id" element={<MainLayout><HeritageDetailPage /></MainLayout>} />     
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
         <Route path="/contribution-form/:id?" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
