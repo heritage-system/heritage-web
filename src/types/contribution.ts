@@ -106,6 +106,7 @@ export interface ContributionOverviewResponse {
     year: number,
     views: number
   }[]
+  note?: string;
 }
 
 export interface ContributionOverviewItemListResponse {
@@ -118,6 +119,10 @@ export interface ContributionOverviewItemListResponse {
   saves: number,
   isPremium: true,
   status: string,
+  acceptanceId: number;
+  approvedAt?: string;      
+  publishedAt?: string;    
+  createdAt: string; 
 }
 
 export interface ContributionDetailUpdatedResponse {
@@ -148,4 +153,8 @@ export interface ContributionSaveResponse{
   title: string,
   mediaUrl: string,
   contributionHeritageTags: HeritageName[]
+}
+
+export interface ContributionAcceptanceDecisionRequest {
+  note?: string;
 }

@@ -52,3 +52,4 @@ export enum FestivalFrequency {
    SEASONAL = 2, 
    MONTHLY = 3
 }
+
