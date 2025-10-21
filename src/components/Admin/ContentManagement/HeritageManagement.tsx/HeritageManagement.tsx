@@ -8,18 +8,23 @@ import {
   Landmark,
   Clock,
   Archive,
-  BarChart3,
-  X,
+  ArrowLeft,
 } from "lucide-react";
-import Pagination from "../../Layouts/Pagination";
-import SearchFilter from "../SearchFilter";
-import { fetchHeritages, deleteHeritage } from "../../../services/heritageService";
-import { fetchTags } from "../../../services/tagService";
-import { fetchCategories } from "../../../services/categoryService";
-import { HeritageAdmin, TableColumn, TableProps } from "../../../types/heritage";
-import { useNavigate } from "react-router-dom";
+import Pagination from "../../../Layouts/Pagination";
+import SearchFilter from "../../SearchFilter";
+import {
+  fetchHeritages,
+  deleteHeritage,
+} from "../../../../services/heritageService";
+import { fetchTags } from "../../../../services/tagService";
+import { fetchCategories } from "../../../../services/categoryService";
+import {
+  HeritageAdmin,
+  TableColumn,
+  TableProps,
+} from "../../../../types/heritage";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import HeritageFormInline from "./HeritageFormInline";
 
 // Table component
 function DataTable<T extends { id: number }>({
@@ -128,23 +133,35 @@ const HeritageManagement: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<HeritageAdmin | null>(
     null
   );
-  const navigate = useNavigate();
+
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  const loadHeritages = async () => {
+    setLoading(true);
+    try {
+      const heritageResult = await fetchHeritages({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        keyword: searchTerm,
+        categoryId: selectedCategory,
+        tagId: selectedTag,
+      });
+
+      setHeritages(heritageResult.result?.items || []);
+      setTotalPages(heritageResult.result?.totalPages || 1);
+      setTotalElements(heritageResult.result?.totalElements || 0);
+    } catch (error) {
+      console.error("Error fetching heritages:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const heritageResult = await fetchHeritages({
-          page: currentPage,
-          pageSize: itemsPerPage,
-          keyword: searchTerm,
-          categoryId: selectedCategory,
-          tagId: selectedTag,
-        });
-
-        setHeritages(heritageResult.result?.items || []);
-        setTotalPages(heritageResult.result?.totalPages || 1);
-        setTotalElements(heritageResult.result?.totalElements || 0);
+        await loadHeritages();
 
         const categoryResponse = await fetchCategories();
         const catList = categoryResponse.result || [];
@@ -172,8 +189,10 @@ const HeritageManagement: React.FC = () => {
       }
     };
 
-    fetchAll();
-  }, [currentPage, itemsPerPage, searchTerm, selectedCategory, selectedTag]);
+    if (!showCreateForm) {
+      fetchAll();
+    }
+  }, [currentPage, itemsPerPage, searchTerm, selectedCategory, selectedTag, showCreateForm]);
 
   const stats = useMemo(() => {
     return {
@@ -181,7 +200,6 @@ const HeritageManagement: React.FC = () => {
       active: 0,
       pending: 0,
       archived: 0,
-      views: 0,
     };
   }, [totalElements]);
 
@@ -239,16 +257,7 @@ const HeritageManagement: React.FC = () => {
     try {
       await deleteHeritage(confirmDelete.id);
       toast.success("Xoá di sản thành công!");
-      const heritageResult = await fetchHeritages({
-        page: currentPage,
-        pageSize: itemsPerPage,
-        keyword: searchTerm,
-        categoryId: selectedCategory,
-        tagId: selectedTag,
-      });
-      setHeritages(heritageResult.result?.items || []);
-      setTotalPages(heritageResult.result?.totalPages || 1);
-      setTotalElements(heritageResult.result?.totalElements || 0);
+      await loadHeritages();
     } catch (error: any) {
       if (error?.response?.status === 401 || error?.response?.status === 403) {
         toast.error("Bạn không có quyền xoá di sản này!");
@@ -262,18 +271,31 @@ const HeritageManagement: React.FC = () => {
     }
   };
 
+  if (showCreateForm) {
+    return (
+      <HeritageFormInline
+        onCancel={() => setShowCreateForm(false)}
+        onSuccess={() => {
+          setShowCreateForm(false);
+          toast.success("Thêm di sản thành công!");
+          loadHeritages();
+        }}
+      />
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Quản lý di sản</h2>
         <div className="flex gap-2">
-          <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2">
+          <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2 transition">
             <Upload size={16} />
             Import
           </button>
           <button
-            onClick={() => navigate("/admin/create-heritage")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
+            onClick={() => setShowCreateForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2 transition"
           >
             <Plus size={16} />
             Thêm di sản
@@ -320,7 +342,11 @@ const HeritageManagement: React.FC = () => {
           setCurrentPage(1);
         }}
         filters={[
-          { label: "Lọc theo danh mục", value: "category", options: categories || [] },
+          {
+            label: "Lọc theo danh mục",
+            value: "category",
+            options: categories || [],
+          },
           { label: "Lọc theo Tag", value: "tag", options: tags || [] },
         ]}
         onFilterChange={(key, value) => {
@@ -338,9 +364,9 @@ const HeritageManagement: React.FC = () => {
       <DataTable
         data={heritages}
         columns={columns}
-        onEdit={(heritage) => navigate(`/admin/heritage/edit/${heritage.id}`)}
+        onEdit={(heritage) => console.log("Edit", heritage.id)}
         onDelete={handleDeleteHeritage}
-        onView={(heritage) => navigate(`/admin/heritage/${heritage.id}`)}
+        onView={(heritage) => console.log("View", heritage.id)}
         loading={loading}
       />
 
@@ -365,13 +391,13 @@ const HeritageManagement: React.FC = () => {
             <div className="flex justify-center gap-4">
               <button
                 onClick={confirmDeleteHeritage}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
               >
                 Xoá
               </button>
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+                className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition"
               >
                 Hủy
               </button>

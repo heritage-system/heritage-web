@@ -52,9 +52,8 @@ import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement";
 import CategoryManagement from "../../components/Admin/ContentManagement/CategoryManagement";
 import TagManagement from "../../components/Admin/ContentManagement/TagManagement";
-import HeritageManagement from "../../components/Admin/ContentManagement/HeritageManagement";
-import HeritageDetailManagement from "../../components/Admin/ContentManagement/HeritageDetailManagement";
-import ContentPublishing from "../../components/Admin/ContentManagement/ContentPublishing";
+import HeritageManagement from "../../components/Admin/ContentManagement/HeritageManagement.tsx/HeritageManagement";
+import ContributionPostManagement from "../../components/Admin/ContentManagement/ContributionPostManagement/ContributionPostManagement";
 import DigitalAssetManagement from "../../components/Admin/ContentManagement/DigitalAssetManagement";
 import BudgetManagement from "../../components/Admin/FinancialManagement/BudgetManagement";
 import ExpenseTracking from "../../components/Admin/FinancialManagement/ExpenseTracking";
@@ -98,6 +97,7 @@ import DataVisualization from "../../components/Admin/ReportsAnalytics/DataVisua
 import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
 import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
+import { useAuth } from '../../hooks/useAuth';
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -121,10 +121,9 @@ const moduleStructure = {
     icon: Building,
     subModules: [
       { id: "heritage", name: "Quản lý di sản", icon: MapPin, component: HeritageManagement },
-      { id: "heritageDetail", name: "Chi tiết di sản", icon: FileText, component: HeritageDetailManagement },
       { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement },
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
-      { id: "contentPublishing", name: "Xuất bản nội dung", icon: Globe, component: ContentPublishing },
+      { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
       { id: "digitalAsset", name: "Quản lý tài sản số", icon: Archive, component: DigitalAssetManagement }
     ]
   },
@@ -256,6 +255,14 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
   const [activeSubModule, setActiveSubModule] = useState<string>("");
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handleLogout = () => {
+    authLogout();
+    setIsDropdownOpen(false);
+    navigate('/login');
+  };
 
   // Handle state from navigation and initialize active module/submodule
   useEffect(() => {
@@ -490,17 +497,13 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
           <div className="flex items-center gap-4">
             {/* Dark Mode Toggle */}
             <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => handleLogout()}
+              className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-md transition"
+              title="Đăng xuất khỏi hệ thống"
             >
-              {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} />}
+              <LogOut size={16} />
+              <span>Đăng xuất</span>
             </button>
-            
-            <Bell className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
-            
-            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">A</span>
-            </div>
           </div>
         </header>
 
