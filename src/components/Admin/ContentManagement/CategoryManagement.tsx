@@ -346,7 +346,11 @@ const clearSearch = () => {
       <tr key={Category.id} className="hover:bg-gray-50">
         <td className="px-6 py-4">{Category.id}</td>
         <td className="px-6 py-4">{Category.name}</td>
-        <td className="px-6 py-4">{Category.description}</td> {/* <-- new */}
+       <td className="px-6 py-4" title={Category.description}>
+          {Category.description && Category.description.length > 50
+            ? `${Category.description.substring(0, 50)}...`
+            : Category.description || "—"}
+        </td>
         <td className="px-6 py-4">{Category.createByEmail}</td>
         <td className="px-6 py-4">{new Date(Category.updatedAt).toLocaleString()}</td>
         <td className="px-6 py-4">{Category.count}</td>
@@ -372,32 +376,114 @@ const clearSearch = () => {
         totalItems={0}
       />
 
-      {/* ---- Modal: View ---- */}
-      {showView && selectedCategory && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 w-96 relative">
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-black"
-              onClick={() => setShowView(false)}
-            >
-              <X size={18} />
-            </button>
-             <h3 className="text-lg font-bold mb-2">{selectedCategory.name}</h3>
-<p className="mb-2">ID: {selectedCategory.id}</p>
-<p className="mb-2">Tên : {selectedCategory.name} </p>
-<p className="mb-2">Miêu tả : {selectedCategory.description} </p>
-<p className="mb-2">ID người tạo : {selectedCategory.createdBy}  </p>
-<p className="mb-2">Tạo bởi : {selectedCategory.createByName}  </p>
-<p className="mb-2">Email người tạo : {selectedCategory.createByEmail} </p>
-<p className="mb-2">Ngày tạo : {selectedCategory.createdAt}</p>
-<p className="mb-2">ID người cập nhật : {selectedCategory.updatedBy}  </p>
-<p className="mb-2">Cập nhật bởi : {selectedCategory.updatedByName}</p>
-<p className="mb-2">Email người cập nhật : {selectedCategory.updatedByEmail} </p>
-<p className="mb-2">Ngày cập nhật : {selectedCategory.updatedAt}</p>
-<p className="mb-2">Số lượng di sản : {selectedCategory.count}</p>
+    {/* ---- Modal: View ---- */}
+{showView && selectedCategory && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl relative">
+      {/* Header */}
+      <div className="border-b px-6 py-4 flex items-center justify-between">
+        <h3 className="text-xl font-bold text-gray-900">{selectedCategory.name}</h3>
+        <button
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+          onClick={() => setShowView(false)}
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 space-y-4">
+        {/* Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tên danh mục
+          </label>
+          <p className="text-gray-900">{selectedCategory.name}</p>
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Miêu tả
+          </label>
+          <div className="bg-gray-50 rounded-md p-3">
+            <p className="text-gray-900 whitespace-pre-wrap">
+              {selectedCategory.description || "Chưa có thông tin"}
+            </p>
           </div>
         </div>
-      )}
+
+        {/* Count */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tổng số di sản
+          </label>
+          <p className="text-gray-900">{selectedCategory.count}</p>
+        </div>
+
+        {/* Creator and Updater */}
+        {(selectedCategory.createByName || selectedCategory.updatedByName) && (
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Thông tin tạo/cập nhật
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {selectedCategory.createByName && (
+                <div>
+                  <span className="text-gray-500">Tạo bởi: </span>
+                  <span className="text-gray-900">
+                    {selectedCategory.createByName}
+                  </span>
+                  {selectedCategory.createByEmail && (
+                    <span className="text-gray-500">
+                      {" "}
+                      ({selectedCategory.createByEmail})
+                    </span>
+                  )}
+                  <br />
+                  <span className="text-gray-500">
+                    {new Date(selectedCategory.createdAt).toLocaleString('vi-VN')}
+                  </span>
+                </div>
+              )}
+
+              {selectedCategory.updatedByName && (
+                <div>
+                  <span className="text-gray-500">Cập nhật bởi: </span>
+                  <span className="text-gray-900">
+                    {selectedCategory.updatedByName}
+                  </span>
+                  {selectedCategory.updatedByEmail && (
+                    <span className="text-gray-500">
+                      {" "}
+                      ({selectedCategory.updatedByEmail})
+                    </span>
+                  )}
+                  <br />
+                  <span className="text-gray-500">
+                    {selectedCategory.updatedAt 
+                      ? new Date(selectedCategory.updatedAt).toLocaleString('vi-VN') 
+                      : "—"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t px-6 py-4 flex justify-end">
+        <button
+          onClick={() => setShowView(false)}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ---- Modal: Add/Edit Form ---- */}
       {showForm && (
@@ -467,7 +553,7 @@ const CategoryForm: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-lg p-6 w-96 space-y-4 relative"

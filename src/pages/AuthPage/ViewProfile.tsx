@@ -126,9 +126,10 @@ const ViewProfile: React.FC = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (data?: UpdateProfileRequest) => {
     try {
-      const res = await updateProfile(formData);
+      const payload = data ?? formData;
+      const res = await updateProfile(payload);
 
       if (res.code === 200 && res.result) {
         setProfile(res.result);
