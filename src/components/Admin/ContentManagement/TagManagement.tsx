@@ -271,7 +271,7 @@ const clearSearch = () => {
 </div>
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Quản lý Tag</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Quản Lý Thẻ</h2>
         <button
           onClick={handleAdd}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"

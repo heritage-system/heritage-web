@@ -63,6 +63,7 @@ export interface HeritageMedia {
 }
 
 export interface HeritageTag {
+  id: number;
   name: string;
 }
 
@@ -288,4 +289,43 @@ export interface HeritageRelatedRequest {
   locations?: string[];
   heritageId: number;
   quantity?: number;
+}
+
+export interface HeritageUpdateRequest {
+  id: number;
+  name: string;
+  description: string;
+  content: HeritageContentRequest;
+  categoryId: number;
+  media: MediaRequest[];
+  tagIds?: number[];
+  locations?: LocationRequest[];
+  occurrences: OccurrenceRequest[];
+}
+
+export interface HeritageOverviewSearchRequest {
+  page: number;
+  pageSize: number;
+  keyword?: string;
+  categoryId?: number;
+  tagIds?: number[];
+  sortBy?: SortBy;
+}
+
+export interface HeritageResponse {
+  id: number;
+  name: string;
+  description: string;
+  categoryId: number;
+  categoryName: string;
+  mapUrl: string;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  media: HeritageMedia[];
+  tags: HeritageTag[];
+  locations: HeritageLocation[];
+  occurrences: HeritageOccurrence[];
+  content: string;
+  contentBlocks?: ContentBlock[];
 }

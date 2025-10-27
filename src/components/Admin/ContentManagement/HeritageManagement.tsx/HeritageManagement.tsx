@@ -1,127 +1,42 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  Edit,
-  Eye,
   Plus,
-  Trash2,
-  Upload,
+  Download,
   Landmark,
   Clock,
   Archive,
-  ArrowLeft,
 } from "lucide-react";
 import Pagination from "../../../Layouts/Pagination";
-import SearchFilter from "../../SearchFilter";
+import SearchFilter from "./SearchFilter";
+import DataTable from "./DataTable";
 import {
-  fetchHeritages,
+  getAllHeritages,
   deleteHeritage,
+  exportHeritages,
 } from "../../../../services/heritageService";
 import { fetchTags } from "../../../../services/tagService";
 import { fetchCategories } from "../../../../services/categoryService";
 import {
-  HeritageAdmin,
+  HeritageResponse,
   TableColumn,
-  TableProps,
 } from "../../../../types/heritage";
-import { toast, ToastContainer } from "react-toastify";
+import { SortBy } from "../../../../types/enum";
+import { toast } from "react-hot-toast";
 import HeritageFormInline from "./HeritageFormInline";
+import HeritageFormUpdate from "./HeritageFormUpdate";
+import HeritageDetail from "./HeritageDetail";
 
-// Table component
-function DataTable<T extends { id: number }>({
-  data,
-  columns,
-  onEdit,
-  onDelete,
-  onView,
-  loading = false,
-}: TableProps<T>) {
-  if (loading) {
-    return (
-      <div className="animate-pulse">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-12 bg-gray-200 mb-2 rounded"></div>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-      <table className="min-w-full divide-y divide-gray-300">
-        <thead className="bg-gray-50">
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={String(column.key)}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                {column.label}
-              </th>
-            ))}
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Hành động
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {data.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50">
-              {columns.map((column) => (
-                <td
-                  key={String(column.key)}
-                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                >
-                  {column.render
-                    ? column.render(item[column.key], item)
-                    : String(item[column.key])}
-                </td>
-              ))}
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex items-center justify-end space-x-2">
-                  {onView && (
-                    <button
-                      onClick={() => onView(item)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      <Eye size={16} />
-                    </button>
-                  )}
-                  {onEdit && (
-                    <button
-                      onClick={() => onEdit(item)}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      <Edit size={16} />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={() => onDelete(item)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ---------------- MAIN COMPONENT ----------------
 const HeritageManagement: React.FC = () => {
-  const [heritages, setHeritages] = useState<HeritageAdmin[]>([]);
+  const [heritages, setHeritages] = useState<HeritageResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -130,21 +45,20 @@ const HeritageManagement: React.FC = () => {
   >([]);
   const [tags, setTags] = useState<{ label: string; value: string }[]>([]);
 
-  const [confirmDelete, setConfirmDelete] = useState<HeritageAdmin | null>(
-    null
-  );
-
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<HeritageResponse | null>(null);
+  const [mode, setMode] = useState<"list" | "create" | "update" | "detail">("list");
+  const [selectedHeritageId, setSelectedHeritageId] = useState<number | null>(null);
 
   const loadHeritages = async () => {
     setLoading(true);
     try {
-      const heritageResult = await fetchHeritages({
+      const heritageResult = await getAllHeritages({
         page: currentPage,
         pageSize: itemsPerPage,
-        keyword: searchTerm,
-        categoryId: selectedCategory,
-        tagId: selectedTag,
+        keyword: searchTerm || undefined,
+        categoryId: selectedCategory ? Number(selectedCategory) : undefined,
+        tagIds: selectedTags.length > 0 ? selectedTags.map(Number) : undefined,
+        sortBy: sortBy ? (sortBy as SortBy) : undefined,
       });
 
       setHeritages(heritageResult.result?.items || []);
@@ -152,47 +66,66 @@ const HeritageManagement: React.FC = () => {
       setTotalElements(heritageResult.result?.totalElements || 0);
     } catch (error) {
       console.error("Error fetching heritages:", error);
+      toast.error("Không thể tải danh sách di sản");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      setLoading(true);
-      try {
-        await loadHeritages();
+  // Handle Export
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportHeritages({
+        page: 1,
+        pageSize: 999999,
+        keyword: searchTerm || undefined,
+        categoryId: selectedCategory ? Number(selectedCategory) : undefined,
+        tagIds: selectedTags.length > 0 ? selectedTags.map(Number) : undefined,
+        sortBy: sortBy ? (sortBy as SortBy) : undefined,
+      });
+      
+      toast.success("Xuất dữ liệu thành công!");
+    } catch (error: any) {
+      console.error("Export error:", error);
+      toast.error(error.message || "Xuất dữ liệu thất bại");
+    } finally {
+      setExporting(false);
+    }
+  };
 
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
         const categoryResponse = await fetchCategories();
-        const catList = categoryResponse.result || [];
+        const tagResponse = await fetchTags();
         setCategories([
           { label: "Tất cả danh mục", value: "" },
-          ...catList.map((c) => ({
+          ...(categoryResponse.result || []).map((c) => ({
             label: c.name,
             value: String(c.id),
           })),
         ]);
-
-        const tagResponse = await fetchTags();
-        const tagList = tagResponse.result || [];
         setTags([
           { label: "Tất cả Tag", value: "" },
-          ...tagList.map((t) => ({
+          ...(tagResponse.result || []).map((t) => ({
             label: t.name,
             value: String(t.id),
           })),
         ]);
       } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching filters:", error);
+        toast.error("Không thể tải danh mục và tag");
       }
     };
+    fetchFilters();
+  }, []);
 
-    if (!showCreateForm) {
-      fetchAll();
+  useEffect(() => {
+    if (mode === "list") {
+      loadHeritages();
     }
-  }, [currentPage, itemsPerPage, searchTerm, selectedCategory, selectedTag, showCreateForm]);
+  }, [currentPage, searchTerm, selectedCategory, selectedTags, sortBy, mode]);
 
   const stats = useMemo(() => {
     return {
@@ -203,7 +136,12 @@ const HeritageManagement: React.FC = () => {
     };
   }, [totalElements]);
 
-  const columns: TableColumn<HeritageAdmin>[] = [
+  const columns: TableColumn<HeritageResponse>[] = [
+    {
+      key: "id",
+      label: "ID",
+      render: (value: number) => <span className="font-mono">{value}</span>,
+    },
     {
       key: "name",
       label: "Tên di sản",
@@ -218,37 +156,42 @@ const HeritageManagement: React.FC = () => {
     {
       key: "tags",
       label: "Tag",
-      render: (_: any, item: HeritageAdmin) =>
-        item.tags && item.tags.length > 0 ? (
-          <div>
-            {item.tags.map((tag: any) => (
-              <div key={tag.id}>{tag.name}</div>
+      render: (_: any, item: HeritageResponse) => {
+        if (!item.tags?.length) {
+          return <span className="text-gray-400 italic">Không có tag</span>;
+        }
+        const displayTags = item.tags.slice(0, 2);
+        const remainingCount = item.tags.length - 2;
+        return (
+          <div className="flex flex-wrap gap-1 items-center">
+            {displayTags.map((tag: any) => (
+              <span
+                key={`heritage-${item.id}-tag-${tag.id}`}
+                className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
+              >
+                {tag.name}
+              </span>
             ))}
+            {remainingCount > 0 && (
+              <span
+                className="text-xs text-gray-500"
+                title={item.tags.slice(2).map((t: any) => t.name).join(", ")}
+              >
+                +{remainingCount}
+              </span>
+            )}
           </div>
-        ) : (
-          <span className="text-gray-400 italic">Không có tag</span>
-        ),
+        );
+      },
     },
     {
       key: "createdAt",
       label: "Ngày tạo",
-      render: (date: string) => new Date(date).toLocaleDateString(),
-    },
-    {
-      key: "description",
-      label: "Mô tả",
-      render: (desc: string) => (
-        <span title={desc}>{desc.slice(0, 30)}...</span>
-      ),
-    },
-    {
-      key: "isFeatured",
-      label: "Nổi bật",
-      render: (val: boolean) => (val ? "Có" : "Không"),
+      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
   ];
 
-  const handleDeleteHeritage = (heritage: HeritageAdmin) => {
+  const handleDeleteHeritage = (heritage: HeritageResponse) => {
     setConfirmDelete(heritage);
   };
 
@@ -259,27 +202,43 @@ const HeritageManagement: React.FC = () => {
       toast.success("Xoá di sản thành công!");
       await loadHeritages();
     } catch (error: any) {
-      if (error?.response?.status === 401 || error?.response?.status === 403) {
-        toast.error("Bạn không có quyền xoá di sản này!");
-      } else if (error?.response?.status === 404) {
-        toast.error("Di sản không tồn tại!");
-      } else {
-        toast.error(error.message || "Xoá di sản thất bại");
-      }
+      toast.error(error.message || "Xoá di sản thất bại");
     } finally {
       setConfirmDelete(null);
     }
   };
 
-  if (showCreateForm) {
+  if (mode === "create") {
     return (
       <HeritageFormInline
-        onCancel={() => setShowCreateForm(false)}
+        onCancel={() => setMode("list")}
         onSuccess={() => {
-          setShowCreateForm(false);
-          toast.success("Thêm di sản thành công!");
+          setMode("list");
           loadHeritages();
         }}
+      />
+    );
+  }
+
+  if (mode === "update" && selectedHeritageId) {
+    return (
+      <HeritageFormUpdate
+        heritageId={selectedHeritageId}
+        onCancel={() => setMode("list")}
+        onSuccess={() => {
+          setMode("list");
+          loadHeritages();
+        }}
+      />
+    );
+  }
+
+  if (mode === "detail" && selectedHeritageId) {
+    return (
+      <HeritageDetail
+        heritageId={selectedHeritageId}
+        onBack={() => setMode("list")}
+        onEdit={() => setMode("update")}
       />
     );
   }
@@ -289,12 +248,16 @@ const HeritageManagement: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Quản lý di sản</h2>
         <div className="flex gap-2">
-          <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2 transition">
-            <Upload size={16} />
-            Import
+          <button 
+            onClick={handleExport}
+            disabled={exporting || loading}
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download size={16} />
+            {exporting ? "Đang xuất..." : "Export"}
           </button>
           <button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => setMode("create")}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2 transition"
           >
             <Plus size={16} />
@@ -303,8 +266,7 @@ const HeritageManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow flex items-center gap-3">
           <Landmark className="text-blue-600" size={24} />
           <div>
@@ -333,7 +295,7 @@ const HeritageManagement: React.FC = () => {
             <p className="text-xl font-semibold">{stats.archived}</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <SearchFilter
         searchTerm={searchTerm}
@@ -347,26 +309,38 @@ const HeritageManagement: React.FC = () => {
             value: "category",
             options: categories || [],
           },
-          { label: "Lọc theo Tag", value: "tag", options: tags || [] },
         ]}
         onFilterChange={(key, value) => {
           if (key === "category") {
             setSelectedCategory(value);
             setCurrentPage(1);
           }
-          if (key === "tag") {
-            setSelectedTag(value);
-            setCurrentPage(1);
-          }
+        }}
+        selectedTags={selectedTags}
+        onTagChange={(tags) => {
+          setSelectedTags(tags);
+          setCurrentPage(1);
+        }}
+        tags={tags}
+        sortBy={sortBy}
+        onSortChange={(value) => {
+          setSortBy(value);
+          setCurrentPage(1);
         }}
       />
 
       <DataTable
         data={heritages}
         columns={columns}
-        onEdit={(heritage) => console.log("Edit", heritage.id)}
+        onEdit={(heritage) => {
+          setSelectedHeritageId(heritage.id);
+          setMode("update");
+        }}
         onDelete={handleDeleteHeritage}
-        onView={(heritage) => console.log("View", heritage.id)}
+        onView={(heritage) => {
+          setSelectedHeritageId(heritage.id);
+          setMode("detail");
+        }}
         loading={loading}
       />
 
@@ -378,7 +352,6 @@ const HeritageManagement: React.FC = () => {
         totalItems={totalElements}
       />
 
-      {/* Modal xác nhận xoá */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
@@ -386,7 +359,7 @@ const HeritageManagement: React.FC = () => {
               Xác nhận xoá di sản
             </h3>
             <p className="mb-6 text-center">
-              Bạn có chắc muốn xoá di sản <b>{confirmDelete.name}</b>?
+              Bạn có chắc muốn xoá <b>{confirmDelete.name}</b>?
             </p>
             <div className="flex justify-center gap-4">
               <button
@@ -405,8 +378,6 @@ const HeritageManagement: React.FC = () => {
           </div>
         </div>
       )}
-
-      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };
