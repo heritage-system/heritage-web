@@ -1,18 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import PlayerInfoCardBattleV1 from "./PlayerInfoCardBattleV1";
+import PlayerInfoCardBattle from "./PlayerInfoCardBattle";
 import BattleResult from "./BattleResult";
 import { CheckCircle, Trophy, Feather, Flame, Gem } from "lucide-react";
 import * as signalR from "@microsoft/signalr";
+import {Question} from "../../types/quiz"
 
-interface Question {
-  id: number;
-  question: string;
-  options: string[];
-  correct?: number;
-  type?: "multiple" | "essay";
-  difficulty?: string;
-}
 
 interface BattlePlayProps {
   player: { id: string; name: string; avatar: string };
@@ -162,7 +155,7 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
     connection.on("StartQuestion", handleStartQuestion);
     connection.on("AnswerSubmitted", handleAnswerSubmitted);
     connection.on("GameFinished", handleGameFinished);
-    connection.on("OpponentDisconnected", handleOpponentLeft);
+    // connection.on("OpponentDisconnected", handleOpponentLeft);
 
     connection.on("PlayerAnswered", (data) => {
       if (data.playerId === player.id) {
@@ -184,7 +177,7 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
       connection.off("StartQuestion", handleStartQuestion);
       connection.off("AnswerSubmitted", handleAnswerSubmitted);
       connection.off("GameFinished", handleGameFinished);
-      connection.off("OpponentDisconnected", handleOpponentLeft);
+      // connection.off("OpponentDisconnected", handleOpponentLeft);
       connection.off("RevealAnswer", handleRevealAnswer);
     };
   }, []);
@@ -306,7 +299,7 @@ const stopOpponentTimer = () => {
       <div className="grid grid-cols-9 gap-6 md:items-start px-20 lg:px-12">
       {/* 🧍‍♂️ Player bên trái */}
       <div className="md:col-span-2 space-y-3 text-left">
-        <PlayerInfoCardBattleV1
+        <PlayerInfoCardBattle
           name={player.name }
           score={playerScore}
           avatar={player.avatar}
@@ -426,7 +419,7 @@ const stopOpponentTimer = () => {
         cls += "border-red-500 bg-red-50 text-red-800";
       else if (isSelected)
         cls += "border-blue-500 bg-blue-50 text-blue-800";
-      else cls += "border-gray-200 hover:bg-gray-50";
+      else cls += "border-gray-300 hover:bg-gradient-to-br from-white via-amber-50 to-orange-50";
 
       return (
         <motion.div
@@ -448,7 +441,7 @@ const stopOpponentTimer = () => {
           >
             {String.fromCharCode(65 + i)}
           </div>
-          <span className="flex-1">{opt}</span>
+          <span className="flex-1 font-semibold">{opt}</span>
           {isCorrect && <CheckCircle className="w-5 h-5 text-green-600" />}
         </motion.div>
       );
@@ -460,7 +453,7 @@ const stopOpponentTimer = () => {
 
       {/* 🧍‍♀️ Opponent */}
       <div className="md:col-span-2 space-y-3 text-right">
-        <PlayerInfoCardBattleV1
+        <PlayerInfoCardBattle
           name={opponent.name}
           score={opponentScore}
           avatar={opponent.avatar}
@@ -581,7 +574,7 @@ const stopOpponentTimer = () => {
         cls += "border-red-500 bg-red-50 text-red-800";
       else if (isSelected)
         cls += "border-blue-500 bg-blue-50 text-blue-800";
-      else cls += "border-gray-200 hover:bg-gray-50";
+      else cls += "border-gray-300 hover:bg-gradient-to-br from-white via-amber-50 to-orange-50";
 
       return (
         <motion.div
@@ -603,7 +596,7 @@ const stopOpponentTimer = () => {
           >
             {String.fromCharCode(65 + i)}
           </div>
-          <span className="flex-1">{opt}</span>
+          <span className="flex-1 font-semibold">{opt}</span>
           {isCorrect && <CheckCircle className="w-5 h-5 text-green-600" />}
         </motion.div>
       );
@@ -616,7 +609,7 @@ const stopOpponentTimer = () => {
 <div className="flex items-start justify-evenly gap-3 mt-4 mb-2">
 
   <div className="flex-1 max-w-[180px] sm:max-w-[220px]">
-    <PlayerInfoCardBattleV1
+    <PlayerInfoCardBattle
       name={player.name}
       score={playerScore}
       avatar={player.avatar}
@@ -628,7 +621,7 @@ const stopOpponentTimer = () => {
   </div>
 
   <div className="flex-1 max-w-[180px] sm:max-w-[220px]">
-    <PlayerInfoCardBattleV1
+    <PlayerInfoCardBattle
       name={opponent.name}
       score={opponentScore}
       avatar={opponent.avatar}

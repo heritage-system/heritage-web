@@ -4,7 +4,7 @@ import { Users, KeyRound, Sparkles } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { API_URL } from "../../utils/baseUrl";
 import BattlePlay from "./BattlePlay";
-import BattleCardV1 from "./BattleCardV1";
+import BattleCardV1 from "./BattleCard";
 import ModeBar from "./ModeBar";
 import AchievementSection from "./AchievementSection";
 import LearningHero from "./LearningHero";

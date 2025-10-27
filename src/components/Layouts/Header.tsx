@@ -30,7 +30,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   const tourSteps = [
     {
       target: '[data-tour="logo"]',
-      title: 'Chào mừng đến với VTFP! 👋',
+      title: 'Chào mừng đến với VTFP!',
       description: 'Đây là logo của chúng tôi. Click vào đây để quay về trang chủ bất cứ lúc nào.',
       position: 'bottom' as const,
     },
@@ -42,49 +42,55 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     },
     {
       target: '[data-tour="nav-discovery"]',
-      title: 'Khám phá di sản 🏛️',
+      title: 'Khám phá di sản',
       description: 'Khám phá các di sản văn hóa Việt Nam với thông tin chi tiết, hình ảnh đẹp và câu chuyện lịch sử đầy thú vị.',
       position: 'bottom' as const,
     },
     {
       target: '[data-tour="nav-vr"]',
-      title: 'Trải nghiệm VR 360° 🥽',
+      title: 'Trải nghiệm VR 360°',
       description: 'Tham quan các di tích lịch sử bằng công nghệ thực tế ảo hiện đại, như thể bạn đang có mặt tại đó!',
       position: 'bottom' as const,
     },
     {
+      target: '[data-tour="nav-ai"]',
+      title: 'Trải nghiệm AI nhận diện ảnh',
+      description: 'Khám phá các di sản văn hóa Việt Nam bằng những bức ảnh mà bạn muốn thông qua nhận diện AI',
+      position: 'bottom' as const,
+    },
+    {
       target: '[data-tour="nav-quiz"]',
-      title: 'Học tập qua trò chơi 🎮',
+      title: 'Học tập qua trò chơi',
       description: 'Kiểm tra kiến thức của bạn về văn hóa Việt Nam qua các câu đố vui và thử thách thú vị.',
       position: 'bottom' as const,
     },
     {
       target: '[data-tour="nav-community"]',
-      title: 'Cộng đồng sôi động 💬',
+      title: 'Cộng đồng sôi động',
       description: 'Kết nối với những người yêu thích văn hóa, chia sẻ câu chuyện và trải nghiệm của bạn với cộng đồng.',
       position: 'bottom' as const,
     },
     {
       target: '[data-tour="nav-contributions"]',
-      title: 'Bài viết đóng góp ✍️',
+      title: 'Bài viết đóng góp',
       description: 'Đọc và chia sẻ các bài viết, câu chuyện về di sản văn hóa từ cộng đồng người dùng.',
       position: 'bottom' as const,
     },
     {
       target: '[data-tour="search"]',
-      title: 'Tìm kiếm nhanh 🔍',
+      title: 'Tìm kiếm nhanh',
       description: 'Tìm kiếm bất kỳ di sản, bài viết hay thông tin nào bạn muốn khám phá một cách nhanh chóng.',
       position: 'bottom' as const,
     },
     {
       target: '[data-tour="notifications"]',
-      title: 'Thông báo 🔔',
+      title: 'Thông báo',
       description: 'Nhận thông báo về các hoạt động mới, bình luận và cập nhật quan trọng từ cộng đồng.',
       position: 'bottom' as const,
     },
     {
       target: '[data-tour="login"]',
-      title: 'Đăng nhập ngay! 🚀',
+      title: 'Đăng nhập ngay!',
       description: 'Đăng nhập để lưu tiến trình học tập, tham gia cộng đồng và trải nghiệm đầy đủ các tính năng!',
       position: 'bottom' as const,
     },
@@ -137,11 +143,11 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 bg-white ${
         isScrolled ? 'bg-white/95 backdrop-blur-xl shadow-lg' : 'bg-transparent'
       }`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-4">
           <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <div className="flex items-center space-x-3 ml-12" data-tour="logo">  
+            <div className="flex items-center space-x-3" data-tour="logo">  
               <Link to="/" className="relative w-28 h-28 hover:opacity-90 transition">
                 <img
                   src={VTFPLogo}
@@ -157,7 +163,8 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                 { label: 'Trang chủ', path: '/', tourId: 'nav-home' },
                 { label: 'Khám phá', path: '/DiscoveryPage', tourId: 'nav-discovery' },
                 { label: 'VR Tours', path: '/VRToursPage', tourId: 'nav-vr' },
-                { label: 'Học tập', path: '/QuizzPage', tourId: 'nav-quiz' },
+                { label: 'Quét Ảnh', path: '/AIPredictLensPage', tourId: 'nav-ai' },
+                { label: 'Trò chơi', path: '/QuizzPage', tourId: 'nav-quiz' },
                 { label: 'Cộng đồng', path: '/CommunityPage', tourId: 'nav-community' },     
                 { label: 'Bài viết', path: '/contributions', tourId: 'nav-contributions' }        
               ].map((item, idx) => (

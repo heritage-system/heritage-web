@@ -1,31 +1,120 @@
-import { 
-  ChevronRight,
-} from 'lucide-react';
-import QuizCard from './QuizCard';
-import QuizzData from './QuizzData';
-import { Quiz } from '../../types/quiz';
-import React from 'react';
-
+import { useState, useEffect } from "react";
+import QuizCard from "./QuizCard";
+import TestView from "./QuizDetailView";
+import { QuizListResponse } from "../../types/quiz";
+import { searchQuizz } from "../../services/quizService";
+import Pagination from "../Layouts/Pagination";
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 const QuizGrid: React.FC = () => {
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizListResponse | null>(null);
+  const [quizList, setQuizList] = useState<QuizListResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ✅ Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 6;
+
+  // 🧠 Gọi API khi component load hoặc đổi trang
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await searchQuizz({ page: currentPage, pageSize });
+        if (response.code === 200 && response.result?.items) {
+          setQuizList(response.result.items);
+          setTotalPages(response.result.totalPages || 1);
+          setTotalItems(response.result.totalElements || response.result.items.length);
+        } else {
+          setError("Không tìm thấy dữ liệu quiz nào");
+        }
+      } catch (err) {
+        setError("Đã xảy ra lỗi khi tải dữ liệu quiz");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentPage]);
+
+  // ✅ Nếu chọn quiz thì hiển thị chi tiết
+  if (selectedQuiz) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <TestView 
+          id={selectedQuiz.id} 
+          onBack={() => setSelectedQuiz(null)} 
+          onQuizCompleted={(quizId, numberOfClear) => {
+            setQuizList((prev) =>
+              prev.map((q) =>
+                q.id === quizId ? { ...q, numberOfClear } : q
+              )
+            );
+          }}
+          />
+      </div>
+    );
+  }
+
+  // ✅ Nếu đang loading
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pb-60">
+        <div className="text-center">
+          <div className="mb-4">
+            <Spinner size={40} thickness={5}/>
+          </div>
+          <div className="text-xl font-semibold text-gray-700">Đang tải thông tin...</div>
+          <div className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Nếu có lỗi
+  if (error) {
+    return (
+      <div className="text-center text-red-600 font-medium mt-8">
+        {error}
+      </div>
+    );
+  }
+  // ✅ Nếu có dữ liệu
   return (
     <section className="mt-4">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">  
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {quizList.length === 0 ? (
+          <div className="text-center text-gray-500 mt-12">
+            Không có quiz nào để hiển thí
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {quizList.map((quiz) => (
+              <QuizCard
+                key={quiz.id}
+                quiz={quiz}
+                onPlay={() => setSelectedQuiz(quiz)}
+              />
+            ))}
+          </div>
+        )}
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {QuizzData.map((quiz: Quiz) => (
-        <QuizCard key={quiz.id} quiz={quiz} />
-      ))}
-    </div>
-
-    <div className="text-center mt-12">
-      <button className="bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl transition-all flex items-center mx-auto">
-        <ChevronRight className="w-5 h-5 mr-2" />
-        Xem thêm quiz khác
-      </button>
-    </div>
-  </div>
-</section>
-
+        {totalPages > 1 && !loading &&(
+          <div className="mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={pageSize}
+                totalItems={totalItems}
+              />
+            </div>
+          )}
+      </div>
+    </section>
   );
 };
 

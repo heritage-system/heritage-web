@@ -25,6 +25,8 @@ const OPTIONAL_AUTH_ENDPOINTS: string[] = [
   '/api/Heritage/search_heritage',
   '/api/Heritage/heritage_detail',
   '/api/v1/reviews/reviewByheritage',
+  '/api/v1/quiz/search_quiz',
+  '/api/v1/quiz/get_quiz_detail'
 ]
 
 // Helpers nhận diện body

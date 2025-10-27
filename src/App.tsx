@@ -8,13 +8,12 @@ import CommunityPage from './pages/CommunityPage/CommunityPage';
 import Login from './pages/AuthPage/Login';
 import MainLayout from './components/HomePage/MainLayout';
 import Register from './pages/AuthPage/Register';
-import QuizzPage from './pages/QuizzPage/QuizPage';
+import QuizzPage from './pages/QuizzPage/QuizzPage';
 import ForgotPassword from './pages/AuthPage/ForgotPassword';
 import ResetPassword from './pages/AuthPage/ResetPassword'; 
 import ChangePassword from './pages/AuthPage/ChangePassword';
 import ChatBoxAI from './components/Chatbox/ChatBoxAI';
 import HeritageDetailPage from "./pages/HeritagePage/HeritageDetailPage";
-import QuizDetailView from './components/Quizz/QuizDetailView';
 import { Toaster } from 'react-hot-toast';
 import ViewProfile from './pages/AuthPage/ViewProfile';
 import CallbackGoogle from './pages/oauth2/callback/google/page';
@@ -37,7 +36,7 @@ const App: React.FC = () => {
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
      
-         <Route path="DiscoveryPage/AIpredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
+        <Route path="AIPredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
         <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} />
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
         <Route path="/login" element={<MainLayout><Login /></MainLayout>} />

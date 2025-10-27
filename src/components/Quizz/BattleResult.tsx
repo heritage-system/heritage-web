@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Trophy, Crown, Medal, ArrowLeft, Flame, Frown } from "lucide-react";
-import BattleCardV1 from "./BattleCardV1";
+import BattleCardV1 from "./BattleCard";
 
 interface BattleResultProps {
   player: { id: string; name: string; avatar: string };

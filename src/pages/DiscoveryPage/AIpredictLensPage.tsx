@@ -143,7 +143,7 @@ const message = (isStringErr ? null : err?.message) ?? fallbackMessage;
   };
 
   const wrapperClass =
-    "min-h-screen mt-16 bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50";
+    "min-h-screen bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50";
   const containerClass = "mx-auto w-[80%] px-4 sm:px-6 lg:px-8 py-6";
 
   return (

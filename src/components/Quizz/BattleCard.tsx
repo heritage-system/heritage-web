@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 
 interface BattleCardProps {
@@ -5,6 +6,9 @@ interface BattleCardProps {
   isWaitingFriend: boolean;
   avatar?: string;
   name?: string;
+  isResult?: boolean;
+  score?: number;
+  isOpponent?: boolean;
 }
 
 const BattleCard: React.FC<BattleCardProps> = ({
@@ -12,7 +16,20 @@ const BattleCard: React.FC<BattleCardProps> = ({
   isWaitingFriend,
   avatar,
   name,
+  isResult,
+  score,
+  isOpponent
 }) => {
+  let statusText = isSearching
+    ? "Đang tìm trận"
+    : isWaitingFriend
+    ? "Đang chờ bạn"
+    : "Sẵn sàng";
+
+  if (isResult) {
+    statusText = isOpponent ? "Đối thủ" : "Bạn";
+  }
+
   return (
     <motion.div
       key="battle-card"
@@ -20,121 +37,95 @@ const BattleCard: React.FC<BattleCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className="relative"
+      className="flex flex-col items-center gap-8"
     >
-      {/* MAIN TRAPEZOID CARD */}
-      <div className="relative w-[280px] h-[420px]">
-        <svg viewBox="0 0 380 620" className="absolute inset-0" preserveAspectRatio="none">
-          <defs>
-            {/* Gradient for card background */}
-            <linearGradient id="cardBg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#1e293b" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="#0f172a" stopOpacity="0.98" />
-            </linearGradient>
+      {/* === CARD CONTAINER === */}
+      <div className="relative w-full max-w-none sm:max-w-[720px] flex-grow mx-auto">
 
-            {/* Glow effect */}
-            <filter id="cardGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="12" result="blur" />
-              <feFlood floodColor="#f59e0b" floodOpacity="0.3" />
-              <feComposite in2="blur" operator="in" result="glow" />
-              <feMerge>
-                <feMergeNode in="glow" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
+        {/* Decorative top element */}
+        
 
-            {/* Border gradient */}
-            <linearGradient id="borderGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.6" />
-              <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0.5" />
-            </linearGradient>
-          </defs>
+        {/* Main Card */}
+        <div className="bg-gradient-to-br from-primary to-secondary shadow-lg rounded-3xl p-8 shadow-2xl border-4 border-[#cfa86a]/30 relative overflow-hidden">
+          {/* Corner borders */}
+          <div className="absolute top-6 left-6 w-8 h-8 border-l-2 border-t-2 border-[#cfa86a]/40"></div>
+          <div className="absolute top-6 right-6 w-8 h-8 border-r-2 border-t-2 border-[#cfa86a]/40"></div>
+          <div className="absolute bottom-6 left-6 w-8 h-8 border-l-2 border-b-2 border-[#cfa86a]/40"></div>
+          <div className="absolute bottom-6 right-6 w-8 h-8 border-r-2 border-b-2 border-[#cfa86a]/40"></div>
 
-          {/* Outer glow shape */}
-          <path
-            d="M50,0 L330,0 L380,80 L380,540 L330,620 L50,620 L0,540 L0,80 Z"
-            fill="url(#cardBg)"
-            stroke="url(#borderGrad)"
-            strokeWidth="2"
-            filter="url(#cardGlow)"
-          />
-        </svg>
+          {/* Header Label */}
+          <div className="text-center mb-8">
+            <div className="inline-block px-6 py-2 border-2 border-[#cfa86a]/60 rounded-sm">
+              <span className="text-[#cfa86a] text-xs font-serif tracking-widest uppercase" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+                {statusText}
+              </span>
+            </div>
+          </div>
 
-        {/* Content overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-          {/* Top status bar */}
-          <div className="absolute top-8 left-0 right-0 flex justify-center">
-            <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/30 to-amber-500/20 px-8 py-2 backdrop-blur-sm border border-amber-400/30">
-              <div className="text-xs font-black tracking-[0.4em] text-amber-300 uppercase">
-                {isSearching
-                  ? "ĐANG TÌM TRẬN"
-                  : isWaitingFriend
-                  ? "ĐANG CHỜ BẠN BÈ"
-                  : "SẴN SÀNG"}
+          {/* Avatar */}
+          <div className="flex justify-center mb-8">
+            <div className="relative w-40 h-40">
+              {/* Outer gold ring */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d8b981] via-[#cfa86a] to-[#b68e5e] p-1 shadow-lg">
+                {/* Inner blur ring */}
+                <div className="absolute inset-1 rounded-full bg-white/10 backdrop-blur-sm"></div>
+
+                {/* Avatar image */}
+                <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#f7eddc] to-[#e5cfa4] overflow-hidden flex items-center justify-center">
+                  <img
+                    src={
+                      avatar ||
+                      "https://api.dicebear.com/7.x/adventurer/svg?seed=Player"
+                    }
+                    alt="avatar"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
               </div>
+
+              {/* Glow effect */}
+              <div className="absolute inset-0 rounded-full bg-[#cfa86a]/20 blur-xl -z-10"></div>
             </div>
           </div>
+          {isResult && score != null && (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+    animate={{ opacity: 1, scale: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    className="flex justify-center relative -mt-8 mb-8 z-30"
+  >
+    <div className="absolute -top-6 flex justify-center w-full">
+      <div className="px-4 py-2.5 border-2 border-[#cfa86a]/60 rounded-2xl bg-white/70 backdrop-blur-md shadow-md">
+        <span className="text-[#cfa86a] text-[13px] font-serif tracking-widest uppercase" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+          {score} điểm
+        </span>
+      </div>
+    </div>
 
-          {/* Avatar section */}
-          <div className="relative mt-16">
-            {/* Hexagonal frame effect */}
-            <div className="absolute inset-0 -m-4">
-              <svg viewBox="0 0 160 160" className="w-40 h-40">
-                <defs>
-                  <linearGradient id="hexGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#fbbf24" />
-                    <stop offset="100%" stopColor="#f97316" />
-                  </linearGradient>
-                </defs>
-                <polygon
-                  points="80,10 130,40 130,100 80,130 30,100 30,40"
-                  fill="none"
-                  stroke="url(#hexGrad)"
-                  strokeWidth="3"
-                  opacity="0.6"
-                />
-              </svg>
-            </div>
+    {/* Hiệu ứng ánh sáng mờ sau điểm */}
+    <div className="absolute -top-6 w-full flex justify-center">
+      <div className="w-[140px] h-[50px] bg-[#cfa86a]/30 blur-2xl rounded-full -z-10"></div>
+    </div>
+  </motion.div>
+)}
 
-            <img
-              src={avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Player"}
-              alt="avatar"
-              className="relative w-32 h-32 rounded-full border-4 border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.5)]"
-            />
+
+          {/* Player Name */}
+          <h2 className="text-center text-black text-2xl font-bold mb-8 tracking-wide">
+            {name}
+          </h2>
+
+          {/* Decorative Dots */}
+          <div className="flex justify-center gap-2 mb-8">
+            <div className="w-1 h-1 bg-[#cfa86a]/60 rounded-full"></div>
+            <div className="w-1 h-1 bg-[#cfa86a]/60 rounded-full"></div>
+            <div className="w-1 h-1 bg-[#cfa86a]/60 rounded-full"></div>
           </div>
 
-          {/* Player name */}
-          <div className="mt-6 text-2xl font-bold text-white tracking-wide">
-            {name || "Bạn"}
+          {/* Bottom Triangle */}
+          <div className="flex justify-center">
+            <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-[#cfa86a]/50"></div>
           </div>
-
-          {/* Decorative corner elements */}
-          <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-amber-400/40"></div>
-          <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-amber-400/40"></div>
-          <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-amber-400/40"></div>
-          <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-amber-400/40"></div>
-        </div>
-
-        {/* Bottom spike/arrow decoration */}
-        <div className="absolute left-1/2 -bottom-12 -translate-x-1/2 w-24 h-16">
-          <svg viewBox="0 0 100 80" className="w-full h-full">
-            <defs>
-              <linearGradient id="spikeGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#f97316" stopOpacity="0.9" />
-              </linearGradient>
-              <filter id="spikeGlow">
-                <feGaussianBlur stdDeviation="4" />
-              </filter>
-            </defs>
-            {/* Outer glow */}
-            <path d="M20,0 L80,0 L50,60 Z" fill="url(#spikeGrad)" opacity="0.3" filter="url(#spikeGlow)" />
-            {/* Main spike */}
-            <path d="M25,0 L75,0 L50,55 Z" fill="url(#spikeGrad)" />
-            {/* Inner highlight */}
-            <path d="M40,0 L60,0 L50,40 Z" fill="#fff" opacity="0.3" />
-          </svg>
         </div>
       </div>
     </motion.div>
