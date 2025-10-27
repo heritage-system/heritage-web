@@ -6,7 +6,7 @@ interface VRToursHeroProps {
 
 const VRToursHero: React.FC<VRToursHeroProps> = ({ onStartTour }) => {
   return (
-     <section className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 py-20 mt-16">
+     <section className="bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50 py-20">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     {/* Tag VR */}
     <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 rounded-full shadow-sm mb-8">
