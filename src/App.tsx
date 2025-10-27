@@ -24,9 +24,6 @@ import ContributionFormPage from './pages/ContributionPage/ContributionFormPage'
 import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
-import HeritageFormModal from './components/Admin/ContentManagement/HeritageManagement.tsx/HeritageFormModal';
-import BoardGame from './pages/QuizzPage/BoardGame'
-import BoardGameMono from './pages/QuizzPage/BoardGameMono'
 import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
 const App: React.FC = () => {
   return (
