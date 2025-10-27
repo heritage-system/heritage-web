@@ -25,3 +25,8 @@ export interface TagSearchResponse {
   updatedAt: string;
   count: number; // number of linked heritages
 }
+
+export interface Tags {
+  id: number;
+  name: string;
+}

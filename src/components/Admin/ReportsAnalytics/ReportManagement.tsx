@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Eye, AlertTriangle, X, MessageSquare } from "lucide-react";
 import Pagination from "../../Layouts/Pagination";
-import SearchFilter from "../SearchFilter";
+
 import { TableProps, Report, TableColumn } from "../../../types/report";
 import { fetchReports, answerReport } from "../../../services/reportService";
 import { useNavigate } from "react-router-dom";
@@ -229,17 +229,7 @@ const ReportManagement: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 pl-4 pr-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Ô tìm kiếm */}
-          <div className="flex-1 pt-5">
-            <SearchFilter
-              searchTerm={searchTerm}
-              onSearchChange={(v) => {
-                setSearchTerm(v);
-                setCurrentPage(1);
-              }}
-              filters={[]}
-              onFilterChange={() => {}}
-            />
-          </div>
+          
 
           {/* Bộ lọc ngày + Nút Xóa */}
           <div className="flex items-center gap-3">

@@ -15,7 +15,6 @@ import {
   Users as UsersIcon,
 } from "lucide-react";
 import Pagination from "../../Layouts/Pagination";
-import SearchFilter from "../SearchFilter";
 
 /* ===================== Types ===================== */
 interface User {
@@ -442,7 +441,7 @@ const EmployeeManagement: React.FC = () => {
       </div>
 
       {/* Search & Filter */}
-      <SearchFilter
+      {/* <SearchFilter
         searchTerm={searchTerm}
         onSearchChange={(v) => {
           setSearchTerm(v);
@@ -460,7 +459,7 @@ const EmployeeManagement: React.FC = () => {
             setCurrentPage(1);
           }
         }}
-      />
+      /> */}
 
       {/* Table */}
       <DataTable<User>
