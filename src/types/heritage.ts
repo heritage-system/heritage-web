@@ -271,6 +271,7 @@ export interface HeritageCreateResponse {
   name: string;
 }
 
+
 export interface HeritageRelatedResponse {
   id: number;
   name: string;

@@ -1,154 +1,132 @@
 import { useState, useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
-import { Landmark, PartyPopper, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import PlayerCard from "./PlayerInfoCard";
-import BattlePlay from "./BattlePlay";
-import Spinner from "../Layouts/LoadingLayouts/Spinner"
+import { Users, KeyRound, Sparkles, Plus, LogIn, CheckCheck, Copy } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { API_URL } from "../../utils/baseUrl";
+import BattlePlay from "./BattlePlay";
+import BattleCard from "./BattleCard";
+import QuizGrid from "./QuizGrid";
+import toast from 'react-hot-toast';
+
 const HUB_URL = `${API_URL}/gamehub`;
 
-const categories = [
-  {
-    key: "le",
-    title: "Phần Lễ",
-    desc: "Khám phá tín ngưỡng, nghi lễ cổ truyền",
-    icon: <Landmark className="w-7 h-7 text-yellow-700" />,
-    gradient: "from-amber-400/20 to-yellow-100/10",
-    active: "from-amber-400/80 to-yellow-600/70",
-  },
-  {
-    key: "hoi",
-    title: "Phần Hội",
-    desc: "Thử sức với trò chơi dân gian sôi động",
-    icon: <PartyPopper className="w-7 h-7 text-red-700" />,
-    gradient: "from-red-400/20 to-pink-100/10",
-    active: "from-pink-500/70 to-red-700/70",
-  },
-  {
-    key: "mix",
-    title: "Hỗn hợp",
-    desc: "Kết hợp cả phần Lễ và Hội",
-    icon: <Sparkles className="w-7 h-7 text-purple-700" />,
-    gradient: "from-indigo-400/20 to-purple-100/10",
-    active: "from-indigo-600/70 to-purple-700/70",
-  },
-];
-
-interface RandomBattleProps {
+interface RandomBattleV2Props {
   name?: string;
   avatar?: string;
   onBack: () => void;
 }
 
-const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [roomCode, setRoomCode] = useState<string | null>(null);
-  const [isBattleStarted, setIsBattleStarted] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
+
+
+const RandomBattle: React.FC<RandomBattleV2Props> = ({ name, avatar, onBack }) => {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const [mode, setMode] = useState<"random" | "friend" | "custom">("random");
+  const [isSearching, setIsSearching] = useState(false);
+  const [isWaitingFriend, setIsWaitingFriend] = useState(false);
+  const [waitingTime, setWaitingTime] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
+  const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [friendRoomCode, setFriendRoomCode] = useState("");
   const [player, setPlayer] = useState<any>(null);
   const [opponent, setOpponent] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
-
-  const [waitingTime, setWaitingTime] = useState(0);
+  const [isBattleStarted, setIsBattleStarted] = useState(false);
   const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  // 🔌 Kết nối SignalR khi mở trang
+  const [copied, setCopied] = useState(false);
+  
+  // ===== SIGNALR =====
   useEffect(() => {
-  const connect = async () => {
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, { withCredentials: true })
       .withAutomaticReconnect()
       .build();
 
-    try {
-      await conn.start();
-      console.log("✅ Connected to GameHub");
-      setConnection(conn);
-    } catch (err) {
-      console.error("❌ Failed to connect SignalR:", err);
-    }
+    conn.start().then(() => console.log("✅ Connected")).catch(console.error);
 
-    // 🎧 Sự kiện
     conn.on("WaitingForOpponent", () => {
-      console.log("⏳ Waiting for opponent...");
       setIsSearching(true);
       setWaitingTime(0);
-
       if (waitingTimerRef.current) clearInterval(waitingTimerRef.current);
-      waitingTimerRef.current = setInterval(() => {
-        setWaitingTime((prev) => prev + 1);
-      }, 1000);
+      waitingTimerRef.current = setInterval(() => setWaitingTime((t) => t + 1), 1000);
     });
 
     conn.on("MatchFound", (roomId: string, sessionData: any) => {
-      console.log("🎮 Match found:", sessionData);
       setRoomCode(roomId);
-      setSession(sessionData);
-
-      const me = sessionData.players.find((p: any) => p.username === name);
-      const opp = sessionData.players.find((p: any) => p.username !== name);
+      
+      const currentConnectionId = conn.connectionId; // hoặc lưu khi connect  
+      const me = sessionData.find((p: any) => p.connectionId === currentConnectionId);
+      const opp = sessionData.find((p: any) => p.connectionId !== currentConnectionId);
 
       setPlayer({
         id: me?.id || "",
         name: me?.username || name || "Bạn",
-        avatar: me?.avatarUrl || avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Player",
+        avatar: me?.avatarUrl || avatar,
       });
-
       setOpponent({
         id: opp?.id || "",
         name: opp?.username || "Đối thủ",
         avatar: opp?.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=Opponent",
-      });
-
+      });    
       setCountdown(5);
-    });
-
-    conn.on("OpponentDisconnected", () => {
-      alert("❌ Đối thủ đã rời trận!");
-      setIsBattleStarted(false);
-      setRoomCode(null);
-      setOpponent(null);
       setIsSearching(false);
     });
 
-    // cleanup
+    conn.on("RoomCreated", (code: string) => {
+      setCreatedRoomCode(code);
+      setIsWaitingFriend(true);
+      
+    });
+
+    conn.on("RoomJoined", (code: string, sessionData: any) => {
+      console.log("👫 Room joined:", code, sessionData);
+        setRoomCode(code);
+        setSession(sessionData);
+
+        const currentConnectionId = conn.connectionId; // hoặc lưu khi connect  
+        const me = sessionData.find((p: any) => p.connectionId === currentConnectionId);
+        const opp = sessionData.find((p: any) => p.connectionId !== currentConnectionId);
+
+        setPlayer({
+          id: me?.id || "",
+          name: me?.username || name || "Bạn",
+          avatar: me?.avatarUrl || avatar,
+        });
+
+        setOpponent({
+          id: opp?.id || "",
+          name: opp?.username || "Đối thủ",
+          avatar: opp?.avatarUrl,
+        });
+       
+        setCountdown(5);
+      });
+
+    conn.on("OpponentDisconnected", () => {
+      toast.error("Đối thủ của bạn đã rời trận", {
+        duration: 2000,
+        position: "top-right",
+        style: { background: "#DC2626", color: "#fff" },
+        iconTheme: { primary: "#fff", secondary: "#DC2626" },
+      });
+      setIsBattleStarted(false);
+      setRoomCode(null);
+      setIsSearching(false); 
+      setIsWaitingFriend(false)       
+      setOpponent(null);
+      setCreatedRoomCode(null);
+      setFriendRoomCode("");
+      setCountdown(null);
+    });
+
+    setConnection(conn);
     return () => {
+      if (waitingTimerRef.current) clearInterval(waitingTimerRef.current);
       conn.stop();
     };
-  };
+  }, [name, avatar]);
 
-  connect();
-}, [name]);
-
-  // 🔘 Nhấn nút tìm đối thủ
-  const handleFindMatch = async () => {
-  if (!connection) {
-    console.warn("⚠️ Chưa có kết nối SignalR!");
-    return;
-  }
-
-  if (connection.state !== signalR.HubConnectionState.Connected) {
-    try {
-      console.log("🔄 Reconnecting to hub...");
-      await connection.start();
-    } catch (err) {
-      console.error("❌ Reconnect failed:", err);
-      return;
-    }
-  }
-
-  setIsSearching(true);
-  try {
-    await connection.invoke("FindMatch", name || "Bạn", avatar || "");
-  } catch (err) {
-    console.error("❌ Match invoke error:", err);
-  }
-};
-
-
-  // ⏱️ Đếm ngược 5s trước khi vào trận
+  // ===== COUNTDOWN =====
   useEffect(() => {
     if (countdown === null) return;
     if (countdown <= 0) {
@@ -156,11 +134,44 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
       setIsBattleStarted(true);
       return;
     }
-    const timer = setTimeout(() => setCountdown((c) => (c ?? 0) - 1), 1000);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setCountdown((c) => (c ?? 0) - 1), 1000);
+    return () => clearTimeout(t);
   }, [countdown]);
 
-  // ⚔️ Khi trận bắt đầu
+  // ===== ACTIONS =====
+  const handleFindMatch = async () => {
+    if (!connection) return;
+    await connection.invoke("FindMatch", name || "Bạn", avatar || "https://res.cloudinary.com/dea92gqx4/image/upload/v1761033759/Windows_10_Default_Profile_Picture.svg_x71ugm.png");
+  };
+  const handleCreateRoom = async () => {
+    if (!connection) return;
+    await connection.invoke("CreateRoom", name || "Bạn", avatar || "https://res.cloudinary.com/dea92gqx4/image/upload/v1761033759/Windows_10_Default_Profile_Picture.svg_x71ugm.png");
+  };
+   const handleJoinRoom = async () => {
+    if (!connection || !friendRoomCode.trim()) return;
+    try {
+      await connection.invoke("JoinRoom", friendRoomCode.trim().toUpperCase(), name || "Bạn", avatar || "https://res.cloudinary.com/dea92gqx4/image/upload/v1761033759/Windows_10_Default_Profile_Picture.svg_x71ugm.png");
+    } catch (err) {
+      console.error("❌ Join room error:", err);
+    }
+  };
+
+  const formatTime = (sec: number) =>
+    `${Math.floor(sec / 60).toString().padStart(2, "0")}:${(sec % 60).toString().padStart(2, "0")}`;
+
+  const handleCopy = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+
+      // sau 2 giây thì trở lại icon cũ
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("❌ Sao chép thất bại:", err);
+    }
+  };
+
+  // ===== ENTER BATTLE =====
   if (isBattleStarted && opponent && player) {
     return (
       <BattlePlay
@@ -168,148 +179,462 @@ const RandomBattle: React.FC<RandomBattleProps> = ({ name, avatar, onBack }) => 
         opponent={opponent}
         roomId={roomCode!}
         connection={connection!}
-        onFinish={() => {
+        onFinish={() => {      
           setIsBattleStarted(false);
           setRoomCode(null);
-          setIsSearching(false);
-          setSelectedCategory(null);
+          setIsSearching(false); 
+          setIsWaitingFriend(false)       
           setOpponent(null);
+          setCreatedRoomCode(null);
+          setFriendRoomCode("");
         }}
       />
     );
   }
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
-  // 💡 UI chọn chủ đề & tìm đối thủ
+  // ===== UI =====
   return (
-    <div className="p-8 bg-white/70 backdrop-blur-lg rounded-2xl shadow-lg space-y-8 border border-gray-100">
-      <AnimatePresence mode="wait">
-        {/* STEP 1: chọn chủ đề */}
-        {!isSearching && !roomCode && (
-          <motion.div
-            key="step1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <h3 className="text-3xl font-semibold text-gray-900 text-center">
-              Chọn chủ đề bạn muốn thi đấu
-            </h3>
+    // <div className="relative flex flex-col items-center justify-center bg-gradient-to-b from-amber-50 via-orange-50/30 to-rose-50 text-white">
+      <div className="relative flex flex-col items-center justify-center min-h-screen bg-dragon text-white">
 
-            <div className="text-center">
-              <button
-                onClick={onBack}
-                className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition"
-              >
-                ← Quay lại
-              </button>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-              {categories.map((c) => (
-                <div
-                  key={c.key}
-                  onClick={() => setSelectedCategory(c.key)}
-                  className={`rounded-2xl p-6 text-center cursor-pointer border transition-all backdrop-blur-sm hover:scale-105 ${
-                    selectedCategory === c.key
-                      ? `bg-gradient-to-br ${c.active} text-white border-transparent shadow-xl`
-                      : `bg-gradient-to-br ${c.gradient} border-gray-200 hover:border-gray-300`
-                  }`}
-                >
-                  <div className="flex justify-center mb-3">{c.icon}</div>
-                  <h4
-                    className={`text-lg font-semibold ${
-                      selectedCategory === c.key ? "text-white" : "text-gray-800"
-                    }`}
-                  >
-                    {c.title}
-                  </h4>
-                  <p
-                    className={`text-sm mt-1 ${
-                      selectedCategory === c.key ? "text-white/80" : "text-gray-500"
-                    }`}
-                  >
-                    {c.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
 
-            <div className="flex justify-center mt-8">
-              <button
-                disabled={!selectedCategory}
-                onClick={handleFindMatch}
-                className={`px-10 py-3 rounded-xl font-semibold text-white text-lg transition-all ${
-                  selectedCategory
-                    ? "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 hover:shadow-lg"
-                    : "bg-gray-300 cursor-not-allowed"
-                }`}
-              >
-                Tìm đối thủ
-              </button>
-            </div>
-          </motion.div>
+  {/* --- MODEBAR CỐ ĐỊNH TRÊN CÙNG --- */}
+  {!roomCode && !isBattleStarted && countdown === null && (<div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 mb-16">
+  <div className="flex space-x-10 text-[11px] uppercase tracking-[0.25em] text-gray-400">
+    {[
+      { key: "random", label: "Ngẫu nhiên", icon: <Users className="w-4 h-4" /> },
+      { key: "friend", label: "Bạn bè", icon: <KeyRound className="w-4 h-4" /> },
+      { key: "custom", label: "Tùy chọn", icon: <Sparkles className="w-4 h-4" /> },
+    ].map((m) => {
+      const isDisabled = isSearching || isWaitingFriend
+      const isActive = mode === m.key
+
+      return (
+        <button
+          key={m.key}
+          onClick={() => {
+            if (!isDisabled) setMode(m.key as any);
+          }}
+          disabled={isDisabled}
+          className={`
+            relative flex flex-col items-center justify-center
+            h-[34px] w-[120px] leading-none font-semibold select-none
+            transition-all duration-300 ease-out
+            ${
+              isActive
+                ? "text-orange-500"
+                : isDisabled
+                ? "text-gray-500 cursor-not-allowed opacity-60"
+                : "text-gray-500 hover:text-gray-800"
+            }
+          `}
+        >
+          <div className="flex items-center justify-center gap-1 mb-[2px]">
+            <span className="translate-y-[1px]">{m.icon}</span>
+            <span>{m.label}</span>
+          </div>
+
+          {/* underline effect */}
+          <span
+            className={`
+              absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-[60%]
+              bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500
+              rounded-full transition-transform duration-300 ease-out origin-center
+              ${isActive ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"}
+            `}
+          />
+        </button>
+      );
+    })}
+  </div>
+</div>)}
+
+     
+
+     
+      
+{/* === MAIN UI WRAPPER === */}
+<div
+  className={`flex flex-col ${
+    mode === "custom" ? "lg:flex-row gap-6" : "items-center"
+  } w-full max-w-7xl mx-auto px-3`}
+>
+  {/* === BÊN TRÁI (QuizGrid khi tùy chỉnh) === */}
+  {mode === "custom" && (
+    <div
+      className="w-full lg:w-[80%] max-h-[80vh] overflow-y-auto 
+                transition-all duration-500 rounded-xl scrollbar-thin scrollbar-thumb-amber-400/60 scrollbar-hide mt-20"
+    >
+      <QuizGrid />
+    </div>
+  )}
+
+
+  {/* === BÊN PHẢI (BattleCard + description, 30%) === */}
+  <div
+    className={`w-full ${
+      mode === "custom" ? "lg:w-[20%]" : "lg:w-full"
+    } transition-all duration-500 flex flex-col items-center justify-center`}
+  >
+      {/* === MAIN CARD / MATCH FOUND === */}
+      <AnimatePresence mode="wait" >
+        <motion.div
+              
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.25 }}
+                className="mt-5 text-center"
+              ></motion.div>
+        {/* Trạng thái chưa tìm được phòng */}
+        {!roomCode && (
+          <BattleCard
+            isSearching={isSearching}
+            isWaitingFriend={isWaitingFriend}
+            avatar={avatar}
+            name={name}
+            
+          />
         )}
 
-        {/* STEP 2: Đang tìm đối thủ */}
-        {isSearching && !roomCode && (
-          <motion.div
-            key="step2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-center space-y-4 py-8"
+  {/* Khi đã tìm thấy trận mà chưa vào chơi */}
+  {roomCode && !isBattleStarted && opponent && (
+    <motion.div
+      key="vs-screen"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6 }}
+      className="flex flex-col sm:flex-row items-center justify-center gap-10 mt-6 w-full max-w-[1200px] mx-auto px-6"
+
+
+    >
+      {/* PLAYER CARD (trượt từ trái vào) */}
+      <motion.div
+        initial={{ x: -150, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        
+      >
+        <BattleCard
+          isSearching={false}
+          isWaitingFriend={false}
+          avatar={player?.avatar}
+          name={player?.name}
+        />
+      </motion.div>
+
+      {/* VS COUNTDOWN (giữa hai thẻ, có hình thoi cân phát sáng) */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: countdown ? 1.1 : 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 12 }}
+        className="relative flex items-center justify-center self-center w-[120px] h-[120px] sm:w-[160px] sm:h-[160px]"
+      >
+        {/* Hình thoi */}
+        <svg
+          viewBox="0 0 100 100"
+          className="absolute inset-0 w-full h-full"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <defs>
+            <linearGradient id="diamondGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#fbbf24" />
+              <stop offset="100%" stopColor="#f97316" />
+            </linearGradient>
+            <filter id="diamondGlow">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feFlood floodColor="#fb923c" floodOpacity="0.6" />
+              <feComposite in2="blur" operator="in" result="glow" />
+              <feMerge>
+                <feMergeNode in="glow" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          <polygon
+            points="50,0 100,50 50,100 0,50"
+            fill="url(#diamondGrad)"
+            opacity="0.25"
+            filter="url(#diamondGlow)"
+          />
+          <polygon
+            points="50,10 90,50 50,90 10,50"
+            stroke="url(#diamondGrad)"
+            strokeWidth="2.5"
+            fill="none"
+            filter="url(#diamondGlow)"
+          />
+        </svg>
+
+        {/* Countdown số */}
+        <div
+          className="absolute inset-0 flex items-center justify-center text-5xl sm:text-7xl font-black text-amber-700 
+                    drop-shadow-[0_0_20px_rgba(251,191,36,0.8)] animate-pulse"
+        >
+          {countdown ?? "VS"}
+        </div>
+      </motion.div>
+
+
+      {/* OPPONENT CARD (trượt từ phải vào) */}
+      <motion.div
+        initial={{ x: 150, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <BattleCard
+          isSearching={false}
+          isWaitingFriend={false}
+          avatar={opponent?.avatar}
+          name={opponent?.name}
+        />
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+
+ {/* === MODE DESCRIPTION (1 dòng) === */}
+<AnimatePresence mode="wait">
+  <motion.div
+    key={mode}
+    initial={{ opacity: 0, y: 5 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -5 }}
+    transition={{ duration: 0.25 }}
+    className="mt-5 text-center"
+  >
+    {mode === "random" && (
+      <p className="text-sm text-gray-700 font-medium">
+        <span className="text-yellow-700 font-semibold">Ngẫu nhiên:</span> Hệ thống sẽ tự động ghép bạn với một đối thủ đang online.
+      </p>
+    )}
+
+    {mode === "friend" && (
+      <p className="text-sm text-gray-700 font-medium">
+        <span className="text-blue-700 font-semibold">Bạn bè:</span> Tạo phòng riêng, gửi mã cho bạn và cùng nhau thi đấu.
+      </p>
+    )}
+
+    {mode === "custom" && (
+      <p className="text-sm text-gray-700 font-medium">
+        <span className="text-green-700 font-semibold">Tùy chọn:</span> Chọn chủ đề theo sở thích.
+      </p>
+    )}
+  </motion.div>
+</AnimatePresence>
+
+</div>
+</div>
+     {/* === ACTION BUTTONS (ổn định layout, có copy room code) === */}
+<div className="h-[90px] flex items-center justify-center transition-all duration-300">
+
+  {/* --- Khi chưa có phòng và chưa tìm --- */}
+  {!isSearching && !roomCode && mode === "random" && (
+    <button
+      onClick={handleFindMatch}
+      className="relative flex items-center justify-center px-6 py-3 rounded-xl
+                 bg-gradient-to-r from-yellow-500 via-red-600 to-amber-700 
+                  border border-amber-300 shadow-[0_4px_20px_rgba(249,168,38,0.2)]
+                  hover:shadow-[0_6px_24px_rgba(249,168,38,0.35)] transition-all duration-300
+                  min-w-[180px] font-mono
+                "
+    >
+      TÌM ĐỐI THỦ
+    </button>
+  )}
+
+  {/* --- Khi đang tìm trận --- */}
+{isSearching && (
+  <div
+        className="relative flex items-center justify-center px-6 py-2 rounded-xl
+                  bg-gradient-to-br from-white via-amber-50 to-orange-50
+                  border border-amber-300 shadow-[0_4px_20px_rgba(249,168,38,0.2)]
+                  hover:shadow-[0_6px_24px_rgba(249,168,38,0.35)] transition-all duration-300
+                  min-w-[180px]"
+      >
+       
+        <span className="font-mono text-2xl tracking-[0.2em] text-amber-700 select-all">
+           {formatTime(waitingTime)}
+        </span>
+     
+
+        {/* Nút hủy phòng */}
+        <button
+          onClick={() => {
+           if (waitingTimerRef.current) clearInterval(waitingTimerRef.current);
+            setIsSearching(false);
+            connection?.invoke("CancelMatch");
+          }}
+          title="Hủy tìm đối thủ"
+          className="absolute -right-4 -top-4 w-8 h-8 flex items-center justify-center rounded-full
+                    bg-white border border-amber-400 shadow-sm hover:scale-110 transition"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-4.5 h-4.5 text-amber-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2.5"
           >
-            <span className="mx-auto" ><Spinner size={40} thickness={6}/></span>
-            <h3 className="text-xl font-semibold text-gray-800">
-              Đang tìm đối thủ phù hợp...
-            </h3>
-            <p className="text-xl font-bold text-gray-800"> {formatTime(waitingTime)}</p>
-          </motion.div>
-        )}
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+)}
 
-        {/* STEP 3: Ghép thành công + đếm ngược */}
-        {roomCode && !isBattleStarted && opponent && (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center space-y-8"
+
+
+  {/* --- Khi friend/custom --- */}
+  {!isSearching && !roomCode && mode === "friend" && (
+    <div className="flex items-center gap-4">
+      {!createdRoomCode ? (
+        <>
+          {/* Khung tạo/nhập/vào phòng – gộp chung */}    
+<div className="flex items-center justify-center gap-2">
+  {/* Nút tạo phòng (bo góc trái ngoài) */}
+  <button
+    onClick={handleCreateRoom}
+    title="Tạo phòng mới"
+    className="
+      w-[50px] h-[50px] flex items-center justify-center
+      bg-gradient-to-r from-amber-700 via-red-600 to-yellow-500
+      text-white
+      shadow-[0_0_10px_rgba(249,115,22,0.25)]
+      hover:scale-105 hover:brightness-110
+      transition-all duration-200
+      rounded-l-xl
+      rounded-r-none
+    "
+  >
+    <Plus className="w-5 h-5 text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
+  </button>
+
+  {/* Input giữa */}
+  <input
+    value={friendRoomCode}
+    onChange={(e) => {
+      const value = e.target.value.toUpperCase();
+
+      // Nếu gõ quá 6 ký tự thì KHÔNG set state nữa (bỏ qua hoàn toàn)
+      if (value.length > 6) return;
+
+      setFriendRoomCode(value);
+    }}
+    placeholder="NHẬP MÃ PHÒNG"
+    maxLength={6}
+    className="
+      w-[140px] h-[50px]
+      text-center bg-gradient-to-br from-white via-amber-50 to-orange-50
+      border border-amber-300
+      
+      shadow-[0_2px_10px_rgba(249,168,38,0.15)]
+      hover:shadow-[0_3px_14px_rgba(249,168,38,0.3)]
+      text-amber-700
+      font-mono text-xl  tracking-[0.25em]  
+      focus:outline-none focus:border-amber-500
+      transition-all duration-300
+      placeholder:text-gray-400 placeholder:font-normal placeholder:text-[12px] placeholder:tracking-wider
+    "
+  />
+
+
+  {/* Nút “Vào” (bo góc phải ngoài) */}
+  <button
+    onClick={handleJoinRoom}
+    title="Tham gia phòng"
+    className="
+      w-[50px] h-[50px] flex items-center justify-center
+      bg-gradient-to-r from-yellow-500 via-red-600 to-amber-700
+      text-white
+      shadow-[0_0_10px_rgba(249,115,22,0.25)]
+      hover:brightness-110 hover:scale-[1.03]
+      transition-all duration-200
+      rounded-r-xl
+      rounded-l-none
+    "
+  >
+    <LogIn className="w-5 h-5 text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
+  </button>
+</div>
+
+
+        </>
+      ) : (
+      
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.25 }}
+      className="flex flex-col items-center gap-4 mt-12"
+    >
+      {/* Hộp hiển thị mã phòng */}
+      <div
+        className="relative flex items-center justify-center px-6 py-2 rounded-xl
+                  bg-gradient-to-br from-white via-amber-50 to-orange-50
+                  border border-amber-300 shadow-[0_4px_20px_rgba(249,168,38,0.2)]
+                  hover:shadow-[0_6px_24px_rgba(249,168,38,0.35)] transition-all duration-300
+                  min-w-[180px]"
+      >
+        {/* Mã phòng */}
+        <span className="font-mono text-2xl tracking-[0.25em] text-amber-700 select-all">
+          {createdRoomCode}
+        </span>
+
+        {/* Nút sao chép mã */}     
+        <button
+          onClick={() => handleCopy(createdRoomCode!)}  
+          title={copied ? "Đã sao chép!" : "Sao chép mã phòng"}
+          className={`p-2 rounded-full transition-all ${
+            copied ? "hover:bg-amber-100" : "hover:bg-amber-100"
+          }`}
+        >
+          {copied ? (
+            <CheckCheck className="w-5 h-5 text-amber-600 transition-transform duration-300 scale-110" />
+          ) : (
+            <Copy className="w-5 h-5 text-amber-600 transition-transform duration-300 hover:scale-110" />
+          )}
+        </button>
+
+
+        {/* Nút hủy phòng */}
+        <button
+          onClick={() => {
+            setCreatedRoomCode(null);
+            setIsWaitingFriend(false);
+            connection?.invoke("CancelMatch");
+          }}
+          title="Hủy phòng chờ"
+          className="absolute -right-4 -top-4 w-8 h-8 flex items-center justify-center rounded-full
+                    bg-white border border-amber-400 shadow-sm hover:scale-110 transition"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-4.5 h-4.5 text-amber-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2.5"
           >
-            <h3 className="text-2xl font-bold text-gray-900">
-              Đã tìm thấy phòng #{roomCode.substring(0, 4)}
-            </h3>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
-            <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-20">
-              <PlayerCard name={player?.name || "Bạn"} score={0} avatar={player?.avatar} />
+      {/* Gợi ý nhỏ bên dưới */}
+      <p className="text-sm text-gray-700">
+        Gửi mã phòng này cho bạn bè để họ tham gia cùng bạn
+      </p>
+    </motion.div>
+  )}
+    </div>
+  )}
+</div>
 
-              <div className="relative flex items-center justify-center">
-                <div className="relative w-24 h-24 rounded-full flex items-center justify-center bg-gradient-to-br from-amber-400 to-orange-600 text-white font-extrabold text-3xl shadow-lg">
-                  <div className="absolute inset-0 rounded-full bg-yellow-400/40 blur-2xl animate-pulse" />
-                  <span className="relative z-10 tracking-wider drop-shadow-md">
-                    {countdown !== null ? countdown : "VS"}
-                  </span>
-                </div>
-              </div>
-
-              <PlayerCard
-                name={opponent?.name || "Đối thủ"}
-                score={0}
-                avatar={opponent?.avatar}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
