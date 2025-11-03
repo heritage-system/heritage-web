@@ -25,6 +25,10 @@ import ContributionSearchResponse from './pages/ContributionPage/ContributionPag
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
+import JoinRoomPage from './pages/CommunityPage/JoinRoomPage';
+import LiveRoomPage from './pages/CommunityPage/LiveRoomPage';
+import AdminStreamPage from './pages/AdminPage/AdminStreamPage';
+import { StreamingProvider } from './components/Admin/Streaming/StreamingContext';
 const App: React.FC = () => {
   return (
     <Router>
@@ -32,7 +36,10 @@ const App: React.FC = () => {
         <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
-     
+     <Route path="/admin/stream" element={<MainLayout> <StreamingProvider><AdminStreamPage /></StreamingProvider></MainLayout>} />
+      <Route path="/stream/join" element={<MainLayout> <StreamingProvider><JoinRoomPage /></StreamingProvider></MainLayout>} />
+      <Route path="/live/:roomName" element={<MainLayout> <StreamingProvider><LiveRoomPage /></StreamingProvider></MainLayout>} />
+    
         <Route path="AIPredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
         <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} />
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
