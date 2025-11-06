@@ -11,6 +11,7 @@ import {
   toggleRaiseHand,
   getParticipants,
   getWaitingList,
+   heartbeat, leaveRoom 
   
 } from "../../../services/streamingService";
 import type {
@@ -36,7 +37,7 @@ import {
   
 } from "../../../services/agoraRtc";
 import { setClientRole as rtcSetClientRole, renewRtcToken } from "../../../services/agoraRtc";
-
+const OPEN_ADMISSION = "true";
 type RosterItem = { uid: string | number; userId: number; role: RoomRole; isSelf: boolean };
 type Ctx = {
   room?: StreamingRoomResponse | null;
@@ -133,7 +134,34 @@ const isHost = useMemo(
 
   return () => clearInterval(timer);
 }, [joined, effectiveRoomName, selfUserId, isHost]);
+useEffect(() => {
+  if (!joined || !effectiveRoomName) return;
 
+  // 1) Heartbeat mỗi 20s
+  const hb = setInterval(() => {
+    heartbeat(effectiveRoomName).catch(() => {});
+  }, 20000);
+
+  // 2) Rời phòng khi đóng tab/chuyển trang
+  const onUnload = () => {
+    try { void leaveRoom(effectiveRoomName, { keepalive: true }); } catch {}
+  };
+  window.addEventListener("beforeunload", onUnload);
+
+  // 3) Khi tab ẩn đi (mobile/background) – gửi một nhịp leave an toàn
+  const onHidden = () => {
+    if (document.visibilityState === "hidden") {
+      void leaveRoom(effectiveRoomName, { keepalive: true });
+    }
+  };
+  document.addEventListener("visibilitychange", onHidden);
+
+  return () => {
+    clearInterval(hb);
+    window.removeEventListener("beforeunload", onUnload);
+    document.removeEventListener("visibilitychange", onHidden);
+  };
+}, [joined, effectiveRoomName]);
   
  
 
@@ -147,12 +175,17 @@ const isHost = useMemo(
     } else toast.error(res.message || "Tạo phòng thất bại");
   };
 
-  const requestJoin: Ctx["requestJoin"] = async (rtcUid) => {
-    if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
-    const res = await requestJoinRoom(effectiveRoomName, { rtcUid: rtcUid ?? "" });
-    if (res.code === 200) toast.success("Đã gửi yêu cầu, chờ host admit");
-    else toast.error(res.message || "Gửi yêu cầu thất bại");
-  };
+ const requestJoin: Ctx["requestJoin"] = async (rtcUid) => {
+  if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
+  if (OPEN_ADMISSION) {
+    // Open admission: vào thẳng, không cần gửi yêu cầu
+    toast.success("Open admission: vào thẳng, không cần gửi yêu cầu");
+    return;
+  }
+  const res = await requestJoinRoom(effectiveRoomName, { rtcUid: rtcUid ?? "" });
+  if (res.code === 200) toast.success("Đã gửi yêu cầu, chờ host admit");
+  else toast.error(res.message || "Gửi yêu cầu thất bại");
+};
 
   const raiseHand: Ctx["raiseHand"] = async (raised) => {
     if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
@@ -173,23 +206,25 @@ const isHost = useMemo(
   };
   // Admin ops
 const admit: Ctx["admit"] = async (userId) => {
-    if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
-    const res = await admitParticipant(effectiveRoomName, { userId });
+  if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
+  if (OPEN_ADMISSION) { toast.success("Open admission: không cần admit"); return; } // ✅
+  const res = await admitParticipant(effectiveRoomName, { userId });
   if (res.code === 200) {
-  toast.success("Đã admit");
-  await scheduleRefreshWaiting();
-  await scheduleRefreshRoster();
-} else toast.error(res.message || "Lỗi admit");
-  };
+    toast.success("Đã admit");
+    await scheduleRefreshWaiting();
+    await scheduleRefreshRoster();
+  } else toast.error(res.message || "Lỗi admit");
+};
 
-  const reject: Ctx["reject"] = async (userId) => {
-    if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
-    const res = await rejectParticipant(effectiveRoomName, { userId });
-    if (res.code === 200) {
-      toast.success("Đã reject");
-      await refreshWaiting();
-    } else toast.error(res.message || "Lỗi reject");
-  };
+const reject: Ctx["reject"] = async (userId) => {
+  if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
+  if (OPEN_ADMISSION) { toast.success("Open admission: không dùng reject"); return; } // ✅
+  const res = await rejectParticipant(effectiveRoomName, { userId });
+  if (res.code === 200) {
+    toast.success("Đã reject");
+    await refreshWaiting();
+  } else toast.error(res.message || "Lỗi reject");
+};
 
 const setRoleFn: Ctx["setRole"] = async (userId, role) => {
   if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
@@ -239,6 +274,7 @@ const refreshRoster = useCallback(async () => {
 
 const refreshWaiting = useCallback(async () => {
   if (!effectiveRoomName) return;
+  if (OPEN_ADMISSION) { setWaiting([]); return; }   // ✅ chặn gọi API
   const res = await getWaitingList(effectiveRoomName);
   if (res.code === 200 && res.result) setWaiting(res.result);
 }, [effectiveRoomName]);
@@ -262,14 +298,14 @@ const scheduleRefreshRoster = useCallback(async () => {
 }, [refreshRoster]);
 
 const scheduleRefreshWaiting = useCallback(async () => {
+  if (OPEN_ADMISSION) return; // ✅
   if (waitingBusyRef.current) return;
   waitingBusyRef.current = true;
   try {
     await refreshWaiting();
-    waitingErrRef.current = 0;               // reset error streak khi thành công
+    waitingErrRef.current = 0;
   } catch (e) {
     waitingErrRef.current += 1;
-    // Sau 3 lỗi liên tiếp (ví dụ backend down), ném lỗi ra ngoài để Panel tắt auto
     if (waitingErrRef.current >= 3) throw e;
   } finally {
     waitingBusyRef.current = false;
@@ -364,9 +400,9 @@ const unbindAgoraListeners = () => {
   // Bắt kịp remote đang publish
   await catchUpExistingRemotes(uid => createRemoteSlot(remoteWrapEl, uid));
 await scheduleRefreshRoster();
-if (isHostRole) await scheduleRefreshWaiting();
+if (!OPEN_ADMISSION && isHostRole) await scheduleRefreshWaiting(); // ✅
 setJoined(true);
-  toast.success("Đã vào phòng (chưa bật Cam/Mic)");
+toast.success("Đã vào phòng (chưa bật Cam/Mic)");
 };
 
 

@@ -9,6 +9,7 @@ import type {
   SetRoleRequest,
   RaiseHandRequest,
   StreamingParticipantResponse,
+  StreamingRoomWithCountResponse,
 } from "../types/streaming";
 import { ApiResponse } from "../types/apiResponse";
 
@@ -94,5 +95,33 @@ export const getParticipants = async (
   return await fetchInterceptor<StreamingParticipantResponse[]>(
     `${API_URL}/api/v1/stream/rooms/${encodeURIComponent(roomName)}/participants${qs}`,
     { method: "GET" }
+  );
+};
+
+export async function getRoomsWithPeople(
+  minCount = 2,
+  status: "Admitted" | "Waiting" | "Kicked" = "Admitted"
+){
+  return await fetchInterceptor(
+    `${API_URL}/api/v1/stream/rooms/with-people?minCount=${minCount}&status=${encodeURIComponent(status)}`,
+    { method: "GET" }
+  );
+}
+export const heartbeat = async (
+  roomName: string
+): Promise<ApiResponse<unknown>> => {
+  return await fetchInterceptor(
+    `${API_URL}/api/v1/stream/rooms/${encodeURIComponent(roomName)}/heartbeat`,
+    { method: "POST" }
+  );
+};
+
+export const leaveRoom = async (
+  roomName: string,
+  opts?: { keepalive?: boolean }   // để gọi trong beforeunload
+): Promise<ApiResponse<unknown>> => {
+  return await fetchInterceptor(
+    `${API_URL}/api/v1/stream/rooms/${encodeURIComponent(roomName)}/leave`,
+    { method: "POST", ...(opts?.keepalive ? { keepalive: true } : {}) }
   );
 };

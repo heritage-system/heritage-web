@@ -35,3 +35,11 @@ export interface RequestJoinRequest { rtcUid: string; }
 export interface AdmitRejectRequest { userId: number; }
 export interface SetRoleRequest { userId: number; role: RoomRole; }
 export interface RaiseHandRequest { raised: boolean; }
+export interface StreamingRoomWithCountResponse {
+  id: number;
+  roomName: string;
+  title: string;
+  isActive: boolean;
+  createdAt: string;          // ISO
+  participantCount: number;
+}

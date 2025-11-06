@@ -5,6 +5,9 @@ import { getWaitingList } from "../../../services/streamingService";
 import type { StreamingParticipantResponse } from "../../../types/streaming";
 
 const WaitingListPanel: React.FC = () => {
+  const OPEN_ADMISSION = "true";
+
+if (OPEN_ADMISSION) return null; // ✅ ẩn toàn bộ panel
   const { roomName, admit, reject } = useStreaming();
   const [items, setItems] = useState<StreamingParticipantResponse[]>([]);
   const [loading, setLoading] = useState(false);
