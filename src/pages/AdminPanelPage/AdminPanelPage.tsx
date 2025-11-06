@@ -44,17 +44,23 @@ import {
   UserCog,
   ChevronRight,
   ChevronLeft,
+  Gamepad2,
+  CalendarCheck,
+  CalendarRange,
+  PlusCircle,
+  Video,
+  Ticket,
   Home
 } from "lucide-react";
 import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 
 // Import all management components
 import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement";
-import CategoryManagement from "../../components/Admin/ContentManagement/CategoryManagement";
-import TagManagement from "../../components/Admin/ContentManagement/TagManagement";
+import CategoryManagement from "../../components/Admin/ContentManagement/CategoryManagement/CategoryManagement";
+import TagManagement from "../../components/Admin/ContentManagement/TagManagement/TagManagement";
 import HeritageManagement from "../../components/Admin/ContentManagement/HeritageManagement.tsx/HeritageManagement";
 import ContributionPostManagement from "../../components/Admin/ContentManagement/ContributionPostManagement/ContributionPostManagement";
-import DigitalAssetManagement from "../../components/Admin/ContentManagement/DigitalAssetManagement";
+import QuizzManagement from "../../components/Admin/ContentManagement/QuizzManagement/QuizzManagement";
 import BudgetManagement from "../../components/Admin/FinancialManagement/BudgetManagement";
 import ExpenseTracking from "../../components/Admin/FinancialManagement/ExpenseTracking";
 import FinancialReports from "../../components/Admin/FinancialManagement/FinancialReports";
@@ -65,10 +71,10 @@ import EmployeeManagement from "../../components/Admin/HRManagement/EmployeeMana
 import PayrollManagement from "../../components/Admin/HRManagement/PayrollManagement";
 import PerformanceReview from "../../components/Admin/HRManagement/PerformanceReview";
 import RolePermissionManagement from "../../components/Admin/HRManagement/RolePermissionManagement";
-import ProjectManagement from "../../components/Admin/ProjectManagement/ProjectManagement";
-import TaskManagement from "../../components/Admin/ProjectManagement/TaskManagement";
-import ResourcePlanning from "../../components/Admin/ProjectManagement/ResourcePlanning";
-import TimelineTracking from "../../components/Admin/ProjectManagement/TimelineTracking";
+import EventList from "../../components/Admin/EventManagement/EventList";
+import LiveRoomManager from "../../components/Admin/EventManagement/LiveRoomManager";
+import EventCreate from "../../components/Admin/EventManagement/EventCreate";
+import ParticipantManager from "../../components/Admin/EventManagement/ParticipantManager";
 import ServerManagement from "../../components/Admin/SystemSecurity/ServerManagement";
 import DatabaseAdministration from "../../components/Admin/SystemSecurity/DatabaseAdministration";
 import SecurityCenter from "../../components/Admin/SystemSecurity/SecurityCenter";
@@ -104,7 +110,7 @@ const moduleIdByTitle: Record<string, string> = {
   "Quản lý Nội dung": "contentManagement",
   "Quản lý Tài chính": "financialManagement",
   "Quản lý Nhân sự": "hrManagement",
-  "Quản lý Dự án": "projectManagement",
+  "Quản lý Sự kiện": "eventManagement",
   "Hệ thống & Bảo mật": "systemSecurity",
   "Quản lý Khách hàng": "customerManagement",
   "Báo cáo & Phân tích": "reportsAnalytics",
@@ -124,7 +130,7 @@ const moduleStructure = {
       { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement },
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
       { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
-      { id: "digitalAsset", name: "Quản lý tài sản số", icon: Archive, component: DigitalAssetManagement }
+      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement }
     ]
   },
   financialManagement: {
@@ -152,17 +158,17 @@ const moduleStructure = {
       { id: "rolePermission", name: "Vai trò & Quyền", icon: Shield, component: RolePermissionManagement }
     ]
   },
-  projectManagement: {
-    id: "projectManagement",
-    title: "Quản lý Dự án",
-    icon: Briefcase,
-    subModules: [
-      { id: "projects", name: "Quản lý dự án", icon: Briefcase, component: ProjectManagement },
-      { id: "tasks", name: "Quản lý công việc", icon: Calendar, component: TaskManagement },
-      { id: "resources", name: "Lập kế hoạch tài nguyên", icon: Package, component: ResourcePlanning },
-      { id: "timeline", name: "Theo dõi tiến độ", icon: Activity, component: TimelineTracking }
-    ]
-  },
+  eventManagement: {
+  id: "eventManagement",
+  title: "Quản lý Sự kiện",
+  icon: CalendarCheck,
+  subModules: [
+    { id: "events", name: "Sự kiện & Workshop", icon: CalendarRange, component: EventList },
+    { id: "eventCreate", name: "Tạo sự kiện", icon: PlusCircle, component: EventCreate },
+    { id: "liveRooms", name: "Phòng livestream", icon: Video, component: LiveRoomManager },
+    { id: "participants", name: "Người tham gia", icon: Users, component: ParticipantManager },
+  ]
+},
   systemSecurity: {
     id: "systemSecurity",
     title: "Hệ thống & Bảo mật",

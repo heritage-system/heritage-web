@@ -231,7 +231,7 @@ const message = (isStringErr ? null : err?.message) ?? fallbackMessage;
                     <article
                       key={m.heritage_id}
                       className="rounded-xl border bg-white p-4 hover:shadow transition cursor-pointer"
-                      onClick={() => navigate(`/heritage/${m.heritage_id}`)}
+                      onClick={() => navigate(`/heritagedetail/${m.heritage_id}`)}
                       title={m.name ?? "Không rõ tên"}
                     >
                       {thumbUrl && (

@@ -29,6 +29,8 @@ import JoinRoomPage from './pages/CommunityPage/JoinRoomPage';
 import LiveRoomPage from './pages/CommunityPage/LiveRoomPage';
 import AdminStreamPage from './pages/AdminPage/AdminStreamPage';
 import { StreamingProvider } from './components/Admin/Streaming/StreamingContext';
+import LiveRoomPage from './components/Community/LiveRoomPage';
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -58,7 +60,8 @@ const App: React.FC = () => {
         <Route path="/reports/:id" element={<ReportDetailManagement />} />
         <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
-        <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />   
+        <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />  
+        <Route path="/live/:roomId" element={<LiveRoomPage />} /> 
       </Routes>
 
       {/* <ChatBoxAI /> */}

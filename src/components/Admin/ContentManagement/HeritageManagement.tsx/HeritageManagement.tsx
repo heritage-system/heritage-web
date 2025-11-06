@@ -246,7 +246,7 @@ const HeritageManagement: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Quản lý di sản</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Quản Lý Di Sản</h2>
         <div className="flex gap-2">
           <button 
             onClick={handleExport}
