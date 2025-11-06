@@ -143,11 +143,11 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 bg-white ${
         isScrolled ? 'bg-white/95 backdrop-blur-xl shadow-lg' : 'bg-transparent'
       }`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-x-14">
 
             {/* Logo */}
-            <div className="flex items-center space-x-3" data-tour="logo">  
+            <div className="flex items-center space-x-3 ml-6" data-tour="logo">
               <Link to="/" className="relative w-28 h-28 hover:opacity-90 transition">
                 <img
                   src={VTFPLogo}
@@ -158,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             </div>
 
             {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-8 gap-8">
+          <nav className="hidden md:flex items-center space-x-8 gap-8 flex-grow justify-center translate-x-6">
               {[
                 { label: 'Trang chủ', path: '/', tourId: 'nav-home' },
                 { label: 'Khám phá', path: '/DiscoveryPage', tourId: 'nav-discovery' },
@@ -182,7 +182,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center space-x-3 mr-12">
+            <div className="flex items-center space-x-3 ml-auto">
               <button 
                 className="p-2 text-gray-600 hover:text-purple-600 transition-colors relative"
                 data-tour="search"

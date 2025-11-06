@@ -101,15 +101,15 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
-      title: "Quản lý Dự án",
-      color: "bg-gradient-to-br from-amber-600 to-amber-700",
+      title: "Quản lý Sự kiện",
+      color: "bg-gradient-to-br from-orange-500 to-red-600",
       count: 4,
-      description: "Quản lý dự án và quy trình làm việc",
+      description: "Tạo sự kiện, quản lý workshop và phòng livestream",
       modules: [
-        { name: "Quản lý Dự án", icon: "Briefcase" },
-        { name: "Quản lý Nhiệm vụ", icon: "Calendar" },
-        { name: "Hoạch định Nguồn lực", icon: "Package" },
-        { name: "Theo dõi Tiến độ", icon: "Activity" },
+        { name: "Sự kiện & Workshop", icon: "CalendarRange" },
+        { name: "Tạo sự kiện", icon: "PlusCircle" },
+        { name: "Phòng livestream", icon: "Video" },
+        { name: "Người tham gia", icon: "Users" },
       ],
     },
     {
