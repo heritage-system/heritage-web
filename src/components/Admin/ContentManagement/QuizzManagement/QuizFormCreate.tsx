@@ -33,6 +33,7 @@ const QuizFormCreate: React.FC<Props> = ({
       premiumType: PremiumType.FREE,
       questions: [],
     });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (mode === "edit" && quiz) {
@@ -70,57 +71,63 @@ const QuizFormCreate: React.FC<Props> = ({
   }, [mode, quiz]);
 
   const handleSave = async () => {
-    if (!formData.title.trim()) {
-      toast.error("Tên quiz không được để trống!");
-      return;
+  if (isSubmitting) return; 
+  setIsSubmitting(true);
+
+  if (!formData.title.trim()) {
+    toast.error("Tên quiz không được để trống!");
+    setIsSubmitting(false);
+    return;
+  }
+
+  try {
+    let quizId: number;
+
+    if (mode === "create") {
+      const res = await createQuiz({
+        title: formData.title,
+        bannerUrl: formData.bannerUrl,
+        premiumType: Number(formData.premiumType),
+        questions: [],
+      });
+
+      if (!res.message) throw new Error("Tạo quiz thất bại");
+      quizId = (res.result as any).quizId;
+    } else {
+      await updateQuiz(formData as QuizUpdateRequest);
+      quizId = (formData as QuizUpdateRequest).id;
     }
 
-    try {
-      let quizId: number;
+    await Promise.all(
+      formData.questions.map((q: any) => {
+        const payload = {
+          quizId,
+          question: q.question,
+          optionA: q.optionA,
+          optionB: q.optionB,
+          optionC: q.optionC,
+          optionD: q.optionD,
+          correctOption: q.correctOption,
+          quizCategory: Number(q.quizCategory),
+          quizLevel: Number(q.quizLevel),
+        };
 
-      if (mode === "create") {
-        const res = await createQuiz({
-          title: formData.title,
-          bannerUrl: formData.bannerUrl,
-          premiumType: Number(formData.premiumType),
-          questions: [], 
-        });
+        if (mode === "edit" && q.quizId) {
+          return updateQuizQuestion({ id: q.quizId, ...payload });
+        } else {
+          return createQuizQuestion(payload);
+        }
+      })
+    );
 
-        if (!res.message) throw new Error("Tạo quiz thất bại");
-        quizId = (res.result as any).quizId; 
-      } else {
-        await updateQuiz(formData as QuizUpdateRequest);
-        quizId = (formData as QuizUpdateRequest).id;
-      }
-
-      await Promise.all(
-        formData.questions.map((q: any) => {
-          const payload = {
-            quizId,
-            question: q.question,
-            optionA: q.optionA,
-            optionB: q.optionB,
-            optionC: q.optionC,
-            optionD: q.optionD,
-            correctOption: q.correctOption,
-            quizCategory: Number(q.quizCategory),
-            quizLevel: Number(q.quizLevel),
-          };
-
-          if (mode === "edit" && q.quizId) {
-            return updateQuizQuestion({ id: q.quizId, ...payload });
-          } else {
-            return createQuizQuestion(payload);
-          }
-        })
-      );
-
-      toast.success("Lưu quiz và câu hỏi thành công!");
-      onSave({ ...formData, id: quizId });
-    } catch (err: any) {
-      toast.error(err.message || "Lưu thất bại");
-    }
-  };
+    toast.success("Lưu quiz và câu hỏi thành công!");
+    onSave({ ...formData, id: quizId });
+  } catch (err: any) {
+    toast.error(err.message || "Lưu thất bại");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleUploadImage = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -179,9 +186,14 @@ const QuizFormCreate: React.FC<Props> = ({
 
             <button
               onClick={handleSave}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium"
+              disabled={isSubmitting}
+              className={`px-5 py-2.5 rounded-xl font-medium text-white transition-all ${
+                isSubmitting
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Lưu Quiz
+              {isSubmitting ? "Đang lưu..." : "Lưu Quiz"}
             </button>
           </div>
         </div>

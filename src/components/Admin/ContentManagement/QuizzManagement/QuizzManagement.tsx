@@ -100,13 +100,13 @@ const QuizzManagement: React.FC = () => {
     }
   };
 
-  // ✅ Mở modal xoá
+  // Mở modal xoá
   const handleDelete = (id: number) => {
     setDeleteId(id);
     setShowDeleteModal(true);
   };
 
-  // ✅ Xác nhận xoá bên trong modal
+  // Xác nhận xoá bên trong modal
   const confirmDelete = async () => {
     if (!deleteId) return;
 
@@ -132,34 +132,30 @@ const QuizzManagement: React.FC = () => {
   };
 
   const handleSave = async (data: QuizCreationRequest | QuizUpdateRequest) => {
-    try {
-      let res;
-
-      if (viewMode === "create") {
-        res = await createQuiz(data as QuizCreationRequest);
-      } else {
-        res = await updateQuiz(data as QuizUpdateRequest);
-      }
-
-      const isSuccess =
-        ((viewMode === "create" && res.code === 201) ||
-          (viewMode === "edit" && res.code === 200)) &&
-        res.result === true;
-
-      if (isSuccess) {
-        toast.success("Lưu quiz thành công!");
-
-        setViewMode("list");
-        setSelectedQuiz(null);
-        fetchData();
-      } else {
-        toast.error("Lưu thất bại: " + (res.message ?? "Không rõ lỗi"));
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Lỗi khi lưu quiz!");
+  try {
+    if (viewMode === "create") {
+      toast.success("Tạo quiz thành công!");
+      setViewMode("list");
+      setSelectedQuiz(null);
+      fetchData();
+      return;
     }
-  };
+
+    const res = await updateQuiz(data as QuizUpdateRequest);
+
+    if (res.code === 200 || res.result === true) {
+      toast.success("Cập nhật quiz thành công!");
+      setViewMode("list");
+      setSelectedQuiz(null);
+      fetchData();
+    } else {
+      toast.error("Lưu thất bại: " + (res.message ?? "Không rõ lỗi"));
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Lỗi khi lưu quiz!");
+  }
+};
 
   return (
     <div className="space-y-6">

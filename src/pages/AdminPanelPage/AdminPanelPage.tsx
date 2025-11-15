@@ -55,7 +55,7 @@ import {
 import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 
 // Import all management components
-import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement";
+//import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement/EmployeeManagement";
 import CategoryManagement from "../../components/Admin/ContentManagement/CategoryManagement/CategoryManagement";
 import TagManagement from "../../components/Admin/ContentManagement/TagManagement/TagManagement";
 import HeritageManagement from "../../components/Admin/ContentManagement/HeritageManagement.tsx/HeritageManagement";
@@ -67,7 +67,7 @@ import FinancialReports from "../../components/Admin/FinancialManagement/Financi
 import InvoiceManagement from "../../components/Admin/FinancialManagement/InvoiceManagement";
 import PaymentProcessing from "../../components/Admin/FinancialManagement/PaymentProcessing";
 import AttendanceTracking from "../../components/Admin/HRManagement/AttendanceTracking";
-import EmployeeManagement from "../../components/Admin/HRManagement/EmployeeManagement";
+import EmployeeManagement from "../../components/Admin/HRManagement/EmployeeManagement/EmployeeManagement";
 import PayrollManagement from "../../components/Admin/HRManagement/PayrollManagement";
 import PerformanceReview from "../../components/Admin/HRManagement/PerformanceReview";
 import RolePermissionManagement from "../../components/Admin/HRManagement/RolePermissionManagement";
@@ -104,6 +104,7 @@ import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
 import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
 import { useAuth } from '../../hooks/useAuth';
+import UserManagement from "../../components/Admin/HRManagement/UserManagement/UserManagement";
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -151,6 +152,7 @@ const moduleStructure = {
     icon: Users,
     subModules: [
       { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },
+      { id: "users", name: "Quản lý người dùng", icon: Users, component: UserManagement },
       { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },
       { id: "attendance", name: "Theo dõi chấm công", icon: Clock, component: AttendanceTracking },
       { id: "payroll", name: "Quản lý bảng lương", icon: CreditCard, component: PayrollManagement },
