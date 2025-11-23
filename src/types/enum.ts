@@ -53,3 +53,19 @@ export enum FestivalFrequency {
    MONTHLY = 3
 }
 
+export enum PremiumType {
+  FREE = 0,
+  SUBSCRIPTIONONLY = 1
+}
+
+export enum QuizCategory {
+  RITUAL = 0,
+  GAME = 1,
+  UNKNOWN = 2
+}
+
+export enum QuizLevel {
+  EASY = 0,
+  MEDIUM = 1,
+  HARD = 2
+}

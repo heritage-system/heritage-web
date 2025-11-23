@@ -6,7 +6,12 @@ import {
   QuizListRequest,
   QuizListResponse,
   QuizDetailResponse,
-  SaveQuizResultRequest
+  SaveQuizResultRequest,
+  QuizCreationRequest,
+  QuizUpdateRequest,
+  QuizQuestionCreationRequest,
+  QuizQuestionUpdateRequest,
+  QuizDetailAdminResponse 
 } from "../types/quiz";
 
 
@@ -53,6 +58,68 @@ export const saveQuizResult = async (
     {
       method: "POST",
       body: data as any,
+    }
+  );
+};
+
+export const createQuiz = async (
+  data: QuizCreationRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/quiz/create_quiz`,
+    { method: "POST", body: data as any }
+  );
+};
+
+export const updateQuiz = async (
+  data: QuizUpdateRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/quiz/update_quiz`,
+    { method: "PUT", body: data as any }
+  );
+};
+
+export const deleteQuiz = async (id: number): Promise<ApiResponse<number | null>> => {
+  return await fetchInterceptor<number | null>(
+    `${API_URL}/api/v1/quiz/delete_quiz?id=${id}`,
+    { method: "DELETE" }
+  );
+};
+
+export const createQuizQuestion = async (
+  data: QuizQuestionCreationRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/quiz/create_quiz_question`,
+    { method: "POST", body: data as any }
+  );
+};
+
+export const updateQuizQuestion = async (
+  data: QuizQuestionUpdateRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/quiz/update_quiz_question`,
+    { method: "PUT", body: data as any }
+  );
+};
+
+export const deleteQuizQuestion = async (id: number): Promise<ApiResponse<number | null>> => {
+  return await fetchInterceptor<number | null>(
+    `${API_URL}/api/v1/quiz/delete_quiz_question?id=${id}`,
+    { method: "DELETE" }
+  );
+};
+
+export const getQuizDetailAdmin = async (
+  quizId: number
+): Promise<ApiResponse<QuizDetailAdminResponse>> => {
+
+  return await fetchInterceptor<QuizDetailAdminResponse>(
+    `${API_URL}/api/v1/quiz/admin/detail/${quizId}`,
+    {
+      method: "GET",
     }
   );
 };
