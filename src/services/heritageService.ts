@@ -228,8 +228,8 @@ export const exportHeritages = async (
   const query = new URLSearchParams();
 
   // Required parameters
-  query.append("Page", "1");
-  query.append("PageSize", "999999");
+  query.append("Page", params.page.toString());
+  query.append("PageSize", params.pageSize.toString());
 
   // Optional parameters
   if (params.keyword) {

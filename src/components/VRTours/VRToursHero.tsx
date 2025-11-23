@@ -47,7 +47,7 @@ const VRToursHero: React.FC<VRToursHeroProps> = ({ onStartTour }) => {
     </div>
 
     {/* Stats */}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-gray-900">
+    {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-gray-900">
       <div className="text-center">
         <div className="text-3xl font-bold text-yellow-600">50+</div>
         <div className="text-gray-600">Tours VR</div>
@@ -64,7 +64,7 @@ const VRToursHero: React.FC<VRToursHeroProps> = ({ onStartTour }) => {
         <div className="text-3xl font-bold text-orange-900">4K</div>
         <div className="text-gray-600">Chất lượng</div>
       </div>
-    </div>
+    </div> */}
   </div>
 </section>
 
