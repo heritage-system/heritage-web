@@ -32,13 +32,14 @@ const HeritageManagement: React.FC = () => {
   const [exporting, setExporting] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-
+  const [exportMode, setExportMode] = useState<"current" | "all">("current");
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [categories, setCategories] = useState<
     { label: string; value: string }[]
@@ -73,26 +74,27 @@ const HeritageManagement: React.FC = () => {
   };
 
   // Handle Export
-  const handleExport = async () => {
+  const handleExport = async (mode: "current" | "all") => {
     setExporting(true);
     try {
       await exportHeritages({
-        page: 1,
-        pageSize: 999999,
+        page: mode === "current" ? currentPage : 0,
+        pageSize: itemsPerPage,
         keyword: searchTerm || undefined,
         categoryId: selectedCategory ? Number(selectedCategory) : undefined,
-        tagIds: selectedTags.length > 0 ? selectedTags.map(Number) : undefined,
+        tagIds: selectedTags.length ? selectedTags.map(Number) : undefined,
         sortBy: sortBy ? (sortBy as SortBy) : undefined,
       });
-      
+
       toast.success("Xuất dữ liệu thành công!");
     } catch (error: any) {
-      console.error("Export error:", error);
       toast.error(error.message || "Xuất dữ liệu thất bại");
     } finally {
       setExporting(false);
     }
   };
+
+
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -248,14 +250,67 @@ const HeritageManagement: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Quản lý di sản</h2>
         <div className="flex gap-2">
-          <button 
-            onClick={handleExport}
-            disabled={exporting || loading}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          <div className="relative inline-block text-left">
+  <div>
+    <button
+      onClick={() => setShowExportMenu((prev) => !prev)}
+      disabled={exporting || loading}
+      className="bg-green-600 text-white px-4 py-2.5 rounded-md hover:bg-green-700 flex items-center gap-2 shadow transition active:scale-[0.98] disabled:opacity-50"
+    >
+      <Download size={16} />
+      {exporting ? "Đang xuất..." : "Xuất dữ liệu"}
+    </button>
+  </div>
+
+  {showExportMenu && (
+    <div
+      className="absolute right-0 mt-2 w-52 origin-top-right bg-white 
+                 border border-gray-200 rounded-md shadow-lg z-50"
+    >
+      <div className="py-1">
+        <button
+          onClick={() => {
+            setShowExportMenu(false);
+            handleExport("current");
+          }}
+          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+        >
+          <svg
+            className="w-4 h-4 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
           >
-            <Download size={16} />
-            {exporting ? "Đang xuất..." : "Export"}
-          </button>
+            <path d="M4 4h16v4H4zM4 12h10v8H4z" />
+          </svg>
+          Chỉ trang hiện tại
+        </button>
+
+        <button
+          onClick={() => {
+            setShowExportMenu(false);
+            handleExport("all");
+          }}
+          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+        >
+          <svg
+            className="w-4 h-4 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path d="M4 4h16v16H4z" />
+          </svg>
+          Tất cả dữ liệu
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
+
           <button
             onClick={() => setMode("create")}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2 transition"
