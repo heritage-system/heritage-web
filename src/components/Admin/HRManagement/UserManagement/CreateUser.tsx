@@ -1,78 +1,147 @@
 // components/UserManagement/CreateUser.tsx
-import { X } from "lucide-react";
-
-interface UserPayload {
-  name: string;
-  email: string;
-  role: "admin" | "editor" | "viewer";
-  status: "active" | "inactive";
-}
+import React, { useState } from "react";
+import { X, Loader2 } from "lucide-react";
+import { UserCreationByAdminRequest } from "../../../../types/user";
+import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
 
 interface CreateUserProps {
+  open: boolean;
   onClose: () => void;
-  onSave: (payload: UserPayload) => void;
+  onSave: (data: UserCreationByAdminRequest) => Promise<void>;
 }
 
-export default function CreateUser({ onClose, onSave }: CreateUserProps) {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+export default function CreateUser({ open, onClose, onSave }: CreateUserProps) {
+  const [formData, setFormData] = useState<UserCreationByAdminRequest>({
+    username: "",
+    email: "",
+    fullName: "",
+    roleName: "MEMBER",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    onSave({
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      role: formData.get("role") as UserPayload["role"],
-      status: formData.get("status") as UserPayload["status"],
-    });
+    if (!formData.username || !formData.email || !formData.fullName) return;
+
+    setLoading(true);
+    try {
+      await onSave(formData);
+      onClose();
+    } catch {
+      // lỗi xử lý ở parent
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const isValid = formData.username && formData.email && formData.fullName;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <button
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-          onClick={onClose}
-        >
-          <X size={20} />
-        </button>
-        <h3 className="text-xl font-bold mb-4">Thêm người dùng</h3>
+    <PortalModal
+      open={open}
+      onClose={onClose}
+      size="md"
+      maxWidth="520px"
+      closeOnOverlay={true}
+      closeOnEsc={true}
+      ariaLabelledby="create-user-title"
+      contentClassName="overflow-hidden"
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h3 id="create-user-title" className="text-2xl font-bold text-gray-900">
+            Tạo thành viên mới
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-700 transition"
+            aria-label="Đóng"
+          >
+            <X size={26} />
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username */}
           <div>
-            <label className="block text-sm font-medium">Tên</label>
-            <input name="name" required className="w-full mt-1 p-2 border rounded-md" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Email</label>
-            <input name="email" type="email" required className="w-full mt-1 p-2 border rounded-md" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium">Vai trò</label>
-              <select name="role" defaultValue="viewer" className="w-full mt-1 p-2 border rounded-md">
-                <option value="admin">Quản trị</option>
-                <option value="editor">Biên tập</option>
-                <option value="viewer">Xem</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Trạng thái</label>
-              <select name="status" defaultValue="active" className="w-full mt-1 p-2 border rounded-md">
-                <option value="active">Hoạt động</option>
-                <option value="inactive">Không hoạt động</option>
-              </select>
-            </div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Tên đăng nhập <span className="text-red-500">*</span>
+            </label>
+            <input
+              required
+              type="text"
+              value={formData.username}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value.trim() })
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              placeholder="nhap_username"
+            />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md">
+          {/* Họ tên */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Họ và tên <span className="text-red-500">*</span>
+            </label>
+            <input
+              required
+              type="text"
+              value={formData.fullName}
+              onChange={(e) =>
+                setFormData({ ...formData, fullName: e.target.value })
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              placeholder="Nguyễn Văn A"
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email <span className="text-red-500">*</span>
+            </label>
+            <input
+              required
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value.trim() })
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              placeholder="user@gmail.com"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium transition disabled:opacity-50"
+            >
               Hủy
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">
-              Lưu
+            <button
+              type="submit"
+              disabled={loading || !isValid}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Đang tạo...
+                </>
+              ) : (
+                "Tạo thành viên"
+              )}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </PortalModal>
   );
 }

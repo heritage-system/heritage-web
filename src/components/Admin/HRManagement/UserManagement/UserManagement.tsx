@@ -1,206 +1,363 @@
-// components/UserManagement/UserManagement.tsx
-import React, { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
-import StatsCards from "./StatsCards";
-import SearchFilter from "./SearchFilter";
+import React, { useEffect, useState, useCallback } from "react";
+import { Plus, Users, UserCheck, Ban, Loader2, AlertCircle } from "lucide-react";
+import toast from "react-hot-toast";
+
 import UserTable from "./UserTable";
+import SearchFilter from "./SearchFilter";
 import CreateUser from "./CreateUser";
-import UpdateUser from "./UpdateUser";
 import ViewUser from "./ViewUser";
-import ConfirmDelete from "./ConfirmDelete";
+import ConfirmStatusChange from "./ConfirmStatusChange";
 import Pagination from "../../../Layouts/Pagination";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "editor" | "viewer";
-  status: "active" | "inactive";
-  lastLogin: string;
-}
+import {
+  searchMembersForAdmin,
+  createUserByAdmin,
+  changeUserStatusForAdmin,
+  getUserDetailForAdmin,
+} from "../../../../services/userService";
 
-const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      name: "Admin VTFP",
-      email: "admin@vftp.vn",
-      role: "admin",
-      status: "active",
-      lastLogin: "2025-11-15",
-    },
-    {
-      id: "2",
-      name: "Editor Nội dung",
-      email: "editor@vftp.vn",
-      role: "editor",
-      status: "active",
-      lastLogin: "2025-11-14",
-    },
-    {
-      id: "3",
-      name: "Viewer Guest",
-      email: "viewer@vftp.vn",
-      role: "viewer",
-      status: "inactive",
-      lastLogin: "2025-10-20",
-    },
-  ]);
+import {
+  UserSearchRequest,
+  UserSearchResponse,
+  UserDetailResponse,
+  UserCreationByAdminRequest,
+} from "../../../../types/user";
+import { UserStatus, SortBy } from "../../../../types/enum";
+import { PageResponse } from "../../../../types/pageResponse";
+import { ApiResponse } from "../../../../types/apiResponse";
 
+// Cấu hình trạng thái hiển thị
+const statusConfig: Partial<Record<UserStatus, { label: string; color: string; icon: any }>> = {
+  [UserStatus.ACTIVE]: { label: "Hoạt động", color: "bg-green-100 text-green-800", icon: UserCheck },
+  [UserStatus.INACTIVE]: { label: "Không hoạt động", color: "bg-gray-100 text-gray-800", icon: Ban },
+  [UserStatus.BANNED]: { label: "Bị cấm", color: "bg-red-100 text-red-800", icon: Ban },
+};
+
+// Tabs chỉ hiển thị 4 trạng thái
+const tabs = [
+  { key: "all" as const, label: "Tất cả", icon: Users },
+  { key: UserStatus.ACTIVE, label: "Hoạt động", icon: UserCheck },
+  { key: UserStatus.INACTIVE, label: "Không hoạt động", icon: Ban },
+  { key: UserStatus.BANNED, label: "Bị cấm", icon: Ban },
+] as const;
+
+export default function UserManagement() {
+  const [activeTab, setActiveTab] = useState<"all" | UserStatus>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedRole, setSelectedRole] = useState("");
-  const [sortKey, setSortKey] = useState<keyof User | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortBy, setSortBy] = useState<string>("DATEDESC");
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
+
+  const [totalItemsFromBackend, setTotalItemsFromBackend] = useState(0);
+  const [totalPagesFromBackend, setTotalPagesFromBackend] = useState(1);
+  const [users, setUsers] = useState<UserSearchResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [tabCounts, setTabCounts] = useState({
+    all: 0,
+    [UserStatus.ACTIVE]: 0,
+    [UserStatus.INACTIVE]: 0,
+    [UserStatus.BANNED]: 0,
+  });
 
   const [showCreate, setShowCreate] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
-  const itemsPerPage = 10;
+  // NEW: Dùng pattern giống StaffManagement - mở modal ngay, data load sau
+  const [viewingUserId, setViewingUserId] = useState<number | null>(null);
+  const [viewingUserData, setViewingUserData] = useState<UserDetailResponse | null>(null);
 
-  const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter((u) => u.status === "active").length;
-    const inactive = users.filter((u) => u.status === "inactive").length;
-    const monthAgo = new Date();
-    monthAgo.setMonth(monthAgo.getMonth() - 1);
-    const newThisMonth = users.filter((u) => new Date(u.lastLogin) >= monthAgo).length;
-    return { total, active, inactive, newThisMonth };
-  }, [users]);
+  const [statusChangeInfo, setStatusChangeInfo] = useState<{
+  user: UserSearchResponse;
+  newStatus: UserStatus;
+} | null>(null);
 
-  const filteredUsers = useMemo(() => {
-    let result = users.filter((user) => {
-      const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRole = !selectedRole || user.role === selectedRole;
-      return matchesSearch && matchesRole;
-    });
+  const [changingStatusUser, setChangingStatusUser] = useState<{
+    user: UserSearchResponse;
+    newStatus: UserStatus;
+  } | null>(null);
 
-    if (sortKey) {
-      result = [...result].sort((a: any, b: any) => {
-        const av = a[sortKey];
-        const bv = b[sortKey];
-        if (av === bv) return 0;
-        if (av == null) return 1;
-        if (bv == null) return -1;
-        const aStr = String(av).toLowerCase();
-        const bStr = String(bv).toLowerCase();
-        const cmp = aStr > bStr ? 1 : aStr < bStr ? -1 : 0;
-        return sortDir === "asc" ? cmp : -cmp;
-      });
-    }
-    return result;
-  }, [users, searchTerm, selectedRole, sortKey, sortDir]);
+  const fetchTabCounts = useCallback(async () => {
+    try {
+      const params: UserSearchRequest = {
+        page: 1,
+        pageSize: 9999,
+        sortBy: SortBy.DateDesc,
+      };
 
-  const paginatedUsers = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredUsers.slice(start, start + itemsPerPage);
-  }, [filteredUsers, currentPage]);
+      const response: ApiResponse<PageResponse<UserSearchResponse>> =
+        await searchMembersForAdmin(params);
 
-  const handleSortChange = (key: keyof User) => {
-    if (sortKey === key) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
+      if (!response.result) return;
 
-  const handleCreate = (payload: Omit<User, "id" | "lastLogin">) => {
-    setUsers((prev) => [
-      ...prev,
-      {
-        id: String(prev.length + 1),
-        ...payload,
-        lastLogin: new Date().toISOString().slice(0, 10),
-      },
-    ]);
-    setShowCreate(false);
-  };
+      const list = response.result.items || [];
 
-  const handleUpdate = (payload: Partial<User>) => {
-    if (editingUser) {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === editingUser.id ? { ...u, ...payload } : u))
+      const filtered = list.filter(
+        (u) =>
+          (u.roleName === "MEMBER" || u.roleName === "USER") &&
+          u.userStatus !== UserStatus.PENDING_VERIFICATION &&
+          u.userStatus !== UserStatus.DELETED
       );
-      setEditingUser(null);
+
+      const counts = {
+        all: filtered.length,
+        [UserStatus.ACTIVE]: filtered.filter((u) => u.userStatus === UserStatus.ACTIVE).length,
+        [UserStatus.INACTIVE]: filtered.filter((u) => u.userStatus === UserStatus.INACTIVE).length,
+        [UserStatus.BANNED]: filtered.filter((u) => u.userStatus === UserStatus.BANNED).length,
+      };
+
+      setTabCounts(counts);
+    } catch (err) {
+      console.error("fetchTabCounts error:", err);
+    }
+  }, []);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params: UserSearchRequest = {
+        keyword: searchTerm.trim() || undefined,
+        status: activeTab === "all" ? undefined : activeTab,
+        role: undefined,
+        sortBy: sortBy as SortBy,
+        page: currentPage,
+        pageSize: itemsPerPage,
+      };
+
+      const response: ApiResponse<PageResponse<UserSearchResponse>> =
+        await searchMembersForAdmin(params);
+
+      if (response.result) {
+        const pageData = response.result;
+        const rawItems = pageData.items || [];
+
+        const filteredItems = rawItems.filter(
+          (u) =>
+            (u.roleName === "MEMBER" || u.roleName === "USER") &&
+            u.userStatus !== UserStatus.PENDING_VERIFICATION &&
+            u.userStatus !== UserStatus.DELETED
+        );
+
+        setUsers(filteredItems);
+        setTotalItemsFromBackend(pageData.totalElements);
+        setTotalPagesFromBackend(pageData.totalPages || 1);
+        if (pageData.pageSizes) setItemsPerPage(pageData.pageSizes);
+      } else {
+        setUsers([]);
+        setTotalItemsFromBackend(0);
+        setTotalPagesFromBackend(1);
+        setTabCounts({ all: 0, [UserStatus.ACTIVE]: 0, [UserStatus.INACTIVE]: 0, [UserStatus.BANNED]: 0 });
+        if (response.message) setError(response.message);
+      }
+    } catch (err: any) {
+      setError("Không thể tải dữ liệu người dùng");
+      setUsers([]);
+      setTabCounts({ all: 0, [UserStatus.ACTIVE]: 0, [UserStatus.INACTIVE]: 0, [UserStatus.BANNED]: 0 });
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, searchTerm, currentPage, itemsPerPage, sortBy]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    fetchTabCounts();
+  }, [fetchTabCounts]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm, sortBy]);
+
+  const handleCreate = async (data: UserCreationByAdminRequest) => {
+    try {
+      const res = await createUserByAdmin(data);
+      if (res.code === 201 || res.result) {
+        setShowCreate(false);
+        await Promise.all([fetchUsers(), fetchTabCounts()]);
+        toast.success("Tạo người dùng thành công!");
+      }
+    } catch {
+      toast.error("Tạo người dùng thất bại");
     }
   };
 
-  const handleDelete = () => {
-    if (deletingUser) {
-      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
-      setDeletingUser(null);
+  // FIXED: Click 1 lần mở modal ngay
+  const handleView = async (user: UserSearchResponse) => {
+    setViewingUserId(user.id);
+    setViewingUserData(null); // Reset → hiện loading
+
+    try {
+      const res = await getUserDetailForAdmin(Number(user.id));
+      if (res.result) {
+        setViewingUserData(res.result);
+      } else {
+        toast.error("Không tìm thấy thông tin người dùng");
+        setViewingUserId(null);
+      }
+    } catch {
+      toast.error("Lỗi tải dữ liệu người dùng");
+      setViewingUserId(null);
     }
   };
+
+  const closeViewModal = () => {
+    setViewingUserId(null);
+    setViewingUserData(null);
+  };
+
+  const confirmChangeStatus = async () => {
+  if (!statusChangeInfo || isChangingStatus) return;
+
+  setIsChangingStatus(true);
+  try {
+    const res = await changeUserStatusForAdmin(
+      Number(statusChangeInfo.user.id),
+      statusChangeInfo.newStatus
+    );
+
+    if (res.code === 200 || res.result === true) {
+      await Promise.all([fetchUsers(), fetchTabCounts()]);
+      setStatusChangeInfo(null); // Đóng modal
+      toast.success(`Đã chuyển trạng thái thành công thành "${statusConfig[statusChangeInfo.newStatus]?.label}"`);
+    } else {
+      toast.error(res.message || "Cập nhật thất bại");
+    }
+  } catch {
+    toast.error("Có lỗi xảy ra");
+  } finally {
+    setIsChangingStatus(false);
+  }
+};
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItemsFromBackend);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Quản Lý Người Dùng</h2>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium shadow-md transition"
         >
-          <Plus size={16} />
+          <Plus size={20} />
           Thêm người dùng
         </button>
       </div>
 
-      {/* Stats */}
-      <StatsCards stats={stats} />
+      {/* Tabs */}
+      <div className="flex gap-8 border-b border-gray-200 overflow-x-auto pb-1">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const count = tab.key === "all" ? tabCounts.all : tabCounts[tab.key] ?? 0;
+
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+                activeTab === tab.key
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <Icon size={16} />
+              <span>
+                {tab.label} <span className="text-gray-500">({count})</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Search & Filter */}
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={(v) => {
-          setSearchTerm(v);
-          setCurrentPage(1);
-        }}
-        selectedRole={selectedRole}
-        onRoleChange={(v) => {
-          setSelectedRole(v);
-          setCurrentPage(1);
-        }}
-      />
+        <SearchFilter
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={setItemsPerPage}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
 
-      {/* Table */}
-      <UserTable
-        data={paginatedUsers}
-        sortKey={sortKey}
-        sortDir={sortDir}
-        onSortChange={handleSortChange}
-        onEdit={setEditingUser}
-        onDelete={setDeletingUser}
-        onView={setViewingUser}
-      />
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
 
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={Math.ceil(filteredUsers.length / itemsPerPage)}
-        onPageChange={setCurrentPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={filteredUsers.length}
-      />
+      {/* Table / Empty / Loading */}
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="animate-spin text-blue-600" size={48} />
+        </div>
+      ) : users.length === 0 ? (
+        <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300">
+          <Users size={80} className="mx-auto text-gray-400 mb-6" />
+          <h3 className="text-2xl font-bold text-gray-800 mb-3">Chưa có thành viên nào</h3>
+          <p className="text-gray-600 mb-8">Hãy tạo thành viên đầu tiên!</p>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-xl hover:bg-blue-700 shadow-lg transition"
+          >
+            Tạo thành viên đầu tiên
+          </button>
+        </div>
+      ) : (
+        <>
+         <UserTable
+            data={users}
+            onView={handleView}
+            onStatusChange={(user, status) => {
+              setStatusChangeInfo({ user, newStatus: status }); 
+            }}
+          />
+
+          <div className="flex justify-between items-center text-sm text-gray-600 mt-6 bg-white rounded-xl shadow-sm border p-4">
+            <div>
+              Hiển thị {startItem} - {endItem} của {totalItemsFromBackend} thành viên
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPagesFromBackend}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalItemsFromBackend}
+            />
+          </div>
+        </>
+      )}
 
       {/* Modals */}
-      {showCreate && <CreateUser onClose={() => setShowCreate(false)} onSave={handleCreate} />}
-      {editingUser && <UpdateUser user={editingUser} onClose={() => setEditingUser(null)} onSave={handleUpdate} />}
-      {viewingUser && <ViewUser user={viewingUser} onClose={() => setViewingUser(null)} />}
-      {deletingUser && (
-        <ConfirmDelete
-          user={deletingUser}
-          onCancel={() => setDeletingUser(null)}
-          onConfirm={handleDelete}
-        />
-      )}
+      <CreateUser open={showCreate} onClose={() => setShowCreate(false)} onSave={handleCreate} />
+
+      {/* VIEW USER - ĐÃ BỎ {viewingUser && ...} */}
+      <ViewUser
+        isOpen={!!viewingUserId}
+        user={viewingUserData}
+        onClose={closeViewModal}
+      />
+
+      {/* Confirm Status Change */}
+      <ConfirmStatusChange
+        isOpen={!!statusChangeInfo}
+        user={statusChangeInfo?.user ?? null}
+        newStatus={statusChangeInfo?.newStatus ?? null}
+        isLoading={isChangingStatus}
+        message={`Bạn có chắc muốn chuyển trạng thái thành "${
+          statusChangeInfo ? statusConfig[statusChangeInfo.newStatus]?.label || "mới" : ""
+        }"?`}
+        onCancel={() => setStatusChangeInfo(null)}
+        onConfirm={confirmChangeStatus}
+      />
     </div>
   );
-};
-
-export default UserManagement;
+}

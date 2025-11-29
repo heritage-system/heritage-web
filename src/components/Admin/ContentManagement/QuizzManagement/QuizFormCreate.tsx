@@ -120,7 +120,7 @@ const QuizFormCreate: React.FC<Props> = ({
       })
     );
 
-    toast.success("Lưu quiz và câu hỏi thành công!");
+    toast.success("Lưu trò chơi và câu hỏi thành công!");
     onSave({ ...formData, id: quizId });
   } catch (err: any) {
     toast.error(err.message || "Lưu thất bại");
@@ -176,10 +176,10 @@ const QuizFormCreate: React.FC<Props> = ({
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {mode === "create" ? "Tạo Quiz" : "Chỉnh sửa Quiz"}
+                  {mode === "create" ? "Tạo Trò Chơi" : "Chỉnh Sửa Trò Chơi"}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  Điền thông tin quiz & câu hỏi của bạn
+                  Điền thông tin trò chơi & câu hỏi của bạn
                 </p>
               </div>
             </div>
@@ -193,7 +193,7 @@ const QuizFormCreate: React.FC<Props> = ({
                   : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
-              {isSubmitting ? "Đang lưu..." : "Lưu Quiz"}
+              {isSubmitting ? "Đang lưu..." : "Lưu Trò Chơi"}
             </button>
           </div>
         </div>
@@ -203,12 +203,12 @@ const QuizFormCreate: React.FC<Props> = ({
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-10">
           <h2 className="text-xl font-bold text-gray-900 mb-6">
-            Thông tin Quiz
+            Thông Tin Trò Chơi
           </h2>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              Tên Quiz
+              Tên Trò Chơi
             </label>
             <input
               type="text"
@@ -223,7 +223,7 @@ const QuizFormCreate: React.FC<Props> = ({
 
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700">
-              Banner Quiz
+              Banner Trò Chơi
             </label>
 
             <input

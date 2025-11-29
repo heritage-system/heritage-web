@@ -1,25 +1,24 @@
-// components/UserManagement/SearchFilter.tsx
 import { Search } from "lucide-react";
+import { SortBy } from "../../../../types/enum";
 
 interface SearchFilterProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   itemsPerPage: number;
   onItemsPerPageChange: (value: number) => void;
-  sortBy: string;
-  onSortChange: (value: string) => void;
+  sortBy: SortBy;
+  onSortChange: (value: SortBy) => void;
 }
 
 const itemsPerPageOptions = [10, 20, 50, 100];
 
-// ĐÃ ĐỒNG BỘ 100% VỚI ENUM CỦA BẠN
 const sortOptions = [
-  { label: "Tên: A → Z", value: "NAMEASC" },
-  { label: "Tên: Z → A", value: "NAMEDESC" },
-  { label: "Mới nhất", value: "DATEDESC" },
-  { label: "Cũ nhất", value: "DATEASC" },
-  { label: "ID tăng dần", value: "IDASC" },
-  { label: "ID giảm dần", value: "IDDESC" },
+  { label: "Tên: A → Z", value: "NAMEASC" as SortBy },
+  { label: "Tên: Z → A", value: "NAMEDESC" as SortBy },
+  { label: "Mới nhất", value: "DATEDESC" as SortBy },
+  { label: "Cũ nhất", value: "DATEASC" as SortBy },
+  { label: "ID tăng dần", value: "IDASC" as SortBy },
+  { label: "ID giảm dần", value: "IDDESC" as SortBy },
 ];
 
 export default function SearchFilter({
@@ -40,7 +39,7 @@ export default function SearchFilter({
           placeholder="Tìm kiếm tên, email hoặc số điện thoại..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
         />
       </div>
 
@@ -49,8 +48,8 @@ export default function SearchFilter({
         <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
         <select
           value={sortBy}
-          onChange={(e) => onSortChange(e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          onChange={(e) => onSortChange(e.target.value as SortBy)}
+          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white shadow-sm"
         >
           {sortOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -66,7 +65,7 @@ export default function SearchFilter({
         <select
           value={itemsPerPage}
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white shadow-sm"
         >
           {itemsPerPageOptions.map((num) => (
             <option key={num} value={num}>

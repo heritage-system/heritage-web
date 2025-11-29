@@ -67,7 +67,7 @@ import FinancialReports from "../../components/Admin/FinancialManagement/Financi
 import InvoiceManagement from "../../components/Admin/FinancialManagement/InvoiceManagement";
 import PaymentProcessing from "../../components/Admin/FinancialManagement/PaymentProcessing";
 import AttendanceTracking from "../../components/Admin/HRManagement/AttendanceTracking";
-import EmployeeManagement from "../../components/Admin/HRManagement/EmployeeManagement/EmployeeManagement";
+import EmployeeManagement from "../../components/Admin/HRManagement/StaffManagement/StaffManagement";
 import PayrollManagement from "../../components/Admin/HRManagement/PayrollManagement";
 import PerformanceReview from "../../components/Admin/HRManagement/PerformanceReview";
 import RolePermissionManagement from "../../components/Admin/HRManagement/RolePermissionManagement";
@@ -152,7 +152,6 @@ const moduleStructure = {
     icon: Users,
     subModules: [
       { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },
-      { id: "users", name: "Quản lý người dùng", icon: Users, component: UserManagement },
       { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },
       { id: "attendance", name: "Theo dõi chấm công", icon: Clock, component: AttendanceTracking },
       { id: "payroll", name: "Quản lý bảng lương", icon: CreditCard, component: PayrollManagement },
@@ -190,7 +189,7 @@ const moduleStructure = {
     title: "Quản lý Khách hàng",
     icon: UserCog,
     subModules: [
-      //{ id: "customers", name: "Cơ sở dữ liệu khách hàng", icon: Users, component: CustomerDatabase },
+      { id: "users", name: "Quản lý người dùng", icon: Users, component: UserManagement },
       { id: "support", name: "Vé hỗ trợ", icon: MessageSquare, component: SupportTickets },
       { id: "communication", name: "Trung tâm liên lạc", icon: Mail, component: CommunicationHub },
       // { id: "feedback", name: "Quản lý phản hồi", icon: MessageSquare, component: FeedbackManagement },
