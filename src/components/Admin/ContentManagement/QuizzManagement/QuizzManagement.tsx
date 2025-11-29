@@ -34,7 +34,7 @@ const QuizzManagement: React.FC = () => {
   const [sortBy, setSortBy] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -172,7 +172,7 @@ const QuizzManagement: React.FC = () => {
               onClick={() => goToEdit()}
               className="bg-blue-600 text-white px-4 py-2 rounded"
             >
-              + Thêm quiz
+              + Thêm gói câu hỏi
             </button>
           </div>
 

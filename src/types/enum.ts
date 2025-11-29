@@ -69,3 +69,8 @@ export enum QuizLevel {
   MEDIUM = 1,
   HARD = 2
 }
+
+export enum PanoramaStatus {
+  ACTIVE = 0,
+  INACTIVE = 1
+}
