@@ -3,7 +3,7 @@ import { PageResponse } from "../types/pageResponse";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 import {
-  ContributorCreateRequest,
+  ContributorCreateRequest, 
   ContributorUpdateRequest,
   ContributorResponse,
   ContributorSearchRequest,

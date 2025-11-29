@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Edit, Eye, Check, X, Ban, RotateCcw  } from "lucide-react";
+import { Edit, Eye, Check, X, Ban, RotateCcw, Search } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { searchContributors } from "../../../../services/contributorService";
 import { ContributorResponse } from "../../../../types/contributor";
@@ -211,41 +211,70 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
   return (
     <div>
       {/* Search and Filter Controls */}
-      <div className="flex items-center gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Tìm kiếm cộng tác viên..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="border px-3 py-2 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as SortBy)}
-          className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {Object.values(SortBy).map((sort) => (
-            <option key={sort} value={sort}>
-              {getSortText(sort)}
-            </option>
-          ))}
-        </select>
-        <select
-          value={itemsPerPage}
-          onChange={(e) => {
-            setItemsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value={5}>5 / trang</option>
-          <option value={10}>10 / trang</option>
-          <option value={20}>20 / trang</option>
-          <option value={50}>50 / trang</option>
-        </select>
+      <div className="flex flex-col lg:flex-row gap-4 items-end mb-6">
+        {/* Ô tìm kiếm đẹp */}
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Tìm kiếm tên, email hoặc số điện thoại..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-sm"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setCurrentPage(1);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
+
+        {/* Sắp xếp */}
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as SortBy);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white shadow-sm"
+          >
+            <option value={SortBy.IdDesc}>Mới nhất</option>
+            <option value={SortBy.IdAsc}>Cũ nhất</option>
+            <option value={SortBy.NameAsc}>Tên: A → Z</option>
+            <option value={SortBy.NameDesc}>Tên: Z → A</option>
+            <option value={SortBy.DateDesc}>Ngày cập nhật giảm</option>
+            <option value={SortBy.DateAsc}>Ngày cập nhật tăng</option>
+          </select>
+        </div>
+
+        {/* Số lượng / trang */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Hiển thị:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white shadow-sm"
+          >
+            <option value={10}>10 / trang</option>
+            <option value={20}>20 / trang</option>
+            <option value={50}>50 / trang</option>
+            <option value={100}>100 / trang</option>
+          </select>
+        </div>
       </div>
 
       {/* Table */}

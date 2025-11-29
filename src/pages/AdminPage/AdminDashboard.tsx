@@ -93,6 +93,7 @@ const AdminHomeDashboard = () => {
       description: "Quản lý nhân viên và tổ chức",
       modules: [
         { name: "Quản lý Nhân viên", icon: "Users" },
+        { name: "Quản lý Người Dùng", icon: "Users" },
         { name: "Quản lý Phòng ban", icon: "Briefcase" },
         { name: "Vai trò & Phân quyền", icon: "Shield" },
         { name: "Theo dõi Chấm công", icon: "Clock" },

@@ -871,22 +871,52 @@ const HeritageFormInline: React.FC<HeritageFormInlineProps> = ({
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTempTagIds(heritage.tagIds ?? []);
-                    setIsTagModalOpen(true);
-                  }}
-                  className="px-4 py-2.5 border border-gray-300 rounded-lg w-full text-left flex items-center gap-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                  aria-label="Select tags for heritage"
-                >
-                  <Tag size={16} />
-                  {heritage.tagIds && heritage.tagIds.length > 0
-                    ? `${heritage.tagIds.length} Tag`
-                    : "Chọn Tags"}
-                </button>
-              </div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+
+  {/* Danh sách tag đã chọn */}
+  <div className="flex flex-wrap gap-2 mb-2">
+    {(heritage.tagIds ?? []).map((id) => {
+      const tag = tags.find((t) => t.id === id);
+      if (!tag) return null;
+      return (
+        <span
+          key={id}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm border border-blue-100"
+        >
+          {tag.name}
+          <button
+            type="button"
+            onClick={() => {
+              setHeritage((prev) => ({
+                ...prev,
+                tagIds: (prev.tagIds ?? []).filter((tid) => tid !== id),
+              }));
+            }}
+            className="ml-1 text-blue-600 hover:text-blue-800 focus:outline-none"
+            aria-label={`Xóa tag ${tag.name}`}
+          >
+            <X size={14} />
+          </button>
+        </span>
+      );
+    })}
+  </div>
+
+  {/* Nút mở modal */}
+  <button
+    type="button"
+    onClick={() => {
+      setTempTagIds(heritage.tagIds ?? []);
+      setIsTagModalOpen(true);
+    }}
+    className="px-4 py-2.5 border border-gray-300 rounded-lg w-full text-left flex items-center gap-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+  >
+    <Tag size={16} />
+    {(heritage.tagIds?.length ?? 0) > 0
+      ? `Đã chọn ${(heritage.tagIds?.length ?? 0)} tag`
+      : "Chọn Tags"}
+  </button>
+</div>
             </div>
           </div>
 
