@@ -292,7 +292,7 @@ const clearSearch = () => {
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus size={16} />
-          Thêm Category
+          Thêm Danh Mục
         </button>
       </div>
 
@@ -568,7 +568,7 @@ const CategoryForm: React.FC<{
         </button>
 
         <h3 className="text-lg font-bold">
-          {category ? "Chỉnh sửa Category" : "Thêm Category"}
+          {category ? "Chỉnh sửa Category" : "Thêm Danh Mục"}
         </h3>
 
         {/* Name input */}

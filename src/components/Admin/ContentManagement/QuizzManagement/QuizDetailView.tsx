@@ -199,7 +199,7 @@ const QuizDetailView: React.FC<Props> = ({ quiz, onBack, onEdit }) => {
       >
         <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-blue-600" />
-          Thống kê Quiz
+          Thống Kê Trò Chơi
         </h3>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
@@ -259,7 +259,7 @@ const QuizDetailView: React.FC<Props> = ({ quiz, onBack, onEdit }) => {
           ${showStats ? "right-96 top-6" : "right-0 top-40"}`}
       >
         <BarChart3 className="w-5 h-5" />
-        <span className="text-sm font-semibold">Thống kê</span>
+        <span className="text-sm font-semibold">Thống Kê</span>
         {showStats ? <ChevronRight /> : <ChevronLeft />}
       </div>
     </div>
