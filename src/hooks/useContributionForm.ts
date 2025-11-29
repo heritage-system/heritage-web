@@ -10,6 +10,7 @@ import { isContributorPremiumEligible } from "../services/contributorService";
 import { htmlFromDeltaWithImgAlign } from "../utils/deltaUtils";
 import { ContributionPremiumTypes } from "../types/enum";
 import { HeritageName } from "../types/heritage";
+import { heritageNameStorage } from "../utils/tokenStorage";
 async function uploadToCloudinary(file: File): Promise<string> {
   console.log("Uploading to Cloudinary:", file.name);
 
@@ -63,8 +64,25 @@ export const useContributionForm = (contributionId?: number) => {
     const fetchData = async () => {
       try {     
         setLoading(true);
-        const resHeritage = await searchHeritageNames(); 
-        setAllHeritages(resHeritage.result || []);
+
+        const cached = heritageNameStorage.load();
+
+        if (cached && cached.length > 0) {
+          setAllHeritages(cached);         
+        }
+        else {
+          // 2. Nếu chưa có → gọi API
+          const resHeritage = await searchHeritageNames();
+
+          const list = resHeritage.result || [];
+
+          // 3. lưu vào state
+          setAllHeritages(list);
+
+          // 4. lưu vào localStorage
+          heritageNameStorage.save(list);
+        }
+        
  
         const res = await isContributorPremiumEligible();
         setPremiumEligible(res.result || false);

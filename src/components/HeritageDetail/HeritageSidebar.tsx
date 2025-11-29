@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
-  Clock,
+  Download,
   Users,
   Share2,
+  Clock,
   Flag
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { HeritageDetailResponse } from "../../types/heritage";
+import { HeritageDetailResponse, HeritageDescription } from "../../types/heritage";
 import ReportModal from "./ReportModal";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import PortalModal from "../Layouts/ModalLayouts/PortalModal";
 import toast from "react-hot-toast";
+import { exportHeritagePdf } from "../../utils/exportHeritagePdf";
+import { exportHeritageExcel } from "../../utils/exportHeritageExcel";
 
 // Fix icon marker khi bundle với webpack/vite
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -31,6 +34,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 interface Props {
   heritage: HeritageDetailResponse;
+  content: HeritageDescription | null;
   liked: boolean;
   bookmarked: boolean;
   onLike: () => void;
@@ -89,11 +93,7 @@ const FlyToLocation: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => 
 
 export const HeritageSidebar: React.FC<Props> = ({
   heritage,
-  liked,
-  bookmarked,
-  onLike,
-  onBookmark,
-  userId,
+  content
 }) => {
   const firstOcc = heritage.heritageOccurrences?.[0];
   const firstLoc = heritage.heritageLocations?.[0];
@@ -104,6 +104,8 @@ export const HeritageSidebar: React.FC<Props> = ({
   const navigate = useNavigate();
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showDownload, setShowDownload] = useState(false);
+  const [loadingDownload, setLoadingDownload] = useState<"pdf" | "excel" | null>(null);
 
   const handleShare = (platform: string) => {
     const url = window.location.origin + `/heritagedetail/${heritage.id}`;
@@ -127,6 +129,7 @@ export const HeritageSidebar: React.FC<Props> = ({
     }
     setShowShare(false);
   };
+
 
 const handleReportClick = () => {
     console.log("isLoggedIn =", isLoggedIn); // debug
@@ -247,6 +250,68 @@ const formatOccurrenceDate = (occ: any) => {
       {/* Chia sẻ & Theo dõi */}
       <SectionCard title="Chia sẻ & Theo dõi">
         <div className="flex items-center gap-2 flex-wrap">
+
+           {/* Nút tải xuống */}
+          <div className="relative">
+            <button  
+              onClick={(e) => {
+                  e.preventDefault();
+                  setShowDownload((prev) => !prev);
+                }} className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
+              <Download className="w-4 h-4" /> Tải xuống
+            </button>                                
+            {showDownload && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
+
+                {/* Export PDF */}
+                <button
+                  onClick={() => {
+                    setShowDownload(false);
+                    exportHeritagePdf(heritage, content);  
+                  }}
+                  className="w-full px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-gray-700 transition"
+                >
+                  <svg
+                    className="w-4 h-4 text-red-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M4 3h10l6 6v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                    <polyline points="14 3 14 9 20 9" />
+                    <path d="M9 13h6M9 17h4" />
+                  </svg>
+                  <span>Xuất PDF</span>
+                </button>
+
+                {/* Export Excel */}
+                <button
+                  onClick={() => {
+                    setShowDownload(false);
+                    exportHeritageExcel(heritage, content);   
+                  }}
+                  className="w-full px-4 py-2 flex items-center gap-2 hover:bg-gray-100 text-gray-700 transition"
+                >
+                  <svg
+                    className="w-4 h-4 text-green-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M4 3h12l4 4v14H4z" />
+                    <path d="M16 3v4h4" />
+                    <path d="M10 10l4 6m0-6l-4 6" /> 
+                  </svg>
+                  <span>Xuất Excel</span>
+                </button>
+
+              </div>
+            )}
+          </div>
+
+
           {/* Nút chia sẻ */}
           <div className="relative">
             <button  
@@ -291,18 +356,14 @@ const formatOccurrenceDate = (occ: any) => {
             </div>
             )}
           </div>
-          {/* Nút nhắc lịch */}
-          <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">
-            <Clock className="w-4 h-4" /> Nhắc lịch
-          </button>
-
-           {/* Nút Báo cáo */}
-          <button
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 text-red-600 border-red-200"
-            onClick={handleReportClick}
-          >
-            <Flag className="w-4 h-4" /> Báo cáo
-          </button>
+         
+          {/* Nút Báo cáo */}     
+            <button
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border px-2 py-2 text-sm hover:bg-gray-50 text-red-600 border-red-200"
+              onClick={handleReportClick}
+            >
+              <Flag className="w-4 h-4" /> Báo cáo
+            </button>     
         </div>
       </SectionCard>
 

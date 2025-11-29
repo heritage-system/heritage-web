@@ -153,40 +153,39 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
 
             {/* overlay che phần dưới */}
 <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white via-white/90 to-transparent flex flex-col items-center justify-end gap-3 pb-6">
-  {/* {subscription ? (
+  {subscription ? (
     <>
       <p className="text-sm text-gray-600 mb-5">
-        Lượt đọc:{" "}
+        Lượt mở còn lại:{" "}
         <span
           className={`font-semibold ${
-            subscription.opensUsed >= subscription.maxOpensPerMonth
+            subscription.used >= subscription.total
               ? "text-red-600"
               : "text-gray-900"
           }`}
         >
-          {subscription.opensUsed}/{subscription.maxOpensPerMonth}
-        </span>{" "}
-        trong tháng
+          {subscription.used}/{subscription.total}
+        </span>{" "}      
       </p>
       <button
-        disabled={subscription.opensUsed >= subscription.maxOpensPerMonth}
+        disabled={subscription.used >= subscription.total}
         className={`px-6 py-3 rounded-full shadow-lg text-lg font-semibold transition animate-bounce ${
-          subscription.opensUsed >= subscription.maxOpensPerMonth
+          subscription.used >= subscription.total
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
             : "bg-gradient-to-r from-yellow-700 to-red-700 text-white hover:brightness-110 "
         }`}
         onClick={onUnlock}
       >
-        {subscription.opensUsed >= subscription.maxOpensPerMonth
+        {subscription.used >= subscription.total
           ? "Đã hết lượt"
-          : "🔓 Mở khóa bài viết"}
+          : "Mở khóa bài viết"}
       </button>
     </>
-  ) : ( */}
+  ) : (
     <button className="bg-gradient-to-r from-yellow-700 to-red-700 text-white text-lg font-semibold px-6 py-3 rounded-full shadow-lg animate-bounce">
       ⭐ Nâng cấp Premium để đọc tiếp
     </button>
-  {/* )} */}
+  )}
 </div>
 
           </div>

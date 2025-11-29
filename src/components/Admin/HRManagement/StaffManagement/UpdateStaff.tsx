@@ -87,7 +87,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
       closeOnOverlay={!loading}
       closeOnEsc={!loading}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-h-screen overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-h-screen overflow-y-auto scrollbar-hide">
         <div className="flex items-center justify-between px-8 pt-7 pb-5 border-b border-gray-100 sticky top-0 bg-white z-10">
           <h3 className="text-2xl font-bold text-gray-900">Chỉnh sửa nhân viên</h3>
           <button

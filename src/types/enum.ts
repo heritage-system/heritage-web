@@ -94,3 +94,8 @@ export enum StaffStatus {
   RETIRED = 3,      
   PENDING = 4,      
 }
+
+export enum PanoramaStatus {
+  ACTIVE = 0,
+  INACTIVE = 1
+}

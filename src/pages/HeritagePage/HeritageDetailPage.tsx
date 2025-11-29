@@ -184,6 +184,7 @@ const HeritageDetailPage: React.FC = () => {
 
         <HeritageSidebar
           heritage={heritage}
+          content={content}
           liked={liked}
           bookmarked={bookmarked}
           onLike={handleLike}

@@ -21,7 +21,7 @@ import {
   PieChart,
   FileSpreadsheet,
   TrendingUp,
-  Briefcase,
+  Camera,
   Clock,
   BarChart3,
   Calendar,
@@ -103,6 +103,7 @@ import DataVisualization from "../../components/Admin/ReportsAnalytics/DataVisua
 import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
 import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
+import PanoramaTourManagement from "../../components/Admin/ContentManagement/PanoramaTourManagement/PanoramaTourManagement";
 import { useAuth } from '../../hooks/useAuth';
 import UserManagement from "../../components/Admin/HRManagement/UserManagement/UserManagement";
 
@@ -131,7 +132,8 @@ const moduleStructure = {
       { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement },
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
       { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
-      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement }
+      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement },
+      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement }
     ]
   },
   financialManagement: {
