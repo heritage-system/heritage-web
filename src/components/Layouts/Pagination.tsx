@@ -19,37 +19,34 @@ const Pagination: React.FC<PaginationProps> = ({
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  // ✅ Hàm sinh danh sách trang
   const getPages = () => {
-    const pages: (number | string)[] = [];
+  const pages: (number | string)[] = [];
 
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      // luôn có trang 1
-      pages.push(1);
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
 
-      if (currentPage > 3) {
-        pages.push("…");
-      }
-
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (currentPage < totalPages - 2) {
-        pages.push("…");
-      }
-
-      // luôn có trang cuối
-      pages.push(totalPages);
-    }
-
-    return pages;
+  const add = (value: number | string) => {
+    if (!pages.includes(value)) pages.push(value);
   };
+
+  add(1);
+
+  const left = Math.max(2, currentPage - 1);
+  const right = Math.min(totalPages - 1, currentPage + 1);
+
+  if (left > 2) add("…");
+
+  for (let p = left; p <= right; p++) add(p);
+
+  if (right < totalPages - 1) add("…");
+
+  add(totalPages);
+
+  return pages;
+};
+
+
 
   const pages = getPages();
 
@@ -72,12 +69,12 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Pages */}
         {pages.map((p, i) =>
           p === "…" ? (
-            <span key={i} className="px-2 text-gray-500">
+            <span key={`dots-${i}`} className="px-2 text-gray-500">
               …
             </span>
           ) : (
             <button
-              key={p}
+              key={`page-${p}-${i}`}
               onClick={() => onPageChange(p as number)}
               className={`px-3 py-1 rounded ${
                 currentPage === p
@@ -89,6 +86,7 @@ const Pagination: React.FC<PaginationProps> = ({
             </button>
           )
         )}
+
 
         {/* Next */}
         <button
