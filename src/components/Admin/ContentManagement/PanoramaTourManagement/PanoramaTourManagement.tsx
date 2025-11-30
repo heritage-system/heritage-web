@@ -10,7 +10,8 @@ import {
   searchPanoramaTourForAdmin,
   getPanoramaTourDetailForAdmin,
   createPanoramaTour,
-  updatePanoramaTour
+  updatePanoramaTour,
+  deletePanoramaTour
 } from "../../../../services/panoramaTourService";
 
 import {
@@ -106,30 +107,30 @@ const PanoramaTourManagement: React.FC = () => {
     setShowDeleteModal(true);
   };
 
-  // ✅ Xác nhận xoá bên trong modal
-  // const confirmDelete = async () => {
-  //   if (!deleteId) return;
+  //✅ Xác nhận xoá bên trong modal
+  const confirmDelete = async () => {
+    if (!deleteId) return;
 
-  //   try {
-  //     const res = await deletePanoramaTour(deleteId);
+    try {
+      const res = await deletePanoramaTour(deleteId);
 
-  //     if (res.code === 200) {
-  //       toast.success("Xóa panoramaTour thành công!");
+      if (res.code === 200) {
+        toast.success("Xóa tour thành công!");
 
-  //       setPanoramaTourzes((prev) => prev.filter((q) => q.id !== deleteId));
+        setPanoramaTours((prev) => prev.filter((q) => q.id !== deleteId));
 
-  //       fetchData();
-  //     } else {
-  //       toast.error("Xóa thất bại: " + (res.message ?? "Không rõ lỗi"));
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error("Lỗi khi gọi API xóa panoramaTour!");
-  //   }
+        fetchData();
+      } else {
+        toast.error("Xóa thất bại: " + (res.message ?? "Không rõ lỗi"));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Lỗi khi gọi API xóa tour!");
+    }
 
-  //   setShowDeleteModal(false);
-  //   setDeleteId(null);
-  // };
+    setShowDeleteModal(false);
+    setDeleteId(null);
+  };
 
   const handleSave = async (data: PanoramaTourCreationRequest) => {
     try {
@@ -240,7 +241,7 @@ const PanoramaTourManagement: React.FC = () => {
 
             <button
               className="px-4 py-2 rounded bg-red-600 text-white"
-              //onClick={confirmDelete}
+              onClick={confirmDelete}
             >
               Xóa
             </button>
