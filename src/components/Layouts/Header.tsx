@@ -76,12 +76,12 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       description: 'Đọc và chia sẻ các bài viết, câu chuyện về di sản văn hóa từ cộng đồng người dùng.',
       position: 'bottom' as const,
     },
-    {
-      target: '[data-tour="search"]',
-      title: 'Tìm kiếm nhanh',
-      description: 'Tìm kiếm bất kỳ di sản, bài viết hay thông tin nào bạn muốn khám phá một cách nhanh chóng.',
-      position: 'bottom' as const,
-    },
+    // {
+    //   target: '[data-tour="search"]',
+    //   title: 'Tìm kiếm nhanh',
+    //   description: 'Tìm kiếm bất kỳ di sản, bài viết hay thông tin nào bạn muốn khám phá một cách nhanh chóng.',
+    //   position: 'bottom' as const,
+    // },
     {
       target: '[data-tour="notifications"]',
       title: 'Thông báo',
@@ -143,11 +143,11 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 bg-white ${
         isScrolled ? 'bg-white/95 backdrop-blur-xl shadow-lg' : 'bg-transparent'
       }`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-x-14">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-4">
+          <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <div className="flex items-center space-x-3 ml-6" data-tour="logo">
+            <div className="flex items-center space-x-3" data-tour="logo">  
               <Link to="/" className="relative w-28 h-28 hover:opacity-90 transition">
                 <img
                   src={VTFPLogo}
@@ -158,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             </div>
 
             {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 gap-8 flex-grow justify-center translate-x-6">
+            <nav className="hidden md:flex items-center space-x-8 gap-8">
               {[
                 { label: 'Trang chủ', path: '/', tourId: 'nav-home' },
                 { label: 'Khám phá', path: '/DiscoveryPage', tourId: 'nav-discovery' },
@@ -182,15 +182,15 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center space-x-3 ml-auto">
-              <button 
+            <div className="flex items-center space-x-3 mr-12">
+              {/* <button 
                 className="p-2 text-gray-600 hover:text-purple-600 transition-colors relative"
                 data-tour="search"
                 aria-label="Tìm kiếm"
               >
                 <Search className="w-5 h-5" />
               </button>
-              
+               */}
               <button 
                 className="p-2 text-gray-600 hover:text-purple-600 transition-colors relative"
                 data-tour="notifications"
@@ -328,6 +328,13 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 VR Tours
+              </Link>
+              <Link 
+                to="/AIPredictLensPage" 
+                className="block text-black hover:text-purple-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Quét ảnh
               </Link>
               <Link 
                 to="/QuizzPage" 

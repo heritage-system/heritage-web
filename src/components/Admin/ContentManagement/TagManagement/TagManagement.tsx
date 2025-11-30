@@ -200,14 +200,14 @@ const loadTags = async () => {
   try {
     if (selectedTag) {
       await updateTag({ id: selectedTag.id, name: tag.name });
-      toast.success('Cập nhật tag thành công!', {
+      toast.success('Cập nhật thẻ thành công!', {
         duration: 2000,
         position: 'top-right',
         style: { background: '#059669', color: '#fff' },
       });
     } else {
       await createTag({ name: tag.name });
-      toast.success('Thêm tag thành công!', {
+      toast.success('Thêm thẻ thành công!', {
         duration: 2000,
         position: 'top-right',
         style: { background: '#059669', color: '#fff' },
@@ -277,7 +277,7 @@ const clearSearch = () => {
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
         >
           <Plus size={16} />
-          Thêm tag
+          Thêm Thẻ
         </button>
       </div>
 
@@ -530,7 +530,7 @@ onSave: (tag: TagSearchResponse) => void;
         </button>
 
         <h3 className="text-lg font-bold">
-          {tag ? "Chỉnh sửa Tag" : "Thêm Tag"}
+          {tag ? "Chỉnh sửa Tag" : "Thêm Thẻ"}
         </h3>
 
         {/* Only name input */}

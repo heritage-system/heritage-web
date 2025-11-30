@@ -21,7 +21,7 @@ import {
   PieChart,
   FileSpreadsheet,
   TrendingUp,
-  Briefcase,
+  Camera,
   Clock,
   BarChart3,
   Calendar,
@@ -55,7 +55,7 @@ import {
 import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 
 // Import all management components
-import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement";
+//import UserManagement from "../../components/Admin/HRManagement/EmployeeManagement/EmployeeManagement";
 import CategoryManagement from "../../components/Admin/ContentManagement/CategoryManagement/CategoryManagement";
 import TagManagement from "../../components/Admin/ContentManagement/TagManagement/TagManagement";
 import HeritageManagement from "../../components/Admin/ContentManagement/HeritageManagement.tsx/HeritageManagement";
@@ -67,7 +67,7 @@ import FinancialReports from "../../components/Admin/FinancialManagement/Financi
 import InvoiceManagement from "../../components/Admin/FinancialManagement/InvoiceManagement";
 import PaymentProcessing from "../../components/Admin/FinancialManagement/PaymentProcessing";
 import AttendanceTracking from "../../components/Admin/HRManagement/AttendanceTracking";
-import EmployeeManagement from "../../components/Admin/HRManagement/EmployeeManagement";
+import EmployeeManagement from "../../components/Admin/HRManagement/StaffManagement/StaffManagement";
 import PayrollManagement from "../../components/Admin/HRManagement/PayrollManagement";
 import PerformanceReview from "../../components/Admin/HRManagement/PerformanceReview";
 import RolePermissionManagement from "../../components/Admin/HRManagement/RolePermissionManagement";
@@ -103,7 +103,9 @@ import DataVisualization from "../../components/Admin/ReportsAnalytics/DataVisua
 import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
 import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
+import PanoramaTourManagement from "../../components/Admin/ContentManagement/PanoramaTourManagement/PanoramaTourManagement";
 import { useAuth } from '../../hooks/useAuth';
+import UserManagement from "../../components/Admin/HRManagement/UserManagement/UserManagement";
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -130,7 +132,8 @@ const moduleStructure = {
       { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement },
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
       { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
-      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement }
+      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement },
+      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement }
     ]
   },
   financialManagement: {
@@ -188,7 +191,7 @@ const moduleStructure = {
     title: "Quản lý Khách hàng",
     icon: UserCog,
     subModules: [
-      //{ id: "customers", name: "Cơ sở dữ liệu khách hàng", icon: Users, component: CustomerDatabase },
+      { id: "users", name: "Quản lý người dùng", icon: Users, component: UserManagement },
       { id: "support", name: "Vé hỗ trợ", icon: MessageSquare, component: SupportTickets },
       { id: "communication", name: "Trung tâm liên lạc", icon: Mail, component: CommunicationHub },
       // { id: "feedback", name: "Quản lý phản hồi", icon: MessageSquare, component: FeedbackManagement },
