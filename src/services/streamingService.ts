@@ -125,3 +125,12 @@ export const leaveRoom = async (
     { method: "POST", ...(opts?.keepalive ? { keepalive: true } : {}) }
   );
 };
+export const kickParticipant = async (
+  roomName: string,
+  data: AdmitRejectRequest
+) => {
+  return await fetchInterceptor(
+    `${API_URL}/api/v1/stream/rooms/${encodeURIComponent(roomName)}/kick`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: data as any }
+  );
+};

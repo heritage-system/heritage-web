@@ -26,7 +26,7 @@ import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
 import JoinRoomPage from './pages/CommunityPage/JoinRoomPage';
-import LiveRoomPage from './pages/CommunityPage/LiveRoomPage';
+//import LiveRoomPage from './pages/CommunityPage/LiveRoomPage';
 import AdminStreamPage from './pages/AdminPage/AdminStreamPage';
 import { StreamingProvider } from './components/Admin/Streaming/StreamingContext';
 import LiveRoomPage from './components/Community/LiveRoomPage';
@@ -40,8 +40,9 @@ const App: React.FC = () => {
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
      <Route path="/admin/stream" element={<MainLayout> <StreamingProvider><AdminStreamPage /></StreamingProvider></MainLayout>} />
       <Route path="/stream/join" element={<MainLayout> <StreamingProvider><JoinRoomPage /></StreamingProvider></MainLayout>} />
-      <Route path="/live/:roomName" element={<MainLayout> <StreamingProvider><LiveRoomPage /></StreamingProvider></MainLayout>} />
-    
+     
+      <Route path="/live/:roomName" element={ <StreamingProvider><LiveRoomPage /></StreamingProvider>} />
+     
         <Route path="AIPredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
         <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} />
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
@@ -54,14 +55,14 @@ const App: React.FC = () => {
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
         <Route path="/contribution-form/:id?" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
-        <Route path="/admin/adminPanelmanagement" element={<AdminPanelPage />} />
+        <Route path="/admin/adminPanelmanagement" element={<StreamingProvider><AdminPanelPage/></StreamingProvider>} />
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
         <Route path="/admin/reports" element={<ReportManagement />} />
         <Route path="/reports/:id" element={<ReportDetailManagement />} />
         <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />  
-        <Route path="/live/:roomId" element={<LiveRoomPage />} /> 
+       
       </Routes>
 
       {/* <ChatBoxAI /> */}

@@ -61,12 +61,15 @@ const RoomsWithPeoplePanel: React.FC = () => {
               >
                 Điền & Xin vào
               </button>
-              <button
-                onClick={() => navigate(`/live/${encodeURIComponent(r.roomName)}`)}
-                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-              >
-                Vào xem
-              </button>
+            <button
+  onClick={() => {
+    setRoomName(r.roomName);                   // ✅
+    navigate(`/live/${encodeURIComponent(r.roomName)}`);
+  }}
+  className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+>
+  Vào xem
+</button>
             </div>
           </li>
         ))}

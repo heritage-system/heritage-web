@@ -6,12 +6,13 @@ const JoinRequestPanel: React.FC = () => {
   const { roomName, requestJoin, fetchTokens } = useStreaming();
   const [rtcUid, setRtcUid] = useState("");
   const navigate = useNavigate();
-
+  const { room } = useStreaming();
   const onRequest = async () => {
     await requestJoin(rtcUid || undefined);
   };
   const onGoLive = async () => {
     const grant = await fetchTokens();
+    console.log(grant);
     if (grant) navigate(`/live/${encodeURIComponent(roomName)}`);
   };
 

@@ -11,7 +11,8 @@ import {
   toggleRaiseHand,
   getParticipants,
   getWaitingList,
-   heartbeat, leaveRoom 
+   heartbeat, leaveRoom, 
+   kickParticipant
   
 } from "../../../services/streamingService";
 import type {
@@ -36,10 +37,28 @@ import {
   disableMic,
   
 } from "../../../services/agoraRtc";
+import { initRtm, loginRtm, joinRtmChannel, leaveRtmChannel, destroyRtm, onChannelMessage, channelSendText } from "../../../services/agoraRtm";
 import { setClientRole as rtcSetClientRole, renewRtcToken } from "../../../services/agoraRtc";
+import { startScreenShare, stopScreenShare, isScreenSharing } from "../../../services/agoraRtc";
 const OPEN_ADMISSION = "true";
+
+type RoomChatMsg = { id: string; from: string; text: string; ts: number };
 type RosterItem = { uid: string | number; userId: number; role: RoomRole; isSelf: boolean };
+
 type Ctx = {
+    screenOn: boolean;
+  toggleScreenShare: () => Promise<void>;
+  
+    isResyncing: boolean;                     // ✅ spinner trạng thái
+  resyncParticipants: () => Promise<void>;  // ✅ đồng bộ cho bản thân
+  resyncParticipantsAll: () => Promise<void>; // ✅ host phát lệnh cho toàn phòng
+    kick: (userId: number) => Promise<void>; 
+  pinned: RoomChatMsg | null;
+localPinned: RoomChatMsg | null;
+pinForEveryone: (msg: RoomChatMsg) => Promise<void>;
+clearPinForEveryone: () => Promise<void>;
+pinForMe: (msg: RoomChatMsg) => void;
+clearPinForMe: () => void;
   room?: StreamingRoomResponse | null;
   roomName: string;
   setRoomName: (s: string) => void;
@@ -52,16 +71,20 @@ type Ctx = {
   roster: RosterItem[];
   waiting: StreamingParticipantResponse[];     // <- NEW
   isHost: boolean;                              // <- NEW
-
+  localVideoReady: boolean; setLocalVideoReady: (b: boolean) => void; 
   createRoom: (title: string) => Promise<void>;
   admit: (userId: number) => Promise<void>;
   reject: (userId: number) => Promise<void>;
   setRole: (userId: number, role: RoomRole) => Promise<void>;
-
+  sharing: boolean;
+startShare: (withAudio?: boolean) => Promise<void>;
+  stopShare: () => Promise<void>;
+ 
   requestJoin: (rtcUid?: string) => Promise<void>;
   raiseHand: (raised: boolean) => Promise<void>;
   fetchTokens: () => Promise<StreamingJoinGrantResponse | null>;
-
+sendRoomText: (text: string) => Promise<void>;
+roomMessages: RoomChatMsg[];
   refreshRoster: () => Promise<void>;           // <- (nếu cần)
   refreshWaiting: () => Promise<void>;          // <- NEW
  scheduleRefreshWaiting: () => Promise<void>;   // ✅ thêm
@@ -78,17 +101,24 @@ export const useStreaming = () => {
   return ctx;
 };
 export const StreamingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  
+  const [pinned, setPinned] = useState<RoomChatMsg | null>(null);       // ghim toàn phòng
+const [localPinned, setLocalPinned] = useState<RoomChatMsg | null>(null); // ghim riêng
   const [room, setRoom] = useState<StreamingRoomResponse | null>(null);
   const [roomName, setRoomName] = useState<string>("");
-
+  const [localVideoReady, setLocalVideoReady] = useState(false);
   const [grant, setGrant] = useState<StreamingJoinGrantResponse | null>(null);
   const [joined, setJoined] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
+  const [screenOn, setScreenOn] = useState(false);
+
+  const [sharing, setSharing] = useState(false);
    const [participants, setParticipants] = useState<StreamingParticipantResponse[]>([]); // << NEW
   const [roster, setRoster] = useState<RosterItem[]>([]);
   const [waiting, setWaiting] = useState<StreamingParticipantResponse[]>([]); // <- NEW
-
+const rtmUnsubRef = useRef<null | (()=>void)>(null);
+const [roomMessages, setRoomMessages] = useState<RoomChatMsg[]>([]);
   const remoteWrapRef = useRef<HTMLDivElement | null>(null);
   
 const selfUserId = useMemo(() => {
@@ -135,33 +165,30 @@ const isHost = useMemo(
   return () => clearInterval(timer);
 }, [joined, effectiveRoomName, selfUserId, isHost]);
 useEffect(() => {
-  if (!joined || !effectiveRoomName) return;
+  if (!joined) return;
+  const rn = effectiveRoomName;
+  if (!rn) return;
 
-  // 1) Heartbeat mỗi 20s
-  const hb = setInterval(() => {
-    heartbeat(effectiveRoomName).catch(() => {});
-  }, 20000);
+  const hb = setInterval(() => { heartbeat(rn).catch(()=>{}); }, 20000);
 
-  // 2) Rời phòng khi đóng tab/chuyển trang
-  const onUnload = () => {
-    try { void leaveRoom(effectiveRoomName, { keepalive: true }); } catch {}
-  };
+  // rời khi đóng/refresh trang
+  const onUnload = () => { try { void leaveRoom(rn, { keepalive: true }); } catch {} };
   window.addEventListener("beforeunload", onUnload);
 
-  // 3) Khi tab ẩn đi (mobile/background) – gửi một nhịp leave an toàn
-  const onHidden = () => {
-    if (document.visibilityState === "hidden") {
-      void leaveRoom(effectiveRoomName, { keepalive: true });
-    }
+  // rời khi điều hướng rời site (SPA sẽ không trigger visibilitychange sai)
+  const onPageHide = (e: PageTransitionEvent) => {
+    if (e.persisted) return; // tránh BFCache
+    try { void leaveRoom(rn, { keepalive: true }); } catch {}
   };
-  document.addEventListener("visibilitychange", onHidden);
+  window.addEventListener("pagehide", onPageHide);
 
   return () => {
     clearInterval(hb);
     window.removeEventListener("beforeunload", onUnload);
-    document.removeEventListener("visibilitychange", onHidden);
+    window.removeEventListener("pagehide", onPageHide);
   };
 }, [joined, effectiveRoomName]);
+
   
  
 
@@ -174,7 +201,16 @@ useEffect(() => {
       toast.success("Đã tạo phòng");
     } else toast.error(res.message || "Tạo phòng thất bại");
   };
-
+const kick: Ctx["kick"] = async (userId) => {
+  if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
+  const res = await kickParticipant(effectiveRoomName, { userId });
+  if (res.code === 200) {
+    toast.success(`Đã kick user ${userId}`);
+    await scheduleRefreshRoster();
+  } else {
+    toast.error(res.message || "Kick thất bại");
+  }
+};
  const requestJoin: Ctx["requestJoin"] = async (rtcUid) => {
   if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
   if (OPEN_ADMISSION) {
@@ -194,9 +230,11 @@ useEffect(() => {
     else toast.error(res.message || "Không thể cập nhật");
   };
 
-  const fetchTokens = async () => {
-    if (!effectiveRoomName) { toast.error("Nhập roomName"); return null; }
-    const res = await issueJoinTokens(effectiveRoomName);
+const fetchTokens = async (nameOverride?: string) => {
+  const name = nameOverride ?? effectiveRoomName;
+  if (!name) { toast.error("Nhập roomName"); return null; }
+  const res = await issueJoinTokens(name);
+
     if (res.code === 200 && res.result) {
       setGrant(res.result);
       return res.result;
@@ -265,7 +303,7 @@ const refreshRoster = useCallback(async () => {
       uid: p.rtcUid,
       userId: p.userId,
       role: p.role,
-      isSelf: grant ? p.rtcUid === grant.rtcUid : false,
+    isSelf: grant ? String(p.rtcUid) === String(grant.rtcUid) : false,
     })));
   }
 }, [effectiveRoomName, grant]);
@@ -371,6 +409,25 @@ const unbindAgoraListeners = () => {
     if (el && wrap.contains(el)) wrap.removeChild(el);
   };
 
+const [isResyncing, setIsResyncing] = useState(false);
+
+const resyncParticipants = useCallback(async () => {
+  if (!effectiveRoomName) return;
+  setIsResyncing(true);
+  try {
+    await refreshRoster();                            // tải lại Admitted
+    if (!OPEN_ADMISSION) await refreshWaiting();      // tải hàng chờ nếu có dùng
+    toast.success("Đã đồng bộ danh sách người tham gia");
+  } finally {
+    setIsResyncing(false);
+  }
+}, [effectiveRoomName, refreshRoster, refreshWaiting]);
+const resyncParticipantsAll = useCallback(async () => {
+  // 1) gửi tín hiệu RTM để mọi client tự refresh
+  await channelSendText(JSON.stringify({ type: "resync" })).catch(()=>{});
+  // 2) tự refresh cho chính mình
+  await resyncParticipants();
+}, [resyncParticipants]);
 
 
    // ----- Join live (giữ logic cũ của bạn, chỉ rút gọn phần không liên quan) -----
@@ -389,44 +446,146 @@ const unbindAgoraListeners = () => {
   const isHostRole =
     roleHint ? roleHint === "host" : ["Host","CoHost","Speaker"].includes(g.role);
 
-  await joinChannel({
-    appId,
-    channel: g.channel,
-    token: g.rtcToken,
-    uid: g.rtcUid,
-    role: isHostRole ? "host" : "audience",
-  });
+ await joinChannel({
+  appId,
+  channel: g.channel,
+  token: g.rtcToken,
+  uid: Number(g.rtcUid),           // 👈 ép number
+  role: isHostRole ? "host" : "audience",
+});
 
   // Bắt kịp remote đang publish
   await catchUpExistingRemotes(uid => createRemoteSlot(remoteWrapEl, uid));
 await scheduleRefreshRoster();
 if (!OPEN_ADMISSION && isHostRole) await scheduleRefreshWaiting(); // ✅
 setJoined(true);
-toast.success("Đã vào phòng (chưa bật Cam/Mic)");
+ // === RTM (Signaling 2.x) ===
+// ngay trước initRtm(appId)
+console.groupCollapsed("[RTM] join start");
+console.log("[RTM] appId", appId);
+console.log("[RTM] grant", { uid: String(g.rtcUid), channel: g.channel, hasRtmToken: !!g.rtmToken });
+console.groupEnd();
+
+try {
+  initRtm(appId);
+  await loginRtm({ uid: String(g.rtcUid), token: g.rtmToken });
+  await joinRtmChannel(g.channel);
+
+// THAY phần onChannelMessage cũ bằng:
+rtmUnsubRef.current?.();
+rtmUnsubRef.current = onChannelMessage((m) => {
+  // m = { from, text, ts } từ dịch vụ RTM wrapper
+  try {
+    const data = JSON.parse(m.text);
+    if (data?.type === "chat" && data.payload) {
+      setRoomMessages(prev => [...prev, data.payload as RoomChatMsg]);
+    } else if (data?.type === "pin" && data.payload) {
+      setPinned(data.payload as RoomChatMsg);
+    } else if (data?.type === "unpin") {
+      setPinned(null);
+    }
+    else if (data?.type === "resync") {
+  // client khác bấm "Đồng bộ toàn phòng" → mình tự refresh
+  scheduleRefreshRoster();
+  if (!OPEN_ADMISSION) scheduleRefreshWaiting();
+}
+    else {
+      // fallback: nếu là plain text
+      setRoomMessages(prev => [...prev, {
+        id: `${m.from}-${m.ts}`,
+        from: m.from,
+        text: m.text,
+        ts: m.ts
+      }]);
+    }
+  } catch {
+    // không phải JSON → coi như chat thường
+    setRoomMessages(prev => [...prev, {
+      id: `${m.from}-${m.ts}`,
+      from: m.from,
+      text: m.text,
+      ts: m.ts
+    }]);
+  }
+});
+
+
+} catch (e:any) {
+  console.error("[RTM] init/login/join error =", e, "stack=", e?.stack);
+  toast.error("Không thể vào kênh chat");
+}
+
+
+  setJoined(true);
+  toast.success("Đã vào phòng");
+};
+const pinForEveryone = async (msg: RoomChatMsg) => {
+  await channelSendText(JSON.stringify({ type: "pin", payload: msg }));
+  setPinned(msg);
+};
+const clearPinForEveryone = async () => {
+  await channelSendText(JSON.stringify({ type: "unpin" }));
+  setPinned(null);
 };
 
+const pinForMe = (msg: RoomChatMsg) => setLocalPinned(msg);
+const clearPinForMe = () => setLocalPinned(null);
 
-   const leaveLive: Ctx["leaveLive"] = async () => {
-    await leaveChannel();
-    setJoined(false);
-    setCamOn(false);
-    setMicOn(false);
-    setRoster([]);
-    setWaiting([]);
+// gửi message cho cả phòng
+const sendRoomText = async (text: string) => {
+  if (!text.trim()) return;
+  const msg: RoomChatMsg = {
+    id: `${grant?.rtcUid ?? "me"}-${Date.now()}`,
+    from: String(grant?.rtcUid ?? "me"),
+    text,
+    ts: Date.now(),
   };
+  // gửi dạng JSON để mọi client hiểu được
+  await channelSendText(JSON.stringify({ type: "chat", payload: msg }));
+  setRoomMessages(prev => [...prev, msg]);
+};
+
+const leaveLive: Ctx["leaveLive"] = async () => {
+  const rn = effectiveRoomName;
+
+  try {
+    // 1) RTC
+    await leaveChannel();
+  } catch {}
+
+  try {
+    // 2) RTM
+    rtmUnsubRef.current?.(); rtmUnsubRef.current = null;
+    await leaveRtmChannel();
+    await destroyRtm();
+  } catch {}
+
+  try {
+    // 3) cập nhật backend -> Status = Left
+    if (rn) await leaveRoom(rn);
+  } catch {}
+
+  setJoined(false);
+  setCamOn(false);
+  setMicOn(false);
+  setLocalVideoReady(false);
+  setRoster([]); setWaiting([]);
+  setRoomMessages([]);
+};
+
   const toggleCam = async () => {
-    if (!joined) {
-      toast.error("Bạn chưa join phòng");
-      return;
-    }
+    if (!joined) { toast.error("Bạn chưa join phòng"); return; }
     const next = !camOn;
     if (next) {
       await enableCamera(document.getElementById("local-player") as HTMLDivElement);
+      setLocalVideoReady(true);    // 👈 đánh dấu đã sẵn sàng
     } else {
       await disableCamera();
+      setLocalVideoReady(false);
     }
     setCamOn(next);
   };
+
 useEffect(() => {
   if (!joined) return;
   bindAgoraListenersOnce();
@@ -443,12 +602,79 @@ useEffect(() => {
     else await disableMic();
     setMicOn(next);
   };
-  
+  const startShare = async (withAudio = true) => {
+  const appId = process.env.REACT_APP_AGORA_APP_ID || "cd0ba26e95a647afa8324b3c04021477";
+  if (!appId) { toast.error("Thiếu REACT_APP_AGORA_APP_ID"); return; }
+  if (!grant) { toast.error("Chưa có grant"); return; }
+
+  // cần token + uid riêng cho screen
+  const sUid = grant.screenRtcUid;
+  const sTok = grant.screenRtcToken;
+  if (!sUid || !sTok) {
+    toast.error("Thiếu screen token/uid. Hãy cập nhật backend trả về ScreenRtcUid/ScreenRtcToken.");
+    return;
+  }
+
+  // phần tử preview local screen (tuỳ chọn)
+  const screenEl = document.getElementById("local-screen") as HTMLDivElement | null;
+
+  await startScreenShare({
+    appId,
+    channel: grant.channel,
+    token: sTok,
+    uid: sUid,
+    container: screenEl ?? undefined,
+     withAudio, 
+  });
+  setSharing(true);
+  toast.success("Đang chia sẻ màn hình");
+};
+
+const stopShare = async () => {
+  await stopScreenShare();
+  setSharing(false);
+  // Bạn có thể xoá preview tile nếu muốn
+};
+
+const toggleScreenShare = async () => {
+  if (!joined) { toast.error("Bạn chưa join phòng"); return; }
+  if (!isHost) { toast.error("Chỉ Host/CoHost được chia sẻ màn hình"); return; }
+
+  const appId = process.env.REACT_APP_AGORA_APP_ID || "cd0ba26e95a647afa8324b3c04021477";
+  const g = grant ?? (await fetchTokens());
+  if (!g) return;
+
+  // Use a different UID for sharing; you must have a token for THIS uid.
+  const screenUid = `${g.rtcUid}-screen`;
+  try {
+    if (!isScreenSharing()) {
+      await startScreenShare({
+        appId, channel: g.channel, token: g.rtcToken, uid: screenUid, withAudio : true
+      });
+      setScreenOn(true);
+    } else {
+      await stopScreenShare();
+      setScreenOn(false);
+    }
+  } catch (e:any) {
+    toast.error("Không thể bật/tắt chia sẻ màn hình");
+  }
+};
+
    const value: Ctx = {
     room, roomName, setRoomName,
     grant, joined, micOn, camOn, participants,   
-    roster, waiting, isHost,      
-      refreshRoster, refreshWaiting,
+    roster, waiting, isHost,       kick,   isResyncing,
+  resyncParticipants,
+  resyncParticipantsAll,
+      refreshRoster, refreshWaiting,localVideoReady, setLocalVideoReady,sendRoomText, roomMessages,
+  pinned,
+  localPinned,
+  pinForEveryone,
+  clearPinForEveryone,
+  pinForMe,  sharing, startShare, stopShare,  screenOn,
+  toggleScreenShare,
+  clearPinForMe,
   scheduleRefreshRoster, scheduleRefreshWaiting,             // <- export ra
     createRoom, admit, reject, setRole: setRoleFn,
     requestJoin, raiseHand, fetchTokens,          // <- export ra

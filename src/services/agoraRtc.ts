@@ -1,14 +1,20 @@
-// src/services/agoraRtc.ts
 import AgoraRTC, {
   IAgoraRTCClient,
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
+  ILocalVideoTrack,
+  ILocalAudioTrack,
   IAgoraRTCRemoteUser,
 } from "agora-rtc-sdk-ng";
 
 let client: IAgoraRTCClient | null = null;
 let localVideoTrack: ICameraVideoTrack | null = null;
 let localAudioTrack: IMicrophoneAudioTrack | null = null;
+
+// NEW: screen share
+let screenClient: IAgoraRTCClient | null = null;
+let screenVideoTrack: ILocalVideoTrack | null = null;
+let screenAudioTrack: ILocalAudioTrack | null = null;
 
 export type ClientRole = "host" | "audience";
 
@@ -137,7 +143,75 @@ export async function subscribeAndPlay(
     user.audioTrack?.play();
   }
 }
+export function getScreenClient() { return screenClient; }
+export function isScreenSharing() { return !!screenClient && !!screenVideoTrack; }
 
+export async function startScreenShare(opts: {
+  appId: string;
+  channel: string;
+  token: string | null;          // screen token
+  uid: string | number;          // screen uid
+  container?: HTMLElement | string;
+  withAudio?: boolean;           // true: share system audio, false: tắt
+}) {
+  if (screenClient) return; // đang bật rồi
+
+  screenClient = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
+  await screenClient.setClientRole("host");
+  await screenClient.join(opts.appId, opts.channel, opts.token || null, opts.uid);
+
+  // ✅ mapping đúng kiểu TS (không dùng false)
+  const audioParam: "auto" | "enable" | "disable" | undefined =
+    opts.withAudio ? "auto" : "disable";
+
+  const trackRes = await AgoraRTC.createScreenVideoTrack(
+    { encoderConfig: "1080p_2", optimizationMode: "detail" },
+    audioParam
+  );
+
+  if (Array.isArray(trackRes)) {
+    const [video, audio] = trackRes;
+    screenVideoTrack = video;
+    screenAudioTrack = audio ?? null;
+  } else {
+    screenVideoTrack = trackRes;
+    screenAudioTrack = null;
+  }
+
+  await screenClient.publish([
+    screenVideoTrack,
+    ...(screenAudioTrack ? [screenAudioTrack] : []),
+  ]);
+
+  // play preview nếu có container
+  if (opts.container) screenVideoTrack.play(opts.container as any);
+
+  // nếu user bấm "Stop sharing" từ UI trình duyệt:
+  (screenVideoTrack as any).on?.("track-ended", async () => {
+    await stopScreenShare();
+  });
+}
+
+export async function stopScreenShare() {
+  if (!screenClient) return;
+  try {
+    if (screenVideoTrack) {
+      await screenClient.unpublish([screenVideoTrack]);
+      screenVideoTrack.stop();
+      screenVideoTrack.close();
+      screenVideoTrack = null;
+    }
+    if (screenAudioTrack) {
+      await screenClient.unpublish([screenAudioTrack]);
+      screenAudioTrack.stop();
+      screenAudioTrack.close();
+      screenAudioTrack = null;
+    }
+    await screenClient.leave();
+  } finally {
+    screenClient = null;
+  }
+}
 export function onUserPublished(cb: (u: IAgoraRTCRemoteUser, t: "audio"|"video") => void) {
   client?.on("user-published", cb);
 }

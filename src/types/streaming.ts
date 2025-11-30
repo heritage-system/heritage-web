@@ -16,6 +16,10 @@ export interface StreamingJoinGrantResponse {
   role: string; // "Host"/"CoHost"/"Speaker"/"Audience"
   rtcToken: string;
   rtmToken: string;
+  rtmUid: string;
+  // NEW
+  screenRtcUid?: string;
+  screenRtcToken?: string;
 }
 
 // NEW
