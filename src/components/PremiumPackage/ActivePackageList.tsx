@@ -8,7 +8,7 @@ import {
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { PremiumPackageResponse } from "../../types/premiumPackage";
-import { getAllActivePackage } from "../../services/premiumPackageService";
+import { getAllActivePackage } from "../../services/PremiumPackageService";
 import { createSubscription, getActiveSubscription } from "../../services/subscriptionService";
 import Spinner from "../Layouts/LoadingLayouts/Spinner";
 import PortalModal from "../Layouts/ModalLayouts/PortalModal";

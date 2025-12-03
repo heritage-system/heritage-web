@@ -12,7 +12,7 @@ import {
 } from "antd";
 import {PremiumPackageResponse, PremiumPackageCreateRequest, PremiumPackageUpdateRequest,PremiumBenefitCreateRequest} from "@/types/premiumPackage";
 import { useEffect, useState } from "react";
-import { getPremiumBenefits, createPremiumBenefit,  } from "../../../../services/premiumPackageService";
+import { getPremiumBenefits, createPremiumBenefit,  } from "../../../../services/PremiumPackageService";
 import { BenefitType, BenefitName } from "../../../../types/enum";
 import {Plus } from "lucide-react";
 

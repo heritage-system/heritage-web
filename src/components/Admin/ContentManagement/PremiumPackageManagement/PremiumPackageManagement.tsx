@@ -18,7 +18,7 @@ import {
   createPremiumPackage,
   updatePremiumPackage,
   deletePremiumPackage
-} from "../../../../services/premiumPackageService";
+} from "../../../../services/PremiumPackageService";
 
 import { TablePaginationConfig } from "antd/es/table";
 
