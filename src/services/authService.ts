@@ -72,3 +72,15 @@ export const resetPassword = async (
   
   return raw;
 };
+
+export const confirmEmail = async (
+  uid: number, token: string
+): Promise<ApiResponse<boolean>> => {
+  const raw = await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/auth/confirm-email?uid=${uid}&token=${token}`,
+    { method: "GET" }
+  );
+
+  
+  return raw;
+};

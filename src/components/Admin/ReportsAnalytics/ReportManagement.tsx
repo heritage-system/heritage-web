@@ -27,6 +27,7 @@ function DataTable<T extends { id: number }>({
 
   return (
     <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+      <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-300">
         <thead className="bg-gray-50">
           <tr>
@@ -74,6 +75,7 @@ function DataTable<T extends { id: number }>({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -140,8 +142,8 @@ const ReportManagement: React.FC = () => {
 
   const columns: TableColumn<Report>[] = [
     { key: "id", label: "ID" },
-    { key: "userName", label: "User Name" },
-    { key: "heritageName", label: "Heritage Name" },
+    { key: "userName", label: "Người dùng" },
+    { key: "heritageName", label: "Tên lễ hội" },
     {
       key: "reason",
       label: "Lý do",
@@ -319,13 +321,13 @@ const ReportManagement: React.FC = () => {
         />
 
         {/* Pagination */}
-        <Pagination
+        {totalPages > 1 &&(<Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
           itemsPerPage={itemsPerPage}
           totalItems={totalElements}
-        />
+        />)}
 
         {/* View Modal */}
         {viewReport && (
@@ -345,11 +347,11 @@ const ReportManagement: React.FC = () => {
                     <p className="font-medium text-gray-900">{viewReport.userName}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 mb-1">Heritage ID</p>
+                    <p className="text-gray-500 mb-1">Id lễ hội</p>
                     <p className="font-medium text-gray-900">{viewReport.heritageId}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-gray-500 mb-1">Heritage Name</p>
+                    <p className="text-gray-500 mb-1">Tên lễ hội</p>
                     <p className="font-medium text-gray-900">{viewReport.heritageName}</p>
                   </div>
                 </div>

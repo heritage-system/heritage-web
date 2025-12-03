@@ -28,6 +28,7 @@ import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPageCopy';
 import LiveRoomPage from './components/Community/LiveRoomPage';
 import ActivePackageList from './components/PremiumPackage/ActivePackageList';
 import PaymentResultPage from './components/PremiumPackage/PaymentResultPage';
+import ConfirmEmailPage from './pages/AuthPage/ConfirmEmailPage';
 
 const App: React.FC = () => {
   return (
@@ -37,7 +38,7 @@ const App: React.FC = () => {
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
      
-        <Route path="AIPredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
+        <Route path="/confirm-email-address" element={<MainLayout><ConfirmEmailPage/></MainLayout>} />
         <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} />
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
         <Route path="/login" element={<MainLayout><Login /></MainLayout>} />

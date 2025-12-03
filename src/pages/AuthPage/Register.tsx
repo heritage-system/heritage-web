@@ -57,11 +57,16 @@ const Register: React.FC = () => {
     try {
       const res = await registration(form);
       if (res.code) {
-        toast.success("Đăng ký thành công!");
+        toast.success("Đăng ký thành công, vui lòng kích hoạt bằng email mã chúng tôi đã gửi!", {
+          duration: 1000,
+          position: 'top-right',
+          style: { background: '#059669', color: '#fff' },
+          iconTheme: { primary: '#fff', secondary: '#059669' },
+        });
         setTimeout(() => {
           toast.dismiss(); 
           navigate("/login");
-        }, 500);
+        }, 1000);
       } else {
         toast.error(res.message || "Đăng ký thất bại!");
       }
