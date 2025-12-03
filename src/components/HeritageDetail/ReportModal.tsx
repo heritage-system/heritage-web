@@ -124,3 +124,4 @@ const ReportModal: React.FC<ReportModalProps> = ({ open, onClose, heritageId }) 
 };
 
 export default ReportModal;
+  

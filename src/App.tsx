@@ -26,6 +26,8 @@ import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
 import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
 import LiveRoomPage from './components/Community/LiveRoomPage';
+import ActivePackageList from './components/PremiumPackage/ActivePackageList';
+import PaymentResultPage from './components/PremiumPackage/PaymentResultPage';
 
 const App: React.FC = () => {
   return (
@@ -55,6 +57,12 @@ const App: React.FC = () => {
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />  
         <Route path="/live/:roomId" element={<LiveRoomPage />} /> 
+        <Route path="/premium-packages" element={<MainLayout><ActivePackageList /></MainLayout>} />
+        <Route path="/payment/success" element={<MainLayout><PaymentResultPage /></MainLayout>} />
+        <Route path="/payment/result" element={<MainLayout><PaymentResultPage /></MainLayout>} />
+        <Route path="/payment/cancel" element={<MainLayout><PaymentResultPage /></MainLayout>} />
+
+      
       </Routes>
 
       {/* <ChatBoxAI /> */}
