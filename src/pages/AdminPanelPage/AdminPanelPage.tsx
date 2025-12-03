@@ -136,9 +136,8 @@ const moduleStructure = {
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
       { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
       { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement },
-      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement }
-      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement },
-      { id: "premiumPackages", name: "Gói Premium", icon: Globe, component: PremiumPackageManagement } // Placeholder component
+      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement },
+      { id: "premiumPackages", name: "Gói Premium", icon: Globe, component: PremiumPackageManagement } 
     ]
   },
   financialManagement: {

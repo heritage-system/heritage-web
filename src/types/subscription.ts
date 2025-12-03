@@ -1,5 +1,12 @@
 import { BenefitType, SortBy, BenefitName, PaymentStatus, SubscriptionStatus } from "./enum";
 
+export interface SubscriptionDto {
+    userId: number,
+    packageId: number,
+    total: number,
+    used: number
+}
+
 // Subscription Entity
 export interface Subscription {
   id: number;
