@@ -33,21 +33,23 @@ const VRToursHero: React.FC<VRToursHeroProps> = ({ onStartTour }) => {
     {/* Buttons */}
     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
       <button
-        onClick={onStartTour}
-        className="bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-transform flex items-center"
+        onClick={() => window.scrollTo({top: window.innerHeight * 0.6, behavior: "smooth" })}
+        className="flex items-center gap-3 bg-white/70 backdrop-blur-sm border border-amber-200 shadow-md rounded-full px-8 py-3 transition hover:scale-105"
       >
-        <Play className="w-5 h-5 mr-2" />
-        Bắt đầu tour VR
+        <Play className="w-6 h-6 text-amber-600" />
+        <span className="text-amber-700 font-medium tracking-wide">
+          Bắt đầu ngay
+        </span>
       </button>
 
-      <button className="bg-white text-gray-800 px-8 py-4 rounded-xl font-semibold border border-yellow-300 hover:shadow-lg hover:scale-105 transition-all flex items-center">
+      {/* <button className="bg-white text-gray-800 px-8 py-4 rounded-xl font-semibold border border-yellow-300 hover:shadow-lg hover:scale-105 transition-all flex items-center">
         <Eye className="w-5 h-5 mr-2" />
         Xem demo
-      </button>
+      </button> */}
     </div>
 
     {/* Stats */}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-gray-900">
+    {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-gray-900">
       <div className="text-center">
         <div className="text-3xl font-bold text-yellow-600">50+</div>
         <div className="text-gray-600">Tours VR</div>
@@ -64,7 +66,7 @@ const VRToursHero: React.FC<VRToursHeroProps> = ({ onStartTour }) => {
         <div className="text-3xl font-bold text-orange-900">4K</div>
         <div className="text-gray-600">Chất lượng</div>
       </div>
-    </div>
+    </div> */}
   </div>
 </section>
 

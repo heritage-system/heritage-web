@@ -1,6 +1,6 @@
 // src/utils/storage.ts
 import L from "leaflet";
-
+import {HeritageName} from "../types/heritage"
 // --- Token Storage ---
 export const tokenStorage = {
   getAccessToken: () => localStorage.getItem("accessToken"),
@@ -51,4 +51,38 @@ export const mapViewStorage = {
     return null;
   }
 },
+};
+
+// ---------------- HERITAGE NAME LIST STORAGE ----------------
+
+const HERITAGE_LIST_KEY = "heritage-name-list";
+
+export const heritageNameStorage = {
+  save: (list: HeritageName[]) => {
+    localStorage.setItem(HERITAGE_LIST_KEY, JSON.stringify(list));
+  },
+
+  load: (): HeritageName[] | null => {
+    try {
+      const raw = localStorage.getItem(HERITAGE_LIST_KEY);
+      if (!raw) return null;
+
+      const parsed = JSON.parse(raw);
+
+      // Validate structure
+      if (Array.isArray(parsed)) {
+        return parsed.filter((x: any) =>
+          typeof x.id === "number" &&
+          typeof x.name === "string" &&
+          typeof x.nameUnsigned === "string"
+        ) as HeritageName[];
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  clear: () => localStorage.removeItem(HERITAGE_LIST_KEY),
 };

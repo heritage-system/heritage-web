@@ -17,6 +17,9 @@ const PUBLIC_ONLY_ENDPOINTS: string[] = [
   '/api/v1/contributions/top_contributor',
   '/api/v1/contributions/contribution_related',
   '/api/Heritage/heritage_related',
+  '/api/v1/panorama_tours/search_panorama_tour',
+  
+  '/api/Heritage/heritage_related',
   '/api/v1/PremiumPackage/byActive'
 ];
 const OPTIONAL_AUTH_ENDPOINTS: string[] = [
@@ -27,7 +30,8 @@ const OPTIONAL_AUTH_ENDPOINTS: string[] = [
   '/api/Heritage/heritage_detail',
   '/api/v1/reviews/reviewByheritage',
   '/api/v1/quiz/search_quiz',
-  '/api/v1/quiz/get_quiz_detail'
+  '/api/v1/quiz/get_quiz_detail',
+  '/api/v1/panorama_tours/get_panorama_tour_detail'
 ]
 
 // Helpers nhận diện body

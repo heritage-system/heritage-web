@@ -69,6 +69,36 @@ export enum QuizLevel {
   MEDIUM = 1,
   HARD = 2
 }
+  
+export enum UserStatus {
+  ACTIVE = 0,
+  INACTIVE = 1,
+  DELETED = 2,
+  BANNED = 3,
+  PENDING_VERIFICATION = 4,
+}
+
+export enum StaffRole {
+  CONTENT_REVIEWER = 0,  
+  EVENT_MANAGER = 1,     
+  SUPPORT_STAFF = 2,      
+  COORDINATOR = 3,       
+  MODERATOR = 4,         
+  ADMIN_ASSISTANT = 5, 
+}
+
+export enum StaffStatus {
+  ACTIVE = 0,      
+  INACTIVE = 1,      
+  SUSPENDED = 2,    
+  RETIRED = 3,      
+  PENDING = 4,      
+}
+
+export enum PanoramaStatus {
+  ACTIVE = 0,
+  INACTIVE = 1
+}
 
 export enum BenefitType {
     FEATUREUNLOCK = 0,
