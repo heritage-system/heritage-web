@@ -6,6 +6,7 @@ import { HeritageSearchResponse, HeritageLocation, HeritageSearchRequest } from 
 import { mapViewStorage } from "../../utils/tokenStorage";
 import DiscoveryHeritageCard from "./DiscoveryHeritageCard";
 import { MapPin } from 'lucide-react';
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import 'leaflet/dist/leaflet.css'
 import 'react-leaflet-markercluster/styles'
@@ -13,6 +14,7 @@ interface DiscoveryGoogleMapsViewProps {
   heritages: HeritageSearchResponse[];
   userLocation?: { lat: number; lng: number } | null;
   onFiltersChange?: (changes: Partial<HeritageSearchRequest>) => void;
+  loading?: boolean;
 }
 
 const defaultIcon = L.icon({
@@ -66,7 +68,8 @@ const MapController: React.FC<{
 const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({
   heritages,
   userLocation: userLocationFromProps,
-  onFiltersChange
+  onFiltersChange,
+  loading
 }) => {
   const mapRef = useRef<L.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -157,11 +160,12 @@ const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({
 
           {mapReady && userLatLng && (
             <Marker position={[userLatLng.lat, userLatLng.lng]} icon={userIcon}>
-              <Popup>Bạn đang ở đây 📍</Popup>
+              <Popup>Bạn đang ở đây</Popup>
             </Marker>
           )}
         </MapContainer>
 
+          
         <button
           onClick={() => setShowHeritageList(true)}
           className="absolute top-4 right-4 bg-white rounded-lg shadow-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 border border-gray-200 z-[1000]"
@@ -177,7 +181,16 @@ const DiscoveryGoogleMapsView: React.FC<DiscoveryGoogleMapsViewProps> = ({
             <MapPin/>
           </button>
         )}
+
+       {loading && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-[1000]">
+            <Spinner size={34} thickness={4} className="" ariaLabel="Đang tải dữ liệu bản đồ" />
+          </div>
+        )}
+
       </div>
+
+
 
       {showHeritageList && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]">

@@ -8,12 +8,19 @@ export interface ContributorCreateRequest {
   isPremiumEligible?: boolean
 }
 
+
+
 // Update
 export interface ContributorUpdateRequest {
+  phone?: string;
+  address?: string;
+  fullName?: string;
+  dateOfBirth?: string;
   bio?: string;
   expertise?: string;
-  status: string;
+  status?: string;
   documentsUrl?: string;
+  isPremiumEligible?: boolean
 }
 
 // Search
@@ -54,8 +61,12 @@ export interface ContributorResponse {
   status: string;
   isPremiumEligible: boolean;
   userId: number;
-  userFullName?: string;
-  userEmail?: string;
+  userName: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  fullName: string;
+  dateOfBirth?: string; 
 
   createdAt: string;   
   updatedAt?: string;

@@ -35,6 +35,9 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
         username: form.username.value.trim(),
         email: form.email.value.trim().toLowerCase(),
         fullName: form.fullName.value.trim(),
+        phone: form.phone.value.trim() || undefined,
+        address: form.address.value.trim() || undefined,
+        dateOfBirth: form.dateOfBirth.value || undefined,
         staffRole: Number(form.staffRole.value) as StaffRole,
         canManageEvents: form.canManageEvents.checked,
         canReplyReports: form.canReplyReports.checked,
@@ -101,19 +104,6 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Họ và tên <span className="text-red-500">*</span>
-              </label>
-              <input
-                name="fullName"
-                required
-                disabled={loading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
-                placeholder="Nguyễn Văn A"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email <span className="text-red-500">*</span>
               </label>
               <input
@@ -125,7 +115,55 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
                 placeholder="staff@example.com"
               />
             </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Họ và tên <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="fullName"
+                type="text"             
+                required
+                disabled={loading}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+                placeholder="Nguyễn Văn A"
+              />
+            </div>
 
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại</label>
+              <input
+                name="phone"
+                type="text"            
+                disabled={loading}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+                placeholder="0901234567"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ</label>
+              <input
+                name="address"
+                type="text"            
+                disabled={loading}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+                placeholder="123 Đường ABC, Quận 1"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh</label>
+              <input
+                name="dateOfBirth"
+                type="date"             
+                disabled={loading}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
+ 
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Vai trò nhân viên <span className="text-red-500">*</span>

@@ -42,6 +42,11 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
     );
   }
 
+  const formatDate = (value?: string | null): string => {
+    if (!value) return "";
+    return value.split("T")[0]; // hoặc dùng dayjs…
+  };
+
   const isPending = staff.staffStatus === StaffStatus.PENDING;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -177,7 +182,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
               <input
                 name="dateOfBirth"
                 type="date"
-                defaultValue={staff.dateOfBirth || ""}
+                defaultValue={formatDate(staff.dateOfBirth) || ""}
                 disabled={loading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
               />

@@ -61,6 +61,7 @@ const AdminHomeDashboard = () => {
 
   const moduleGroups: ModuleGroup[] = [
     {
+      id: "contentManagement",
       title: "Quản lý Nội dung",
       color: "bg-gradient-to-br from-blue-600 to-blue-700",
       count: 6,
@@ -74,6 +75,7 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "financialManagement",
       title: "Quản lý Tài chính",
       color: "bg-gradient-to-br from-emerald-600 to-emerald-700",
       count: 5,
@@ -87,13 +89,14 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "hrManagement",
       title: "Quản lý Nhân sự",
       color: "bg-gradient-to-br from-violet-600 to-violet-700",
       count: 6,
       description: "Quản lý nhân viên và tổ chức",
-      modules: [
-        { name: "Quản lý Nhân viên", icon: "Users" },
+      modules: [       
         { name: "Quản lý Người Dùng", icon: "Users" },
+        { name: "Quản lý Nhân viên", icon: "Users" },
         { name: "Quản lý Phòng ban", icon: "Briefcase" },
         { name: "Vai trò & Phân quyền", icon: "Shield" },
         { name: "Theo dõi Chấm công", icon: "Clock" },
@@ -102,6 +105,7 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "eventManagement",
       title: "Quản lý Sự kiện",
       color: "bg-gradient-to-br from-orange-500 to-red-600",
       count: 4,
@@ -114,6 +118,7 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "systemSecurity",
       title: "Hệ thống & Bảo mật",
       color: "bg-gradient-to-br from-slate-600 to-slate-700",
       count: 7,
@@ -129,6 +134,7 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "customerManagement",
       title: "Quản lý Khách hàng",
       color: "bg-gradient-to-br from-rose-600 to-rose-700",
       count: 5,
@@ -142,6 +148,7 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "reportsAnalytics",
       title: "Báo cáo & Phân tích",
       color: "bg-gradient-to-br from-cyan-600 to-cyan-700",
       count: 5,
@@ -155,6 +162,7 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "logistics",
       title: "Quản lý Logistics",
       color: "bg-gradient-to-br from-indigo-600 to-indigo-700",
       count: 4,
@@ -167,6 +175,7 @@ const AdminHomeDashboard = () => {
       ],
     },
     {
+      id: "compliance",
       title: "Tuân thủ & Rủi ro",
       color: "bg-gradient-to-br from-orange-600 to-orange-700",
       count: 4,

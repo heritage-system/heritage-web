@@ -7,6 +7,7 @@ import {
   HeritageOccurrence,
 } from "../../types/heritage";
 import FavoriteButton from "../Layouts/ButtonLayouts/FavoriteButton";
+import ScoreRing from "../Layouts/ButtonLayouts/ScoreRing";
 import { useAuth } from '../../hooks/useAuth';
 
 interface DiscoveryHeritageCardProps {
@@ -22,6 +23,7 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
   const [showAllLocations, setShowAllLocations] = useState(false);
   const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
 
+  
   const handleCardClick = () => {
     navigate(`/heritagedetail/${heritage.id}`);
   };
@@ -83,17 +85,27 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
     LUNAR: "Âm lịch",
   };
 
-  const dateLabel = occurrence
-  ? `${occurrence.startDay}/${occurrence.startMonth}${
-      occurrence.occurrenceTypeName !== "EXACTDATE" &&
-      occurrence.endDay &&
-      occurrence.endMonth
-        ? ` - ${occurrence.endDay}/${occurrence.endMonth}`
-        : ""
-    } (${calendarLabelMap[occurrence.calendarTypeName] || occurrence.calendarTypeName})`
-  : "Không xác định";
+ let rawDateLabel = "Không xác định";
+
+  if (occurrence) {
+    if (occurrence.occurrenceTypeName === "RECURRINGRULE") {
+      rawDateLabel = occurrence.recurrenceRule || "Định kỳ";
+    } else {
+      rawDateLabel = `${occurrence.startDay}/${occurrence.startMonth}${
+        occurrence.occurrenceTypeName !== "EXACTDATE" &&
+        occurrence.endDay &&
+        occurrence.endMonth
+          ? ` - ${occurrence.endDay}/${occurrence.endMonth}`
+          : ""
+      } (${calendarLabelMap[occurrence.calendarTypeName] || occurrence.calendarTypeName})`;
+    }
+  }
 
 
+  const [showFullDate, setShowFullDate] = useState(false);
+const isLongText = rawDateLabel.length > 45; 
+const displayedDateLabel =
+  isLongText && !showFullDate ? rawDateLabel.slice(0, 45) + "..." : rawDateLabel;
 
   return (
     <div
@@ -113,7 +125,25 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
             e.stopPropagation();
           }}
         >
-          {isLoggedIn &&(<FavoriteButton heritageId={heritage.id} isFavorite={heritage.isSave} size="md" />)}
+          {typeof heritage.score === "number" ? (
+            <ScoreRing
+              score={Math.round(heritage.score * 100)}
+              size={40}
+              thickness={5}
+              className="shadow-sm bg-white rounded-full "
+              ariaLabel={`Điểm nhận diện ${Math.round(heritage.score)}%`}
+            />
+          ) : (
+            isLoggedIn &&
+            heritage.score == null && (
+              <FavoriteButton
+                heritageId={heritage.id}
+                isFavorite={heritage.isSave}
+                size="md"
+              />
+            )
+          )}
+
         </div>
       </div>
 
@@ -121,10 +151,20 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
       <div className="p-4">
         {/* Date */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-500 flex items-center">
-            <Calendar className="w-3 h-3 mr-1" />
-            {dateLabel}
-          </span>
+          {/* Date */}
+<div className="flex items-center justify-between">
+  <div className="text-xs text-gray-500 flex items-center">
+    <Calendar className="w-3 h-3 mr-1 shrink-0" />
+    
+    <span
+      className="truncate max-w-[200px] cursor-help"
+      title={rawDateLabel} // <-- tooltip hiển thị toàn bộ nội dung khi hover
+    >
+      {rawDateLabel}
+    </span>
+  </div>
+</div>
+
         </div>
 
         {/* Title */}
@@ -147,6 +187,7 @@ const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
         {/* Footer */}
         <div className="flex items-start text-sm text-gray-500 overflow-hidden">
           <MapPin className="w-4 h-4 mr-1 shrink-0 mt-1" />
+          
           {displayLocation}
         </div>
       </div>

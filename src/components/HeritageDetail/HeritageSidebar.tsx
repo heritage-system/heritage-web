@@ -12,6 +12,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { HeritageDetailResponse, HeritageDescription } from "../../types/heritage";
 import ReportModal from "./ReportModal";
+import ContentReportModal from "./ContentReportModal";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import PortalModal from "../Layouts/ModalLayouts/PortalModal";
@@ -145,15 +146,19 @@ const formatOccurrenceDate = (occ: any) => {
 
   const calendar = calendarLabel[occ.calendarTypeName] || occ.calendarTypeName;
 
-  // Nếu EXACTDATE -> chỉ hiển thị start
-  if (occ.occurrenceTypeName === "EXACTDATE") {
-    return `${occ.startDay}/${occ.startMonth} (${calendar})`;
-  }
+  switch (occ.occurrenceTypeName) {
+    case "EXACTDATE":
+      return `${occ.startDay}/${occ.startMonth} (${calendar})`;
 
-  // Ngược lại có start + end
-  return `${occ.startDay}/${occ.startMonth}${
-    occ.endDay && occ.endMonth ? ` - ${occ.endDay}/${occ.endMonth}` : ""
-  } (${calendar})`;
+    case "RECURRINGRULE":
+      return occ.recurrenceRule || "Định kỳ"; // nếu không có recurrenceRule thì fallback
+
+    default:
+      // Trường hợp start + end nhưng không phải EXACTDATE
+      return `${occ.startDay}/${occ.startMonth}${
+        occ.endDay && occ.endMonth ? ` - ${occ.endDay}/${occ.endMonth}` : ""
+      } (${calendar})`;
+  }
 };
 
 
@@ -368,7 +373,7 @@ const formatOccurrenceDate = (occ: any) => {
       </SectionCard>
 
       {/* Modal báo cáo */}
-      <ReportModal
+      <ContentReportModal
         open={openReport}
         onClose={() => setOpenReport(false)}
         heritageId={heritage.id}

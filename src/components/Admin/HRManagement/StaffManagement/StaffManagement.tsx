@@ -31,7 +31,7 @@ const statusConfig: Record<StaffStatus, { label: string; color: string; icon: an
   [StaffStatus.INACTIVE]: { label: "Tạm ngưng", color: "bg-gray-100 text-gray-800", icon: Ban },
   [StaffStatus.SUSPENDED]: { label: "Bị đình chỉ", color: "bg-red-100 text-red-800", icon: Ban },
   [StaffStatus.RETIRED]: { label: "Đã nghỉ việc", color: "bg-gray-500 text-white", icon: Ban },
-  [StaffStatus.PENDING]: { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800", icon: Ban },
+  [StaffStatus.PENDING]: { label: "Chờ xác nhận", color: "bg-yellow-100 text-yellow-800", icon: Ban },
 };
 
 const roleConfig: Record<StaffRole, { label: string; color: string }> = {

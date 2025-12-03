@@ -111,9 +111,21 @@ const BattleCard: React.FC<BattleCardProps> = ({
 
 
           {/* Player Name */}
-          <h2 className="text-center text-black text-2xl font-bold mb-8 tracking-wide">
-            {name}
-          </h2>
+          <h2
+  className="
+    text-center text-black 
+    text-xl sm:text-2xl font-bold mb-3 tracking-wide 
+    truncate 
+    overflow-hidden 
+    text-ellipsis 
+    max-w-[160px] sm:max-w-[160px] 
+    mx-auto
+  "
+  title={name}
+>
+  {name}
+</h2>
+
 
           {/* Decorative Dots */}
           <div className="flex justify-center gap-2 mb-8">

@@ -1,6 +1,6 @@
 'use client'
 import React from 'react';
-
+import VTFPLogo from "../../assets/logo/VTFP_Logo.png";
 interface AuthCallbackLayoutProps {
     children: React.ReactNode;
     title?: string;
@@ -13,18 +13,20 @@ const AuthCallbackLayout = ({
     description = "Vui lòng đợi trong giây lát"
 }: AuthCallbackLayoutProps) => {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center">
+        <div className="min-h-screen bg-dragon flex  justify-center">
             <div className="max-w-md w-full mx-4">
                 {/* Logo/Brand Section */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-                       <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C10.5 5 8 7 8 10c0 3.5 2.5 6 4 10 1.5-4 4-6.5 4-10 0-3-2.5-5-4-8zM4 14c2 1 4 2 8 2s6-1 8-2c-2 3-4 6-8 6s-6-3-8-6z" />
-                        </svg>
+                <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-60 h-60 bg-gray rounded-full overflow-hidden">
+                    <img
+                        src={VTFPLogo}
+                        alt="VTFP Logo"
+                        className="w-full h-full"
+                    />
+                </div>
 
-                    </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">HeritageX</h1>
-                    <p className="text-gray-600">Ký ức sống động từ quá khứ đến hiện tại</p>
+                    {/* <h1 className="text-2xl font-bold text-gray-900 mb-2">VTFP</h1>
+                    <p className="text-gray-600">Ký ức sống động từ quá khứ đến hiện tại</p> */}
                 </div>
 
                 {/* Auth Card */}

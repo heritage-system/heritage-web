@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Eye, AlertTriangle, X, MessageSquare } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { AlertTriangle, X, MessageSquare } from "lucide-react";
+import { Input, Spin } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import Pagination from "../../Layouts/Pagination";
 
 import { TableProps, Report, TableColumn } from "../../../types/report";
@@ -25,6 +27,7 @@ function DataTable<T extends { id: number }>({
 
   return (
     <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+      <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-300">
         <thead className="bg-gray-50">
           <tr>
@@ -72,6 +75,7 @@ function DataTable<T extends { id: number }>({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -138,8 +142,8 @@ const ReportManagement: React.FC = () => {
 
   const columns: TableColumn<Report>[] = [
     { key: "id", label: "ID" },
-    { key: "userName", label: "User Name" },
-    { key: "heritageName", label: "Heritage Name" },
+    { key: "userName", label: "Người dùng" },
+    { key: "heritageName", label: "Tên lễ hội" },
     {
       key: "reason",
       label: "Lý do",
@@ -195,208 +199,229 @@ const ReportManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Quản lý báo cáo</h2>
-      </div>
+    <Spin spinning={loading}>
+      <div className="space-y-6">
+        {/* Header */}
+        <h2 className="text-2xl font-bold mb-4">Quản lý báo cáo</h2>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { key: "PENDING", label: "Đang chờ", color: "bg-yellow-100 text-yellow-700" },
-          { key: "ANSWERED", label: "Đã trả lời", color: "bg-green-100 text-green-700" },
-          { key: "CANCEL", label: "Đã hủy", color: "bg-red-100 text-red-700" },
-        ].map((item) => (
-          <div
-            key={item.key}
-            className="rounded-xl border bg-white p-4 flex items-center gap-3"
-          >
-            <div className={`p-2 rounded-lg ${item.color}`}>
-              <AlertTriangle size={20} />
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          {[
+            { key: "PENDING", label: "Đang chờ", color: "bg-yellow-100 text-yellow-700", borderColor: "border-yellow-200" },
+            { key: "ANSWERED", label: "Đã trả lời", color: "bg-green-100 text-green-700", borderColor: "border-green-200" },
+            { key: "CANCEL", label: "Đã hủy", color: "bg-red-100 text-red-700", borderColor: "border-red-200" },
+          ].map((item) => (
+            <div
+              key={item.key}
+              className={`rounded-xl border ${item.borderColor} bg-white p-4 flex items-center gap-3 shadow-sm`}
+            >
+              <div className={`p-2 rounded-lg ${item.color}`}>
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{item.label}</p>
+                <p className="text-xl font-semibold text-gray-900">
+                  {statusCounts[item.key as keyof typeof statusCounts]}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-500">{item.label}</p>
-              <p className="text-xl font-semibold">
-                {statusCounts[item.key as keyof typeof statusCounts]}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Search + Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 pl-4 pr-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Ô tìm kiếm */}
-          
-
-          {/* Bộ lọc ngày + Nút Xóa */}
-          <div className="flex items-center gap-3">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Từ ngày"
-            />
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Đến ngày"
-            />
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setStartDate("");
-                setEndDate("");
+        {/* Search + Filters */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            {/* Search Input */}
+            <Input
+              placeholder="Tìm kiếm theo tên người dùng, di sản..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="h-10 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              Xóa bộ lọc
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex gap-2 border-b border-gray-200 mb-6">
-        {[
-          { key: "PENDING", label: "Đang chờ", icon: <AlertTriangle className="w-4 h-4" /> },
-          { key: "ANSWERED", label: "Đã trả lời", icon: <MessageSquare className="w-4 h-4" /> },
-          { key: "CANCEL", label: "Đã hủy", icon: <X className="w-4 h-4" /> },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => {
-              setStatusFilter(tab.key as "PENDING" | "ANSWERED" | "CANCEL");
-              setCurrentPage(1);
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium text-sm transition-all duration-200
-              ${
-                statusFilter === tab.key
-                  ? "bg-blue-50 text-blue-600 border-b-2 border-blue-500 shadow-inner"
-                  : "text-gray-500 hover:text-blue-600 hover:bg-gray-50"
-              }`}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-
-      {/* Table */}
-      <DataTable<Report>
-        data={reports}
-        columns={columns}
-        loading={loading}
-        onView={(item) => navigate(`/reports/${item.id}`)}
-        onAnswer={handleAnswer}
-      />
-
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={totalElements}
-      />
-
-      {/* View Modal */}
-      {viewReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-              onClick={() => setViewReport(null)}
-            >
-              <X size={20} />
-            </button>
-            <h3 className="text-xl font-bold mb-2">Chi tiết báo cáo</h3>
-            <div className="space-y-2 text-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-500">User Name</p>
-                  <p className="font-medium">{viewReport.userName}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Heritage ID</p>
-                  <p className="font-medium">{viewReport.heritageId}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Heritage Name</p>
-                  <p className="font-medium">{viewReport.heritageName}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-gray-500">Lý do</p>
-                <p className="font-medium whitespace-pre-wrap">
-                  {viewReport.reason || "(không có)"}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">Trạng thái</p>
-                <p className="font-medium whitespace-pre-wrap">
-                  {statusLabels[viewReport.status as keyof typeof statusLabels] || "(không có)"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-gray-500">Ngày tạo</p>
-                <p className="font-medium">
-                  {new Date(viewReport.createdAt).toLocaleString()}
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setViewReport(null)}
-                className="px-4 py-2 border rounded-md"
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Answer Modal */}
-      {selectedReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold mb-2">Trả lời báo cáo</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Báo cáo từ người dùng <b>{selectedReport.userName}</b> về di sản:{" "}
-              <b>{selectedReport.heritageName}</b>
-            </p>
-            <textarea
-              value={answerText}
-              onChange={(e) => setAnswerText(e.target.value)}
-              className="w-full border rounded-md p-2 text-sm h-32 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Nhập câu trả lời..."
+              prefix={<SearchOutlined className="text-gray-500 text-lg" />}
+              className="border rounded-lg px-3 py-2.5 w-full md:w-64 text-base"
+              style={{ height: 44 }}
+              allowClear
             />
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setSelectedReport(null)}
-                className="px-4 py-2 border rounded-md"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleSubmitAnswer}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Gửi trả lời
-              </button>
+
+            {/* Date Filters */}
+            <div className="flex items-center gap-3 flex-1">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Từ ngày"
+              />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Đến ngày"
+              />
+              {(searchTerm || startDate || endDate) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setStartDate("");
+                    setEndDate("");
+                    setCurrentPage(1);
+                  }}
+                  className="h-10 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                  <X size={16} />
+                  Xóa bộ lọc
+                </button>
+              )}
             </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Status Tabs */}
+        <div className="flex gap-2 border-b border-gray-200 mb-6">
+          {[
+            { key: "PENDING", label: "Đang chờ", icon: <AlertTriangle className="w-4 h-4" /> },
+            { key: "ANSWERED", label: "Đã trả lời", icon: <MessageSquare className="w-4 h-4" /> },
+            { key: "CANCEL", label: "Đã hủy", icon: <X className="w-4 h-4" /> },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => {
+                setStatusFilter(tab.key as "PENDING" | "ANSWERED" | "CANCEL");
+                setCurrentPage(1);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium text-sm transition-all duration-200
+                ${
+                  statusFilter === tab.key
+                    ? "bg-blue-50 text-blue-600 border-b-2 border-blue-500 shadow-inner"
+                    : "text-gray-500 hover:text-blue-600 hover:bg-gray-50"
+                }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Table */}
+        <DataTable<Report>
+          data={reports}
+          columns={columns}
+          loading={loading}
+          onView={(item) => navigate(`/reports/${item.id}`)}
+          onAnswer={handleAnswer}
+        />
+
+        {/* Pagination */}
+        {totalPages > 1 &&(<Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          itemsPerPage={itemsPerPage}
+          totalItems={totalElements}
+        />)}
+
+        {/* View Modal */}
+        {viewReport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+              <button
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition-colors"
+                onClick={() => setViewReport(null)}
+              >
+                <X size={20} />
+              </button>
+              <h3 className="text-xl font-bold mb-4">Chi tiết báo cáo</h3>
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-500 mb-1">User Name</p>
+                    <p className="font-medium text-gray-900">{viewReport.userName}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Id lễ hội</p>
+                    <p className="font-medium text-gray-900">{viewReport.heritageId}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-gray-500 mb-1">Tên lễ hội</p>
+                    <p className="font-medium text-gray-900">{viewReport.heritageName}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Lý do</p>
+                  <div className="bg-gray-50 rounded-md p-3">
+                    <p className="font-medium text-gray-900 whitespace-pre-wrap">
+                      {viewReport.reason || "(không có)"}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Trạng thái</p>
+                  <p className="font-medium text-gray-900">
+                    {statusLabels[viewReport.status as keyof typeof statusLabels] || "(không có)"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Ngày tạo</p>
+                  <p className="font-medium text-gray-900">
+                    {new Date(viewReport.createdAt).toLocaleString('vi-VN')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end mt-6 border-t pt-4">
+                <button
+                  onClick={() => setViewReport(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Answer Modal */}
+        {selectedReport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+              <h3 className="text-lg font-semibold mb-2">Trả lời báo cáo</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Báo cáo từ người dùng <b>{selectedReport.userName}</b> về di sản:{" "}
+                <b>{selectedReport.heritageName}</b>
+              </p>
+              <textarea
+                value={answerText}
+                onChange={(e) => setAnswerText(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-32 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Nhập câu trả lời..."
+              />
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  onClick={() => setSelectedReport(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSubmitAnswer}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Gửi trả lời
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </Spin>
   );
 };
 

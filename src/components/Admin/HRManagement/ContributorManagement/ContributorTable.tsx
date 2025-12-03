@@ -78,7 +78,7 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
       case "APPLIED":
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-            Chờ duyệt
+            Chờ xác nhận
           </span>
         );
       case ContributorStatus.REJECTED:
@@ -162,7 +162,7 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
       )}
 
       {/* APPLIED → Admin có thể Accept hoặc Reject */}
-      {status === ContributorStatus.APPLIED && (
+      {/* {status === ContributorStatus.APPLIED && (
         <>
           <button
             onClick={() => onAction(contributor, "approve")}
@@ -179,7 +179,7 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
             <X size={16} />
           </button>
         </>
-      )}
+      )} */}
 
       {/* REJECTED → chỉ xem, không có nút action khác */}
 
@@ -334,11 +334,11 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {contributor.userFullName}
+                      {contributor.fullName}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {contributor.userEmail}
+                    {contributor.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(contributor.status)}
@@ -363,7 +363,7 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
         </table>
       </div>
 
-      {!loading && contributors.length > 0 && (
+      {!loading && totalPages > 1 && (
         <div className="mt-4">
           <Pagination
             currentPage={currentPage}

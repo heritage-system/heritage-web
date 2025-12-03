@@ -23,6 +23,8 @@ const Register: React.FC = () => {
   const togglePassword = () => setShowPassword(!showPassword);
   const toggleConfirm = () => setShowConfirm(!showConfirm);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
@@ -51,19 +53,27 @@ const Register: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
     try {
       const res = await registration(form);
       if (res.code) {
-        toast.success("Đăng ký thành công!");
+        toast.success("Đăng ký thành công, vui lòng kích hoạt bằng email mã chúng tôi đã gửi!", {
+          duration: 1000,
+          position: 'top-right',
+          style: { background: '#059669', color: '#fff' },
+          iconTheme: { primary: '#fff', secondary: '#059669' },
+        });
         setTimeout(() => {
           toast.dismiss(); 
           navigate("/login");
-        }, 500);
+        }, 1000);
       } else {
         toast.error(res.message || "Đăng ký thất bại!");
       }
     } catch (err) {
       toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    } finally {
+      setIsSubmitting(false)
     }
   };
 
@@ -176,11 +186,18 @@ const Register: React.FC = () => {
 
             </label>
 
-            <button
+           <button
               type="submit"
-              className="w-full py-3 mb-4 bg-gradient-to-r from-yellow-800 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
+              disabled={isSubmitting}
+              className={`
+                w-full py-3 mb-4 rounded-xl font-semibold transition duration-300
+                ${isSubmitting 
+                  ? "bg-gray-300 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-yellow-800 to-yellow-600 text-white hover:shadow-lg"
+                }
+              `}
             >
-              Đăng ký
+              {isSubmitting ? "Đang xử lý..." : "Đăng kí"}
             </button>
 
 

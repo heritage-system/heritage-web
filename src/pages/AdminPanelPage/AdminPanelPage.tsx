@@ -104,8 +104,11 @@ import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
 import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
 import PanoramaTourManagement from "../../components/Admin/ContentManagement/PanoramaTourManagement/PanoramaTourManagement";
+import PremiumPackageManagement from "../../components/Admin/ContentManagement/PremiumPackageManagement/PremiumPackageManagement";
 import { useAuth } from '../../hooks/useAuth';
 import UserManagement from "../../components/Admin/HRManagement/UserManagement/UserManagement";
+import ReportManagement from '../../components/Admin/ReportsAnalytics/ReportManagement';
+
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -133,7 +136,8 @@ const moduleStructure = {
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
       { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
       { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement },
-      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement }
+      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement },
+      { id: "premiumPackages", name: "Gói Premium", icon: Globe, component: PremiumPackageManagement } 
     ]
   },
   financialManagement: {
@@ -152,9 +156,9 @@ const moduleStructure = {
     id: "hrManagement",
     title: "Quản lý Nhân sự",
     icon: Users,
-    subModules: [
-      { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },
-      { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },
+    subModules: [ 
+      { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },     
+      { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },   
       { id: "attendance", name: "Theo dõi chấm công", icon: Clock, component: AttendanceTracking },
       { id: "payroll", name: "Quản lý bảng lương", icon: CreditCard, component: PayrollManagement },
       { id: "performance", name: "Đánh giá hiệu suất", icon: BarChart3, component: PerformanceReview },
@@ -194,6 +198,7 @@ const moduleStructure = {
       { id: "users", name: "Quản lý người dùng", icon: Users, component: UserManagement },
       { id: "support", name: "Vé hỗ trợ", icon: MessageSquare, component: SupportTickets },
       { id: "communication", name: "Trung tâm liên lạc", icon: Mail, component: CommunicationHub },
+      { id: "reports", name: "Báo cáo khách hàng", icon: FileText, component: ReportManagement },
       // { id: "feedback", name: "Quản lý phản hồi", icon: MessageSquare, component: FeedbackManagement },
       // { id: "analytics", name: "Phân tích khách hàng", icon: BarChart3, component: CustomerAnalytics }
     ]
@@ -253,11 +258,14 @@ interface HeritageAdminPanelProps {
 
 const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({ 
   children,
-  initialModule,
-  initialSubModule,
   onBackToDashboard 
 }) => {
-  const location = useLocation();
+  
+   const location = useLocation();
+  console.log("STATE =", location.state);
+  const initialModule = location.state?.module.id;
+  const initialSubModule = location.state?.subModule;
+  console.log("name ", initialModule  )
   const navigate = useNavigate();
   const params = useParams(); // To handle subModule from URL if needed
   const [activeModule, setActiveModule] = useState<string>(initialModule || "contentManagement");
@@ -317,8 +325,10 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
       setActiveSubModule(subModuleId);
     } else {
       const module = moduleStructure[activeModule as keyof typeof moduleStructure];
+      console.log(module)
       if (module && module.subModules.length > 0) {
         setActiveSubModule(module.subModules[0].id);
+        console.log(activeModule)
       }
     }
   }, [location, initialModule, initialSubModule, params]);
