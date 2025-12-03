@@ -166,7 +166,8 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                 { label: 'Quét Ảnh', path: '/AIPredictLensPage', tourId: 'nav-ai' },
                 { label: 'Trò chơi', path: '/QuizzPage', tourId: 'nav-quiz' },
                 { label: 'Cộng đồng', path: '/CommunityPage', tourId: 'nav-community' },     
-                { label: 'Bài viết', path: '/contributions', tourId: 'nav-contributions' }        
+                { label: 'Bài viết', path: '/contributions', tourId: 'nav-contributions' }, 
+                { label: 'Gói Premium', path: '/premium-packages', tourId: 'nav-premium' }      
               ].map((item, idx) => (
                 <Link
                   key={idx}

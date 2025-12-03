@@ -19,6 +19,8 @@ const PUBLIC_ONLY_ENDPOINTS: string[] = [
   '/api/Heritage/heritage_related',
   '/api/v1/panorama_tours/search_panorama_tour',
   
+  '/api/Heritage/heritage_related',
+  '/api/v1/PremiumPackage/byActive'
 ];
 const OPTIONAL_AUTH_ENDPOINTS: string[] = [
   '/api/v1/contributions/get_contribution_detail',
