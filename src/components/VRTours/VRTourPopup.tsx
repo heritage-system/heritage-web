@@ -199,7 +199,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
       allowFullScreen
       frameBorder="0"
       scrolling="no"
-      allow="vr; gyroscope; accelerometer"
+      allow="fullscreen; vr; accelerometer; gyroscope; magnetometer"
       style={{ width: "100%", height: "100%" }}
     />
   )}
