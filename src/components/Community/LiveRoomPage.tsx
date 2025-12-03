@@ -34,13 +34,27 @@ const LiveRoomPage: React.FC = () => {
 const { sharing, startShare, stopShare } = useStreaming();
 const shownPinned = pinned || localPinned; // ưu tiên ghim toàn phòng
 const autoRef = useRef(false);
-  const {
-    room, roomName, setRoomName,
-    grant, fetchTokens,
-    joined, micOn, camOn,
-    roster, waiting, isHost,
-    joinLive, leaveLive, toggleMic, toggleCam,setRole,kick
-  } = useStreaming();
+
+
+const {
+  room,
+  roomName,
+  setRoomName,
+  grant,
+  fetchTokens,
+  joined,
+  micOn,
+  camOn,
+  roster,
+  isHost,
+  joinLive,
+  leaveLive,
+  toggleMic,
+  toggleCam,
+  setRole,
+  kick,
+} = useStreaming();
+
 const { localVideoReady } = useStreaming();
   // Lấy room từ URL: hỗ trợ /live/:room và /live/:roomId
 
@@ -54,29 +68,9 @@ useEffect(() => {
   if (urlRoom && urlRoom !== roomName) setRoomName(urlRoom);
 }, [urlRoom, roomName, setRoomName]);
 
-// ✅ Chỉ fetch token khi đã có roomName (tránh toast "Nhập roomName")
-useEffect(() => {
-  if (!grant && (roomName || urlRoom)) {
-    void fetchTokens();
-  }
-}, [grant, roomName, urlRoom, fetchTokens]);
-useEffect(() => {
-  if (autoRef.current) return;
-  autoRef.current = true;
 
-  (async () => {
-    // Lấy token (sẽ auto-admit nếu bạn bật OpenAdmission ở backend)
-    const g = grant ?? (await fetchTokens());
-    if (!g) return;
 
-    // đồng bộ roomName để các API khác (roster/heartbeat) dùng
-    if (!roomName && g.channel) setRoomName(g.channel);
 
-    // tự join (role sẽ lấy theo grant.role)
-    await joinLive().catch(() => {});
-  })();
-  // chỉ chạy 1 lần khi mount
-}, []); 
   // ============== UI STATE (chat & reaction demo) ==============
   const [activePanel, setActivePanel] = useState<"participants" | "chat" | null>(null);
   
@@ -140,6 +134,19 @@ useEffect(() => {
   chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [roomMessages]);
 
+useEffect(() => {
+  if (autoRef.current) return;
+  autoRef.current = true;
+
+  const name = urlRoom || roomName;
+  if (!name) return;
+
+  // đảm bảo context có roomName (cho chỗ khác xài)
+  if (!roomName) setRoomName(name);
+
+  // join, để joinLive tự lo fetchTokens(name)
+  joinLive({ roomName: name }).catch(() => {});
+}, [urlRoom, roomName, setRoomName, joinLive]);
   // Phím tắt
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -361,14 +368,14 @@ const handleLeaveAll = async () => {
         <div className="flex items-center gap-2">
           {/* Quick actions đổi role */}
           <button
-            onClick={() => setRole(r.userId, "CoHost")}
+            onClick={() => setRole(r.userId, "COHOST")}
             className="px-2 py-1 text-xs rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200"
             title="Set CoHost"
           >
             Set CoHost
           </button>
           <button
-            onClick={() => setRole(r.userId, "Host")}
+            onClick={() => setRole(r.userId, "HOST")}
             className="px-2 py-1 text-xs rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200"
             title="Set Host"
           >
@@ -376,32 +383,22 @@ const handleLeaveAll = async () => {
           </button>
 
           {/* Kick */}
-          <button
-            onClick={async () => {
-              const ok = window.confirm(`Kick user ${r.userId}?`);
-              if (ok) await kick(r.userId);
-            }}
-            className="px-2 py-1 text-xs rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
-            title="Kick khỏi phòng"
-          >
-            Kick
-          </button>
+       <button
+  onClick={async () => {
+    const ok = window.confirm(`Kick user ${r.userId}?`);
+    if (ok) await kick(r.userId);
+  }}
+  className="px-2 py-1 text-xs rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
+  title="Kick khỏi phòng"
+>
+  Kick
+</button>
+
         </div>
       )}
     </div>
   );
 })}
-
-        {isHost && waiting.length > 0 && (
-          <div className="mt-4 pt-3 border-t">
-            <div className="text-sm font-semibold mb-2">Hàng chờ ({waiting.length})</div>
-            {waiting.map(w => (
-              <div key={w.id} className="text-sm text-gray-700">
-                • userId {w.userId} (rtc {w.rtcUid}) – {w.status}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     ) : (
       // CHAT MODE: composer on top, history below
@@ -513,20 +510,24 @@ const handleLeaveAll = async () => {
 
             <div className="flex items-center gap-3">
               {/* Join nếu chưa vào, nếu đã vào thì phím rời toàn phòng */}
-              {!joined ? (
-                <button
-                  onClick={() => joinLive().catch(()=>{})}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-full flex items-center gap-2 font-bold shadow-xl"
-                >
-                  <PhoneCall className="w-5 h-5" />
-                  <span>Join</span>
-                </button>
-              ) : (
-                <button onClick={handleLeaveAll} className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-8 py-4 rounded-full flex items-center gap-2 font-bold shadow-xl">
-                  <Phone className="w-5 h-5" />
-                  <span>Rời phòng</span>
-                </button>
-              )}
+            {joined ? (
+  <button
+    onClick={handleLeaveAll}
+    className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-8 py-4 rounded-full flex items-center gap-2 font-bold shadow-xl"
+  >
+    <Phone className="w-5 h-5" />
+    <span>Rời phòng</span>
+  </button>
+) : (
+  <button
+    disabled
+    className="bg-gradient-to-r from-gray-300 to-gray-400 text-white px-6 py-3 rounded-full flex items-center gap-2 font-bold shadow-xl cursor-default"
+  >
+    <PhoneCall className="w-5 h-5" />
+    <span>Đang kết nối...</span>
+  </button>
+)}
+
 
               <button
                 onClick={() => toggleMic()}

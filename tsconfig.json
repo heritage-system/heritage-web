@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-   
     "target": "ES6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -9,7 +8,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
-     "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "6.0",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -18,7 +17,10 @@
     "paths": {
       "@/*": ["*"]
     },
-    "types": ["react", "react-dom"]
+    "types": ["react", "react-dom"],
+
+    // 👇 THÊM DÒNG NÀY
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

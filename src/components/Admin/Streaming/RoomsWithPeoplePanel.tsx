@@ -6,7 +6,7 @@ import { useStreaming } from "./StreamingContext";
 
 const RoomsWithPeoplePanel: React.FC = () => {
   const navigate = useNavigate();
-  const { setRoomName } = useStreaming();
+const { setRoomName, fetchTokens } = useStreaming();
   const [rooms, setRooms] = useState<StreamingRoomWithCountResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -15,7 +15,7 @@ const RoomsWithPeoplePanel: React.FC = () => {
     setLoading(true);
     setErr(null);
     try {
-      const res = await getRoomsWithPeople(1, "Admitted");
+      const res = await getRoomsWithPeople(1, "ADMITTED");
       if (res.code === 200 && res.result) {
         setRooms(res.result);
       } else {
@@ -55,15 +55,20 @@ const RoomsWithPeoplePanel: React.FC = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={() => { setRoomName(r.roomName); navigate("/stream/join"); }}
-                className="rounded bg-emerald-600 px-3 py-1 text-sm text-white hover:bg-emerald-700"
-              >
-                Điền & Xin vào
-              </button>
             <button
-  onClick={() => {
-    setRoomName(r.roomName);                   // ✅
+  onClick={() => { setRoomName(r.roomName); navigate("/stream/join"); }}
+  className="rounded bg-emerald-600 px-3 py-1 text-sm text-white hover:bg-emerald-700"
+>
+  Chọn phòng
+</button>
+          <button
+  onClick={async () => {
+    // giống "Điền + Lấy token"
+    setRoomName(r.roomName);
+
+    const grant = await fetchTokens(r.roomName);
+    if (!grant) return;              // nếu backend trả lỗi (chưa được phép vào, v.v.) thì dừng luôn
+
     navigate(`/live/${encodeURIComponent(r.roomName)}`);
   }}
   className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"

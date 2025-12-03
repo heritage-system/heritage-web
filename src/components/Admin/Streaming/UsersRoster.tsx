@@ -3,13 +3,13 @@ import { useStreaming } from "./StreamingContext";
 import type { RoomRole } from "../../../types/streaming";
 import { ArrowRightLeft, Shield, UserMinus } from "lucide-react";
 
-const roleOptions: RoomRole[] = ["Host", "CoHost", "Speaker", "Audience"];
+const roleOptions: RoomRole[] = ["HOST", "COHOST", "SPEAKER", "AUDIENCE"];
 
 const Badge: React.FC<{ role: RoomRole }> = ({ role }) => {
   const color =
-    role === "Host" ? "bg-red-100 text-red-700" :
-    role === "CoHost" ? "bg-purple-100 text-purple-700" :
-    role === "Speaker" ? "bg-amber-100 text-amber-700" :
+    role === "HOST" ? "bg-red-100 text-red-700" :
+    role === "COHOST" ? "bg-purple-100 text-purple-700" :
+    role === "SPEAKER" ? "bg-amber-100 text-amber-700" :
     "bg-gray-100 text-gray-700";
   return (
     <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${color}`}>
@@ -19,7 +19,7 @@ const Badge: React.FC<{ role: RoomRole }> = ({ role }) => {
 };
 
 const UsersRoster: React.FC = () => {
-  const { roster, isHost, setRole, reject, refreshRoster } = useStreaming();
+  const { roster, isHost, setRole, refreshRoster } = useStreaming();
 
   return (
     <div className="rounded-xl border bg-white p-4 shadow-sm">
@@ -69,13 +69,13 @@ const UsersRoster: React.FC = () => {
                     </div>
 
                     {/* Kick */}
-                    <button
+                    {/* <button
                       onClick={() => reject(u.userId)}
                       className="inline-flex items-center gap-1 rounded bg-rose-50 px-2 py-1 text-xs text-rose-600 hover:bg-rose-100"
                       title="Kick khỏi phòng"
                     >
                       <UserMinus size={14} /> Kick
-                    </button>
+                    </button> */}
                   </div>
                 )}
               </div>

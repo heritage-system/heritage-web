@@ -1,4 +1,3 @@
-// src/components/Admin/Streaming/ParticipantsListPanel.tsx
 import React, { useEffect, useState } from "react";
 import { useStreaming } from "./StreamingContext";
 import { getParticipants } from "../../../services/streamingService";
@@ -13,12 +12,13 @@ const ParticipantsListPanel: React.FC = () => {
   const load = async () => {
     if (!roomName) return;
     setLoading(true);
-    const res = await getParticipants(roomName, "Admitted");
+    const res = await getParticipants(roomName, "ADMITTED");
     if (res.code === 200 && res.result) setItems(res.result);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, [roomName]);
+
   useEffect(() => {
     if (!auto || !roomName) return;
     const id = setInterval(load, 2000);
@@ -52,18 +52,32 @@ const ParticipantsListPanel: React.FC = () => {
       <div className="mt-3 space-y-2">
         {items.length === 0 ? (
           <div className="text-sm text-gray-500">Chưa có ai trong phòng.</div>
-        ) : items.map(u => (
-          <div key={u.id} className="flex items-center justify-between rounded border p-2">
-            <div className="text-sm">
-              <div><span className="font-medium">UserId:</span> {u.userId} {u.isRaisedHand ? "✋" : ""}</div>
-              <div><span className="font-medium">RTC UID:</span> {u.rtcUid}</div>
-              <div><span className="font-medium">Role:</span> {u.role}</div>
-              <div><span className="font-medium">Status:</span> {u.status}</div>
+        ) : (
+          items.map((u) => (
+            <div
+              key={u.id}
+              className="flex items-center justify-between rounded border p-2"
+            >
+              <div className="text-sm">
+                <div>
+                  <span className="font-medium">UserId:</span> {u.userId}
+                </div>
+                <div>
+                  <span className="font-medium">RTC UID:</span> {u.rtcUid}
+                </div>
+                <div>
+                  <span className="font-medium">Role:</span> {u.role}
+                </div>
+                <div>
+                  <span className="font-medium">Status:</span> {u.status}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
 };
+
 export default ParticipantsListPanel;

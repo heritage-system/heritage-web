@@ -30,6 +30,9 @@ import JoinRoomPage from './pages/CommunityPage/JoinRoomPage';
 import AdminStreamPage from './pages/AdminPage/AdminStreamPage';
 import { StreamingProvider } from './components/Admin/Streaming/StreamingContext';
 import LiveRoomPage from './components/Community/LiveRoomPage';
+import { EventProvider } from "./components/Admin/EventManagement/EventContext";
+import EventDetailPage from './pages/CommunityPage/EventDetailPage';
+import EventDetailView from './components/Community/EventDetailView';
 
 const App: React.FC = () => {
   return (
@@ -39,12 +42,16 @@ const App: React.FC = () => {
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
      <Route path="/admin/stream" element={<MainLayout> <StreamingProvider><AdminStreamPage /></StreamingProvider></MainLayout>} />
-      <Route path="/stream/join" element={<MainLayout> <StreamingProvider><JoinRoomPage /></StreamingProvider></MainLayout>} />
+      <Route path="CommunityPage" element={<MainLayout><StreamingProvider><EventProvider><JoinRoomPage /></EventProvider></StreamingProvider></MainLayout>}
+/>
+      <Route path="/events/:eventId" element={<MainLayout><StreamingProvider><EventProvider><EventDetailPage /></EventProvider></StreamingProvider></MainLayout>}
+/>
+
      
-      <Route path="/live/:roomName" element={ <StreamingProvider><LiveRoomPage /></StreamingProvider>} />
+       <Route path="/live/:roomName" element={ <StreamingProvider><LiveRoomPage /></StreamingProvider>} />
      
         <Route path="AIPredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} />
-        <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} />
+        {/* <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} /> */}
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
         <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
         <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
@@ -55,7 +62,10 @@ const App: React.FC = () => {
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
         <Route path="/contribution-form/:id?" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
-        <Route path="/admin/adminPanelmanagement" element={<StreamingProvider><AdminPanelPage/></StreamingProvider>} />
+        <Route path="/admin/adminPanelmanagement" element={<StreamingProvider><EventProvider><AdminPanelPage /></EventProvider></StreamingProvider>
+  }
+/>
+
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
         <Route path="/admin/reports" element={<ReportManagement />} />
         <Route path="/reports/:id" element={<ReportDetailManagement />} />

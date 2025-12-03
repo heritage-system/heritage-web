@@ -253,36 +253,7 @@ const clearSearch = () => {
    return (
     <div>
         <div className="flex items-center gap-4 mb-4">
-  {/* <div className="flex items-center gap-2">
-    <label>Trang:</label>
-    <input
-      type="number"
-      min={1}
-      max={totalPages}
-      value={currentPage}
-      onChange={(e) => {
-        const page = Math.max(1, Math.min(totalPages, Number(e.target.value)));
-        setCurrentPage(page);
-      }}
-      className="border px-2 py-1 rounded-md w-16"
-    />
-    / {totalPages}
-  </div>
-
-  <div className="flex items-center gap-2">
-    <label>Số mục / trang:</label>
-    <input
-      type="number"
-      min={1}
-      value={itemsPerPage}
-      onChange={(e) => {
-        const pageSize = Math.max(1, Number(e.target.value));
-        setCurrentPage(1); // reset page
-        setItemsPerPage(pageSize);
-      }}
-      className="border px-2 py-1 rounded-md w-16"
-    />
-  </div> */}
+  
 </div>
 
       <div className="flex justify-between items-center mb-6">

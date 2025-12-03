@@ -9,11 +9,18 @@ import EnterLiveButton from '../../../components/Admin/Streaming/EnterLiveButton
 import WaitingListPanel from '../../../components/Admin/Streaming/WaitingListPanel';
 import ParticipantsListPanel from '../../../components/Admin/Streaming/ParticipantsListPanel';
 import HostActionsPanel from '../../../components/Admin/Streaming/HostActionsPanel';
-
-export default function EventCreate() {
+import { useSearchParams } from "react-router-dom";
+import { useLocation } from 'react-router-dom';
+import LiveRoomManager from './LiveRoomManager';
+interface EventCreateProps {
+  eventId?: number;
+}
+export default function EventCreate({ eventId }: EventCreateProps) {
   const { room, roomName } = useStreaming();
   const effective = roomName || room?.roomName || '';
 
+
+  const location = useLocation() as any;
   const copyRoomId = async () => {
     if (!effective) return;
     try {
@@ -38,13 +45,13 @@ export default function EventCreate() {
           <Video className="w-6 h-6 text-red-600" />
           Tạo & Quản lý Phòng Livestream
         </h1>
-        <p className="text-gray-600 mt-1">
-          Tạo phòng, chọn/nhập RoomName, vào live, duyệt/đổi quyền người tham gia – tất cả trên một trang.
-        </p>
+       <p className="text-gray-600 mt-1">
+  Tạo phòng, chọn/nhập RoomName, vào live và quản lý quyền người tham gia – tất cả trên một trang.
+</p>
       </div>
 
       {/* Tạo phòng */}
-      <CreateRoomForm />
+    <CreateRoomForm eventId={eventId} />
 
       {/* Chọn/nhập RoomName */}
       <RoomSelector />
@@ -84,14 +91,9 @@ export default function EventCreate() {
       {/* Đi tới phòng live */}
       <EnterLiveButton />
 
-      {/* Chờ duyệt (ẩn nếu OPEN_ADMISSION=true trong panel) */}
-      <WaitingListPanel />
+     
 
-      {/* Người trong phòng */}
-      <ParticipantsListPanel />
-
-      {/* Hành động của host: admit/reject/set role */}
-      <HostActionsPanel />
+      <LiveRoomManager eventId={eventId} />   {/* 🔥 thêm eventId ở đây */}
     </div>
   );
 }

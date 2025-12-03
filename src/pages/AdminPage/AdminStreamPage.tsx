@@ -6,17 +6,15 @@ import HostActionsPanel from "../../components/Admin/Streaming/HostActionsPanel"
 import WaitingListPanel from "../../components/Admin/Streaming/WaitingListPanel";
 import EnterLiveButton from "../../components/Admin/Streaming/EnterLiveButton";
 import ParticipantsListPanel from "../../components/Admin/Streaming/ParticipantsListPanel";
+import { useSearchParams } from "react-router-dom";
+import EventCreate from "../../components/Admin/EventManagement/EventCreate";
 
 const AdminStreamPage: React.FC = () => {
-  return (
-    <div className="space-y-6">
-      <CreateRoomForm />
-      <RoomSelector />
-      <EnterLiveButton/>
-        <WaitingListPanel />       {/* chờ duyệt: reload + auto */}
-      <ParticipantsListPanel />  {/* đã trong phòng: reload + auto */}
-      <HostActionsPanel />   {/* <- duyệt nhanh theo UserId nếu muốn */}
-    </div>
-  );
+  const [searchParams] = useSearchParams();
+  const eventIdParam = searchParams.get("eventId");
+  const eventId = eventIdParam ? Number(eventIdParam) : undefined;
+
+  return <EventCreate eventId={eventId} />;
 };
+  
 export default AdminStreamPage;
