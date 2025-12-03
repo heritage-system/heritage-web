@@ -5,6 +5,7 @@ import {
   Send, Smile, X, Heart, Laugh, Frown, ThumbsUp, ThumbsDown, Zap, PhoneCall
 } from "lucide-react";
 import { useStreaming } from "../../components/Admin/Streaming/StreamingContext";
+import { getClient } from "../../services/agoraRtc";
 import { ReactionFloat } from "./ReactionFloat";
 import { RefreshCcw } from "lucide-react";
 /** 
@@ -133,6 +134,87 @@ useEffect(() => {
 useEffect(() => {
   chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [roomMessages]);
+  // Khi ghim 1 remote, phát video của họ vào khung chính (#local-player)
+    // Khi ghim 1 remote, phát video của họ vào khung chính (#local-player)
+useEffect(() => {
+  if (!joined) return;
+
+  const client = getClient();
+  const mainEl = document.getElementById("local-player") as HTMLDivElement | null;
+  if (!client || !mainEl) return;
+
+  // Không pin nữa → thôi, giữ nguyên nội dung cũ (local cam / placeholder)
+  if (pinnedUid == null) {
+    // Nếu muốn clear hẳn thì bật dòng dưới:
+    // mainEl.innerHTML = "";
+    return;
+  }
+
+  let cancelled = false;
+
+  const tryPlay = async () => {
+    if (cancelled) return;
+
+    // Lấy lại user mỗi lần, không cache
+    const user = client.remoteUsers.find(
+      (u) => String(u.uid) === String(pinnedUid)
+    );
+    console.log("123")
+    console.log(client.remoteUsers.map(u => ({ uid: u.uid, hasVideo: u.hasVideo, hasAudio: u.hasAudio })))
+    const track: any = user?.videoTrack;
+
+    console.log("[PIN EFFECT] tryPlay", {
+      pinnedUid,
+      hasUser: !!user,
+      hasTrack: !!track,
+      closed: track?._isClosed,
+      destroyed: track?._isDestroyed,
+      hasVideoFlag: user?.hasVideo,
+    });
+
+    // Chưa có user hoặc chưa có track → chờ rồi thử lại
+    if (!user || !user.hasVideo || !track) {
+      setTimeout(tryPlay, 400);
+      return;
+    }
+
+    // Track có nhưng đang ở trạng thái chết → cũng retry, không clear canvas
+    if (track._isClosed || track._isDestroyed) {
+      setTimeout(tryPlay, 400);
+      return;
+    }
+
+    // Để chắc chắn đã subscribe video (phòng trường hợp mình chưa subscribe user này)
+    try {
+      if (!user.hasVideo) {
+        await client.subscribe(user, "video");
+      }
+    } catch (err) {
+      console.warn("[PIN] subscribe failed, retry later", err);
+      setTimeout(tryPlay, 600);
+      return;
+    }
+
+    // Tới đây coi như track đã OK → clear & play
+    mainEl.innerHTML = "";
+    try {
+      track.play(mainEl);
+    } catch (err) {
+      console.error("[PIN] play error", err);
+      // Nếu fail thì đừng để khung đen trống, thử lại sau
+      setTimeout(tryPlay, 600);
+      return;
+    }
+  };
+
+  tryPlay();
+
+  return () => {
+    cancelled = true;
+  };
+}, [pinnedUid, joined]);
+
+
 
 useEffect(() => {
   if (autoRef.current) return;
