@@ -6,6 +6,7 @@ import { useState,useEffect } from "react";
 import VRTourPopup from "../../components/VRTours/VRTourPopup";
 import { PanoramaTourSearchResponse,PanoramaTourSearchRequest, PanoramaTourDetailResponse } from "../../types/panoramaTour";
 import { searchPanoramaTour, getPanoramaTourDetail, unlockPanoramaScene } from "../../services/panoramaTourService";
+import VRTourCardSkeleton from "../../components/VRTours/VRTourCardSkeleton";
 import { fetchCategories } from "../../services/categoryService";
 import { Category } from "../../types/category";
 import Pagination from '../../components/Layouts/Pagination';
@@ -159,22 +160,23 @@ const VRToursPage = () => {
       <div className="max-w-7xl mx-auto px-4 my-8">
         
         {loading ? (
-          <p className="text-center py-10 text-gray-500">Đang tải...</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {tours.map((tour) => (
-              <VRTourCard 
-                key={tour.id} 
-                tour={tour}
-                onStartTour={handleStartTour}
-                
-              />
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <VRTourCardSkeleton key={i} />
+    ))}
+  </div>
+) : (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {tours.map((tour) => (
+      <VRTourCard
+        key={tour.id}
+        tour={tour}
+        onStartTour={handleStartTour}
+      />
+    ))}
+  </div>
+)}
 
-            ))}
-           
-          </div>
-          
-        )}
       {totalPages > 1 && !loading && (
         <div className="mt-8">
           <Pagination

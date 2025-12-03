@@ -1,23 +1,33 @@
-export interface PredictResponse {
-  matches: {
-    heritage_id: number;
-    score: number;
-    name: string | null;
-    description: string | null;
-    avatar_url: string | null;
-    evidence: {
-      score: number;
-      media_id: number;
-      heritage_id: number;
-      url: string;
-      is_video: boolean;
-      frame_idx: number | null;
-      note: string | null;
-      meta_index: number;
-    }[];
-  }[];
-}
+import { HeritageLocation, HeritageMedia, HeritageOccurrence } from "./heritage";
 
+export interface PredictResponse {
+  // NEW: mô tả ảnh input (tạo bởi backend)
+  inputDescription: string;
+  matches: Array<{
+    id: number;
+    name: string;
+    description: string;
+    categoryName: string | null;
+    heritageOccurrences: HeritageOccurrence[];
+    media: HeritageMedia | null;
+    heritageTags: string[];
+    heritageTagIds: number[];
+    heritageLocations: HeritageLocation[];
+    score: number;          // best score theo heritage_id
+  }>;
+
+  warning?: {
+    code: string;
+    label?: string;
+    confidence?: number;
+    probs?: Record<string, number>;
+  };
+  error?: {
+    code: string;
+    message: string;
+    [k: string]: unknown;
+  };
+}
 /** Lỗi dạng object (NON_PHOTOGRAPHIC, IMAGE_TOO_SMALL) */
 export type PredictErrorObject = {
   error: {

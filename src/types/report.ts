@@ -45,8 +45,8 @@ export interface ReportReply {
 }
 
 export interface CreateReportRequest {
+  heritageId: number;
   reason: string;
-  description: string;
 }
 
 export interface ReportResponse {

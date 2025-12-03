@@ -280,11 +280,11 @@ const ContributorForm: React.FC<ContributorFormProps> = ({
             <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
               <p className="text-sm text-gray-700">
                 <span className="font-medium">Người dùng:</span>{" "}
-                {contributor.userFullName ?? "-"}
+                {contributor.fullName ?? "-"}
               </p>
               <p className="text-sm text-gray-700">
                 <span className="font-medium">Email:</span>{" "}
-                {contributor.userEmail ?? "-"}
+                {contributor.email ?? "-"}
               </p>
               {contributor.documentsUrl && (
               <p className="text-sm text-gray-700">

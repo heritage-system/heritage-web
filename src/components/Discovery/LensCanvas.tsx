@@ -16,6 +16,8 @@ type DragKind =
 const DEFAULT_CROP_W = 0.70;
 const DEFAULT_CROP_H = 0.70;
 const HANDLE_PX = 14; // a bit larger; easier to grab
+const AUTO_CONFIRM_DELAY = 500;
+
 
 export interface LensCanvasProps {
   imageUrl?: string | null;
@@ -38,7 +40,7 @@ const getDrawRect = (canvas: HTMLCanvasElement, img: HTMLImageElement) => {
   const imgRatio = img.naturalWidth / img.naturalHeight;
 
   // ~2% of the shortest side, clamped to [8, 32] px
-  const pad = Math.max(8, Math.min(32, Math.round(Math.min(canvas.width, canvas.height) * 0.02)));
+  const pad = Math.max(25, Math.min(32, Math.round(Math.min(canvas.width, canvas.height) * 0.02)));
 
   const innerW = Math.max(0, canvas.width  - pad * 2);
   const innerH = Math.max(0, canvas.height - pad * 2);
@@ -168,6 +170,17 @@ const seededForUrlRef = useRef<string | null>(null);
   const [endPt, setEndPt] = useState<Point | null>(null);
   const [hasSelection, setHasSelection] = useState(false);
 
+  const autoConfirmRef = useRef<number | null>(null);
+  useEffect(() => {
+  if (dragging) return; // đang kéo thì thôi
+
+  if (!crop01) return;
+
+  const t = setTimeout(() => confirmCrop(), 500);
+  return () => clearTimeout(t);
+}, [dragging]);
+
+
   /* seed crop */
  useEffect(() => {
   if (!imgLoaded || !internalImageUrl) return;
@@ -246,16 +259,18 @@ const seededForUrlRef = useRef<string | null>(null);
   const pickNewImage = () => fileInputRef.current?.click();
 
   const loadFile = (f: File) => {
-    const url = URL.createObjectURL(f);
-    setInternalImageUrl(url);
-    setOriginalFile(f);
-    setImgLoaded(false);
-    setHasSelection(false);
-    setStartPt(null);
-    setEndPt(null);
-    onStatus?.("idle");
-    onImageSelected?.(f);
-  };
+  const url = URL.createObjectURL(f);
+  setOriginalFile(f);
+  setImgLoaded(false);
+  setHasSelection(false);
+  setStartPt(null);
+  setEndPt(null);
+  onStatus?.("idle");
+
+  setInternalImageUrlSafe(url);  // ✅ thay vì setInternalImageUrl trực tiếp
+  onImageSelected?.(f);
+};
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -450,6 +465,52 @@ const onPointerUp = async (e?: React.PointerEvent<HTMLCanvasElement>) => {
     onStatus?.("idle");
   };
 
+  const setInternalImageUrlSafe = (url: string | null) => {
+    // Revoke URL cũ nếu có
+    if (internalImageUrl && internalImageUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(internalImageUrl);
+    }
+
+    setInternalImageUrl(url);
+
+    if (url) {
+      sessionStorage.setItem("ai-lens-image", url);
+    } else {
+      sessionStorage.removeItem("ai-lens-image");
+    }
+  };
+
+  useEffect(() => {
+  const savedImage = sessionStorage.getItem("ai-lens-image");
+  const savedCrop = sessionStorage.getItem("ai-lens-crop");
+
+  if (savedImage) {
+    setInternalImageUrl(savedImage);
+    setImgLoaded(false);
+    setHasSelection(false);
+    setStartPt(null);
+    setEndPt(null);
+
+    if (savedCrop) {
+      try {
+        const rect = JSON.parse(savedCrop) as Rect01;
+        setCrop01(rect);
+        onCropRectChange?.(rect);
+        onStatus?.("ready");
+      } catch {}
+    }
+  }
+}, []);
+
+useEffect(() => {
+  if (!crop01) {
+    sessionStorage.removeItem("ai-lens-crop");
+    return;
+  }
+  sessionStorage.setItem("ai-lens-crop", JSON.stringify(crop01));
+}, [crop01]);
+
+
   /* ===================== Render ===================== */
 
   return (
@@ -538,7 +599,7 @@ const onPointerUp = async (e?: React.PointerEvent<HTMLCanvasElement>) => {
       {/* Canvas */}
     <canvas
   ref={canvasRef}
-  className="w-full h-[60vh] md:h-[70vh] touch-none bg-neutral-900"
+  className="w-full h-full touch-none bg-neutral-900"
   onPointerDown={onPointerDown}
   onPointerMove={onPointerMove}
   onPointerUp={onPointerUp}

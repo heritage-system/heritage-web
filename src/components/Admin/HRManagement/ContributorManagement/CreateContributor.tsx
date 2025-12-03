@@ -2,27 +2,18 @@ import React, { useRef, useState } from "react";
 import { X, Loader2, Plus } from "lucide-react";
 import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
 import { UserCreationByAdminRequest } from "../../../../types/user";
-import { StaffRole } from "../../../../types/enum";
 
-interface CreateStaffProps {
+interface CreateContributorProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: UserCreationByAdminRequest) => Promise<void>;
 }
 
-const staffRoleOptions = [
-  { value: StaffRole.CONTENT_REVIEWER, label: "Duyệt nội dung" },
-  { value: StaffRole.EVENT_MANAGER, label: "Quản lý sự kiện" },
-  { value: StaffRole.SUPPORT_STAFF, label: "Hỗ trợ người dùng" },
-  { value: StaffRole.COORDINATOR, label: "Điều phối viên" },
-  { value: StaffRole.MODERATOR, label: "Kiểm duyệt viên" },
-  { value: StaffRole.ADMIN_ASSISTANT, label: "Trợ lý Admin" },
-] as const;
 
-export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProps) {
+export default function CreateContributor({ isOpen, onClose, onSave }: CreateContributorProps) {
   const [loading, setLoading] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
-
+  const [isPremiumEligible, setIsPremiumEligible] = useState(false);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loading) return;
@@ -37,12 +28,11 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
         fullName: form.fullName.value.trim(),
         phone: form.phone.value.trim() || undefined,
         address: form.address.value.trim() || undefined,
-        dateOfBirth: form.dateOfBirth.value || undefined,
-        staffRole: Number(form.staffRole.value) as StaffRole,
-        canManageEvents: form.canManageEvents.checked,
-        canReplyReports: form.canReplyReports.checked,
-        canAssignTasks: form.canAssignTasks.checked,
-        roleName: "STAFF",
+        dateOfBirth: form.dateOfBirth.value || undefined,  
+        bio: form.bio.value.trim(),
+        expertise: form.expertise.value.trim(),           
+        isPremiumEligible: isPremiumEligible,        
+        roleName: "CONTRIBUTOR",
       };
 
       await onSave(data);
@@ -73,7 +63,7 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
       <div className="bg-white rounded-2xl shadow-2xl w-full">
         <div className="flex items-center justify-between px-8 pt-7 pb-5 border-b border-gray-100">
           <h3 id="create-staff-title" className="text-2xl font-bold text-gray-900">
-            Thêm nhân viên mới
+            Thêm cộng tác viên mới
           </h3>
           <button
             onClick={handleClose}
@@ -98,7 +88,7 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
                 minLength={3}
                 disabled={loading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
-                placeholder="staff123"
+                placeholder="contributor123"
               />
             </div>
 
@@ -160,50 +150,74 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
- 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Vai trò nhân viên <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="staffRole"
-                required
-                disabled={loading}
-                defaultValue={StaffRole.CONTENT_REVIEWER}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
-              >
-                {staffRoleOptions.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+            <div className="md:col-span-2">            
+               {/* BIO */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Tiểu sử</label>
+                <textarea
+                  name="bio"                         
+                  disabled={loading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 mb-2"
+                  placeholder="Nhập tiểu sử..."
+                />
+              </div>
 
-          <div className="border-t pt-6">
-            <p className="text-sm font-semibold text-gray-700 mb-4">Quyền hạn bổ sung</p>
-            <div className="space-y-3">
-              {[
-                { name: "canManageEvents", label: "Quản lý sự kiện" },
-                { name: "canReplyReports", label: "Phản hồi báo cáo" },
-                { name: "canAssignTasks", label: "Phân công nhiệm vụ" },
-              ].map((item) => (
-                <label key={item.name} className="flex items-center gap-3 cursor-pointer">
+              {/* EXPERTISE */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Chuyên môn</label>
+                <input
+                  type="text"
+                  name="expertise"
+                
+                  disabled={loading}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 mb-4"
+                  placeholder="Nhập chuyên môn..."
+                />
+              </div>
+
+              {/* DOCUMENTS URL - visible when editing */}
+            
+                {/* <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tài liệu (URL)</label>
                   <input
-                    type="checkbox"
-                    name={item.name}
+                    type="url"
+                    name="documentsUrl"
+                  
                     disabled={loading}
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 mb-4"
+                    placeholder="Nhập đường dẫn tài liệu..."
                   />
-                  <span className="text-sm text-gray-700">{item.label}</span>
-                </label>
-              ))}
+                </div> */}
+
+              {/* IS PREMIUM ELIGIBLE */}
+<div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-amber-50 to-red-50">
+  <span className="text-sm font-medium text-gray-900">
+    Cho phép đăng bài <span className="text-red-600 font-semibold">Premium</span>
+  </span>
+
+  <button
+    type="button"
+    role="switch"
+    disabled={loading}
+    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors
+      ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+      ${isPremiumEligible ? "bg-gradient-to-r from-yellow-600 to-red-600" : "bg-gray-300"}
+    `}
+    onClick={() => setIsPremiumEligible(!isPremiumEligible)}
+  >
+    <span
+      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform
+        ${isPremiumEligible ? "translate-x-6" : "translate-x-1"}
+      `}
+    />
+  </button>
+</div>
+
             </div>
-          </div>
+
+           
+        </div>
 
           <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
             <button
@@ -228,7 +242,7 @@ export default function CreateStaff({ isOpen, onClose, onSave }: CreateStaffProp
               ) : (
                 <>
                   <Plus size={18} />
-                  Tạo nhân viên
+                  Tạo cộng tác viên
                 </>
               )}
             </button>
