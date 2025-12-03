@@ -4,6 +4,7 @@ import { searchHeritage } from "../services/heritageService";
 
 interface UseDiscoveryFiltersResult {
   heritages: HeritageSearchResponse[];
+  heritagePredicts: HeritageSearchResponse[];
   loading: boolean;
   error: string | null;
   filters: HeritageSearchRequest;
@@ -13,6 +14,7 @@ interface UseDiscoveryFiltersResult {
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   fetchHeritagesDirect: (params: Partial<HeritageSearchRequest>) => Promise<HeritageSearchResponse[]>;
+  fetchHeritagesAi: (heritages: HeritageSearchResponse[]) => void;
 }
 
 export const useDiscoveryFilters = (
@@ -21,6 +23,7 @@ export const useDiscoveryFilters = (
   isMapView: boolean = false
 ): UseDiscoveryFiltersResult => {
   const [heritages, setHeritages] = useState<HeritageSearchResponse[]>([]);
+  const [heritagePredicts, setHeritagePredicts] = useState<HeritageSearchResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +61,19 @@ export const useDiscoveryFilters = (
       } else {
         setError(response.message || "Failed to fetch heritages");
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchHeritagesAi = useCallback(async (heritages: HeritageSearchResponse[]) => {
+    setLoading(true);
+    setError(null);
+
+    try {  
+      setHeritagePredicts(heritages);     
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -122,5 +138,7 @@ export const useDiscoveryFilters = (
     onPageChange,
     onPageSizeChange,
     fetchHeritagesDirect,
+    fetchHeritagesAi,
+    heritagePredicts
   };
 };

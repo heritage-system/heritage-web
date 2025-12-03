@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import ArticleCard from '../../components/Contribution/ArticleCard';
+import ArticleCardSkeleton from '../../components/Contribution/ArticleCardSkeleton';
 import Sidebar from '../../components/Contribution/Sidebar';
 import Pagination from '../../components/Layouts/Pagination';
 import SectionLoader from '../../components/Layouts/LoadingLayouts/SectionLoader';
@@ -180,9 +181,17 @@ const ContributionSearchUI: React.FC = () => {
         <div className="grid grid-cols-12 gap-8">
           {/* List */}
           <div className="col-span-12 lg:col-span-8">
-            {loading && (
-              <SectionLoader show={loading} text="Đang tải dữ liệu trang…" />
-            )}
+            {loading
+  ? Array.from({ length: 5 }).map((_, i) => <ArticleCardSkeleton key={i} />)
+  : contributions.map((c, i) => (
+      <ArticleCard
+        key={c.id}
+        contribution={c}
+        isLast={i === contributions.length - 1}
+        onToggleSave={handleToggleSave}
+      />
+    ))}
+
 
             {error && <p className="text-center text-red-500">{error}</p>}
 

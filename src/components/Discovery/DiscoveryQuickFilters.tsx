@@ -141,7 +141,7 @@ const clearAllFilters = () => {
 
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow space-y-4">
+    <div className="p-4 pt-7 bg-white rounded-xl shadow space-y-4">
       {/* Search + Sort */}
       <div className="flex gap-2">
         {/* Search Bar */}

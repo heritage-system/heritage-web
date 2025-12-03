@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import QuizCard from "./QuizCard";
+import QuizCardSkeleton from "./QuizCardSkeleton";
 import TestView from "./QuizDetailView";
 import { QuizListResponse } from "../../types/quiz";
 import { searchQuizz } from "../../services/quizService";
@@ -62,15 +63,15 @@ const QuizGrid: React.FC = () => {
   // ✅ Nếu đang loading
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pb-60">
-        <div className="text-center">
-          <div className="mb-4">
-            <Spinner size={40} thickness={5}/>
+      <section className="mt-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <QuizCardSkeleton key={i} />
+            ))}
           </div>
-          <div className="text-xl font-semibold text-gray-700">Đang tải thông tin...</div>
-          <div className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</div>
         </div>
-      </div>
+      </section>
     );
   }
 

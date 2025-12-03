@@ -53,6 +53,7 @@ export interface HeritageOccurrence {
   endMonth: number;
   frequencyName: string;      
   description: string;
+  recurrenceRule: string;
 }
 
 export interface HeritageMedia {
@@ -91,6 +92,8 @@ export interface HeritageSearchResponse {
   heritageTags: string[]; 
   heritageTagIds: number[];
   heritageLocations: HeritageLocation[];   
+
+  score?: number;                // best score theo heritage_id
 }
 
 export interface HeritageDetailResponse {

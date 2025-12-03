@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     },
     {
       target: '[data-tour="nav-home"]',
-      title: 'Trang chủ 🏠',
+      title: 'Trang chủ',
       description: 'Khám phá trang chủ với các nội dung nổi bật và tin tức mới nhất về di sản văn hóa Việt Nam.',
       position: 'bottom' as const,
     },
@@ -52,12 +52,12 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       description: 'Tham quan các di tích lịch sử bằng công nghệ thực tế ảo hiện đại, như thể bạn đang có mặt tại đó!',
       position: 'bottom' as const,
     },
-    {
-      target: '[data-tour="nav-ai"]',
-      title: 'Trải nghiệm AI nhận diện ảnh',
-      description: 'Khám phá các di sản văn hóa Việt Nam bằng những bức ảnh mà bạn muốn thông qua nhận diện AI',
-      position: 'bottom' as const,
-    },
+    // {
+    //   target: '[data-tour="nav-ai"]',
+    //   title: 'Trải nghiệm AI nhận diện ảnh',
+    //   description: 'Khám phá các di sản văn hóa Việt Nam bằng những bức ảnh mà bạn muốn thông qua nhận diện AI',
+    //   position: 'bottom' as const,
+    // },
     {
       target: '[data-tour="nav-quiz"]',
       title: 'Học tập qua trò chơi',
@@ -76,18 +76,24 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       description: 'Đọc và chia sẻ các bài viết, câu chuyện về di sản văn hóa từ cộng đồng người dùng.',
       position: 'bottom' as const,
     },
+    {
+      target: '[data-tour="nav-premium"]',
+      title: 'Các gói thành viên',
+      description: 'Nâng cấp lên gói thành viên để được sử dụng các tính năng thú vị hơn',
+      position: 'bottom' as const,
+    },
     // {
     //   target: '[data-tour="search"]',
     //   title: 'Tìm kiếm nhanh',
     //   description: 'Tìm kiếm bất kỳ di sản, bài viết hay thông tin nào bạn muốn khám phá một cách nhanh chóng.',
     //   position: 'bottom' as const,
     // },
-    {
-      target: '[data-tour="notifications"]',
-      title: 'Thông báo',
-      description: 'Nhận thông báo về các hoạt động mới, bình luận và cập nhật quan trọng từ cộng đồng.',
-      position: 'bottom' as const,
-    },
+    // {
+    //   target: '[data-tour="notifications"]',
+    //   title: 'Thông báo',
+    //   description: 'Nhận thông báo về các hoạt động mới, bình luận và cập nhật quan trọng từ cộng đồng.',
+    //   position: 'bottom' as const,
+    // },
     {
       target: '[data-tour="login"]',
       title: 'Đăng nhập ngay!',
@@ -163,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                 { label: 'Trang chủ', path: '/', tourId: 'nav-home' },
                 { label: 'Khám phá', path: '/DiscoveryPage', tourId: 'nav-discovery' },
                 { label: 'VR Tours', path: '/VRToursPage', tourId: 'nav-vr' },
-                { label: 'Quét Ảnh', path: '/AIPredictLensPage', tourId: 'nav-ai' },
+                // { label: 'Quét Ảnh', path: '/AIPredictLensPage', tourId: 'nav-ai' },
                 { label: 'Trò chơi', path: '/QuizzPage', tourId: 'nav-quiz' },
                 { label: 'Cộng đồng', path: '/CommunityPage', tourId: 'nav-community' },     
                 { label: 'Bài viết', path: '/contributions', tourId: 'nav-contributions' }, 
@@ -192,14 +198,14 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                 <Search className="w-5 h-5" />
               </button>
                */}
-              <button 
+              {/* <button 
                 className="p-2 text-gray-600 hover:text-purple-600 transition-colors relative"
                 data-tour="notifications"
                 aria-label="Thông báo"
               >
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </button>
+              </button> */}
 
               {/* Help button - Mở tour */}
               <button 

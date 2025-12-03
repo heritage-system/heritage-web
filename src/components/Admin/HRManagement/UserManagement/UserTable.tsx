@@ -95,29 +95,54 @@ export default function UserTable({ data, onView, onStatusChange }: UserTablePro
                   {new Date(user.createdAt).toLocaleDateString("vi-VN")}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end gap-3 items-center">
-                    <button
-                      onClick={() => onView(user)}
-                      className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
-                      title="Xem chi tiết"
-                    >
-                      <Eye size={16} />
-                    </button>
+  <div className="flex justify-end gap-3 items-center">
+    {/* Nút xem */}
+    <button
+      onClick={() => onView(user)}
+      className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
+      title="Xem chi tiết"
+    >
+      <Eye size={16} />
+    </button>
 
-                    {/* Dropdown đổi trạng thái – value là số */}
-                    <select
-                      value={statusNum}
-                      onChange={(e) => onStatusChange(user, Number(e.target.value) as UserStatus)}
-                      className="text-xs border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                    >
-                      <option value={UserStatus.ACTIVE}>Hoạt động</option>
-                      <option value={UserStatus.INACTIVE}>Không hoạt động</option>
-                      {/* <option value={UserStatus.PENDING_VERIFICATION}>Chờ duyệt</option> */}
-                      <option value={UserStatus.BANNED}>Bị cấm</option>
-                      {/* <option value={UserStatus.DELETED}>Đã xóa</option> */}
-                    </select>
-                  </div>
-                </td>
+    {/* Nút chuyển sang ACTIVE */}
+    {statusNum !== UserStatus.ACTIVE &&(<button
+      onClick={() => onStatusChange(user, UserStatus.ACTIVE)}
+      className={`p-2 rounded-lg transition-colors 
+       
+         
+          bg-green-100 text-green-700
+      `}
+      title="Đặt thành Hoạt động"
+    >
+      <UserCheck size={16} />
+    </button>
+    )}
+
+    {/* Nút chuyển sang INACTIVE */}
+    {statusNum !== UserStatus.INACTIVE &&(<button
+      onClick={() => onStatusChange(user, UserStatus.INACTIVE)}
+      className={`p-2 rounded-lg transition-colors 
+           bg-gray-100 text-gray-700
+      `}
+      title="Đặt thành Không hoạt động"
+    >
+      <Clock size={16} />
+    </button>)}
+
+    {/* Nút chuyển sang BANNED */}
+    {statusNum !== UserStatus.BANNED &&(<button
+      onClick={() => onStatusChange(user, UserStatus.BANNED)}
+      className={`p-2 rounded-lg transition-colors 
+       bg-red-100 text-red-700
+      `}
+      title="Cấm người dùng"
+    >
+      <Ban size={16} />
+    </button>)}
+  </div>
+</td>
+
               </tr>
             );
           })}

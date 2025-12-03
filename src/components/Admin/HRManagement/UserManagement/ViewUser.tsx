@@ -86,13 +86,13 @@ export default function ViewUser({ user, onClose, isOpen }: ViewUserProps) {
 
   const hasContactInfo = !!user.phone || !!user.address || !!user.dateOfBirth;
   const hasActivityStats = Object.values({
-    numberOfFavorites: user.numberOfFavorites,
-    numberOfHeritageReviews: user.numberOfHeritageReviews,
-    numberOfReports: user.numberOfReports,
-    numberOfSubscriptions: user.numberOfSubscriptions,
-    numberOfContributionSaves: user.numberOfContributionSaves,
-    numberOfContributionReviews: user.numberOfContributionReviews,
-    numberOfContributionReports: user.numberOfContributionReports,
+    numberOfFavorites: user.numberOfFavorites || 0,
+    numberOfHeritageReviews: user.numberOfHeritageReviews || 0,
+    numberOfReports: user.numberOfReports || 0,
+    numberOfSubscriptions: user.numberOfSubscriptions || 0,
+    numberOfContributionSaves: user.numberOfContributionSaves || 0,
+    numberOfContributionReviews: user.numberOfContributionReviews || 0,
+    numberOfContributionReports: user.numberOfContributionReports || 0,
   }).some(v => v > 0);
 
   return (
@@ -173,88 +173,88 @@ export default function ViewUser({ user, onClose, isOpen }: ViewUserProps) {
         </div>
 
         {/* Thông tin liên hệ */}
-        {hasContactInfo && (
+       
           <div className="space-y-4 bg-gray-50 rounded-xl p-5 mb-6">
             <h4 className="font-semibold text-gray-800 mb-3">Thông tin liên hệ</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              {user.phone && (
+             
                 <div className="flex items-start gap-3">
                   <Phone size={18} className="text-gray-500 mt-0.5" />
                   <div>
                     <p className="text-gray-600">Điện thoại</p>
-                    <p className="font-medium text-gray-900">{user.phone}</p>
+                    <p className="font-medium text-gray-900">{user.phone || "Chưa cập nhật"}</p>
                   </div>
                 </div>
-              )}
+         
 
-              {user.address && (
                 <div className="flex items-start gap-3">
                   <MapPin size={18} className="text-gray-500 mt-0.5" />
                   <div>
                     <p className="text-gray-600">Địa chỉ</p>
-                    <p className="font-medium text-gray-900">{user.address}</p>
+                    <p className="font-medium text-gray-900">{user.address || "Chưa cập nhật"}</p>
                   </div>
                 </div>
-              )}
+             
 
-              {user.dateOfBirth && (
+           
                 <div className="flex items-start gap-3">
                   <Cake size={18} className="text-gray-500 mt-0.5" />
                   <div>
                     <p className="text-gray-600">Ngày sinh</p>
-                    <p className="font-medium text-gray-900">{formatDate(user.dateOfBirth)}</p>
+                    <p className="font-medium text-gray-900">{formatDate(user.dateOfBirth) || "Chưa cập nhật"}</p>
                   </div>
                 </div>
-              )}
+            
             </div>
           </div>
-        )}
+     
 
         {/* Thống kê hoạt động */}
-        {hasActivityStats && (
+        
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100 mb-6">
             <h4 className="font-semibold text-gray-800 mb-4">Thống kê hoạt động</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-center text-sm">
               <div>
                 <Heart className="w-6 h-6 text-red-500 mx-auto mb-1" />
                 <p className="text-2xl font-bold text-gray-800">{user.numberOfFavorites}</p>
-                <p className="text-gray-600">Yêu thích</p>
+                <p className="text-gray-600">Lễ hội yêu thích</p>
               </div>
               <div>
                 <Bookmark className="w-6 h-6 text-green-600 mx-auto mb-1" />
                 <p className="text-2xl font-bold text-gray-800">{user.numberOfContributionSaves}</p>
-                <p className="text-gray-600">Lưu đóng góp</p>
+                <p className="text-gray-600">Bài viết đã lưu</p>
               </div>
               <div>
                 <Flag className="w-6 h-6 text-orange-600 mx-auto mb-1" />
                 <p className="text-2xl font-bold text-gray-800">{user.numberOfReports}</p>
-                <p className="text-gray-600">Báo cáo</p>
+                <p className="text-gray-600">Báo cáo nội dung</p>
               </div>
               <div>
                 <Users className="w-6 h-6 text-purple-600 mx-auto mb-1" />
                 <p className="text-2xl font-bold text-gray-800">{user.numberOfSubscriptions}</p>
-                <p className="text-gray-600">Theo dõi</p>
+                <p className="text-gray-600">Gói đã mua</p>
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-5 text-center text-xs border-t pt-4">
               <div>
                 <Eye className="w-5 h-5 text-blue-600 mx-auto mb-1" />
                 <p className="font-bold">{user.numberOfHeritageReviews}</p>
-                <p className="text-gray-600">Xem di sản</p>
+                <p className="text-gray-600">Bình luận lễ hội</p>
               </div>
               <div>
                 <MessageSquare className="w-5 h-5 text-teal-600 mx-auto mb-1" />
                 <p className="font-bold">{user.numberOfContributionReviews}</p>
-                <p className="text-gray-600">Đánh giá đóng góp</p>
+                <p className="text-gray-600">Bình luân bài viết</p>
               </div>
               <div>
                 <AlertTriangle className="w-5 h-5 text-red-600 mx-auto mb-1" />
                 <p className="font-bold">{user.numberOfContributionReports}</p>
-                <p className="text-gray-600">Báo cáo đóng góp</p>
+                <p className="text-gray-600">Báo cáo bài viết</p>
               </div>
+              
             </div>
           </div>
-        )}
+       
 
         {/* Thời gian */}
         <div className="pt-4 border-t text-sm text-gray-600 space-y-2">
