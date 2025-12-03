@@ -24,7 +24,7 @@ import ContributionFormPage from './pages/ContributionPage/ContributionFormPage'
 import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
 import ArticleDetailPage from './pages/ContributionPage/ContributionDetailPage';
-import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPage';
+import AIpredictLensPage from './pages/DiscoveryPage/AIpredictLensPageCopy';
 import LiveRoomPage from './components/Community/LiveRoomPage';
 
 const App: React.FC = () => {
