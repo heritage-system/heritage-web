@@ -16,7 +16,8 @@ const PUBLIC_ONLY_ENDPOINTS: string[] = [
   '/api/v1/contributions/top_contribution_heritage_tag',
   '/api/v1/contributions/top_contributor',
   '/api/v1/contributions/contribution_related',
-  '/api/Heritage/heritage_related'
+  '/api/Heritage/heritage_related',
+  '/api/v1/PremiumPackage/byActive'
 ];
 const OPTIONAL_AUTH_ENDPOINTS: string[] = [
   '/api/v1/contributions/get_contribution_detail',

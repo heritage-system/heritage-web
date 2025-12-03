@@ -103,7 +103,10 @@ import DataVisualization from "../../components/Admin/ReportsAnalytics/DataVisua
 import FileManagement from "../../components/Admin/Legacy/FileManagement";
 import ApprovalManagement from "../../components/Admin/Legacy/ApprovalManagement";
 import ContributorManagement from "../../components/Admin/HRManagement/ContributorManagement/ContributorManagementIndex";
+import PremiumPackageManagement from "../../components/Admin/ContentManagement/PremiumPackageManagement/PremiumPackageManagement";
 import { useAuth } from '../../hooks/useAuth';
+import ReportManagement from '../../components/Admin/ReportsAnalytics/ReportManagement';
+
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -130,7 +133,8 @@ const moduleStructure = {
       { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement },
       { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
       { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
-      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement }
+      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement },
+      { id: "premiumPackages", name: "Gói Premium", icon: Globe, component: PremiumPackageManagement } // Placeholder component
     ]
   },
   financialManagement: {
@@ -191,6 +195,7 @@ const moduleStructure = {
       //{ id: "customers", name: "Cơ sở dữ liệu khách hàng", icon: Users, component: CustomerDatabase },
       { id: "support", name: "Vé hỗ trợ", icon: MessageSquare, component: SupportTickets },
       { id: "communication", name: "Trung tâm liên lạc", icon: Mail, component: CommunicationHub },
+      { id: "reports", name: "Báo cáo khách hàng", icon: FileText, component: ReportManagement },
       // { id: "feedback", name: "Quản lý phản hồi", icon: MessageSquare, component: FeedbackManagement },
       // { id: "analytics", name: "Phân tích khách hàng", icon: BarChart3, component: CustomerAnalytics }
     ]

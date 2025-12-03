@@ -9,7 +9,7 @@ export enum SortBy {
   NameDesc = "NAMEDESC",
   DateAsc = "DATEASC",
   DateDesc = "DATEDESC",
-    IdAsc = "IDASC",
+  IdAsc = "IDASC",
   IdDesc = "IDDESC"
 }
 
@@ -68,4 +68,28 @@ export enum QuizLevel {
   EASY = 0,
   MEDIUM = 1,
   HARD = 2
+}
+
+export enum BenefitType {
+    FEATUREUNLOCK = 0,
+    LIMITINCREASE = 1
+}
+export enum BenefitName {
+  QUIZ = 0,
+  TOUR = 1,
+  CONTRIBUTION = 2
+}
+
+export enum PaymentStatus {
+  PENDING = 0, 
+  PAID = 1, 
+  FAILED = 2, 
+  CANCELLED = 3
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = 0, 
+  EXPIRED = 1,
+  CANCELLED = 2,
+  PENDING = 3
 }

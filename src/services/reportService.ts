@@ -28,7 +28,7 @@ export async function getReportById(id: number): Promise<ApiResponse<Report>> {
 }
 
 export async function createReport(data: { heritageId: number, reason: string }): Promise<ApiResponse<Report>> {
-  return await fetchInterceptor<Report>(`${API_URL}/api/Report/heritages/${data.heritageId}`, {
+  return await fetchInterceptor<Report>(`${API_URL}/api/Report/create`, {
     method: "POST",
     body: data as any,
   });
