@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, Edit, Package, DollarSign, Calendar, MessageSquare, CheckCircle, XCircle, Award, Tag, X } from "lucide-react";
 import { PremiumPackageResponse, PremiumPackageUpdateRequest, PremiumPackageCreateRequest, PremiumPackageBenefitResponse } from "../../../../types/premiumPackage";
-import { getPremiumPackageById } from "../../../../services/PremiumPackageService";
+import { getPremiumPackageById } from "../../../../services/premiumPackageService";
 import { message, Spin, Tag as AntTag } from "antd";
 import { BenefitType, BenefitName } from "../../../../types/enum";
 import PremiumPackageForm from "./PremiumPackageForm";

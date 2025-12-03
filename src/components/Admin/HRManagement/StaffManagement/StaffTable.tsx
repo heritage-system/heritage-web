@@ -97,12 +97,12 @@ export default function StaffTable({
                         <StatusIcon size={14} />
                         {statusInfo?.label || "Không xác định"}
                       </span>
-                      {staff.staffStatus === StaffStatus.PENDING && (
+                      {/* {staff.staffStatus === StaffStatus.PENDING && (
                         <p className="text-xs text-amber-600 flex items-center gap-1">
                           <Clock size={12} />
                           Chờ duyệt
                         </p>
-                      )}
+                      )} */}
                     </div>
                   </td>
 

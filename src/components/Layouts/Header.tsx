@@ -336,13 +336,13 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               >
                 VR Tours
               </Link>
-              <Link 
+              {/* <Link 
                 to="/AIPredictLensPage" 
                 className="block text-black hover:text-purple-600"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Quét ảnh
-              </Link>
+              </Link> */}
               <Link 
                 to="/QuizzPage" 
                 className="block text-black hover:text-purple-600"
@@ -364,7 +364,13 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               >
                 Bài viết
               </Link>
-              
+              <Link 
+                to="/premium-packages" 
+                className="block text-black hover:text-purple-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Gói Premium
+              </Link>
               {/* Nút hướng dẫn trong mobile menu */}
               <button 
                 onClick={handleStartTour}
