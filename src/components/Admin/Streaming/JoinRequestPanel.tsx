@@ -10,7 +10,7 @@ const JoinRequestPanel: React.FC = () => {
 
   const onGoLive = async () => {
     if (!roomName) {
-      toast.error("Hãy nhập RoomName");
+      toast.error("Hãy nhập Mã Phòng");
       return;
     }
     const grant = await fetchTokens();

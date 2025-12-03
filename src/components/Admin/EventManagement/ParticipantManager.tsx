@@ -141,7 +141,7 @@ const ParticipantManager: React.FC<ParticipantManagerProps> = ({
                 #
               </th>
               <th className="px-4 py-2 text-left font-medium text-slate-500">
-                User ID
+                ID người dùng
               </th>
               <th className="px-4 py-2 text-left font-medium text-slate-500">
                 Tên

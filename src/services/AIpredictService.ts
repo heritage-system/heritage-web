@@ -44,7 +44,35 @@ export class PredictJsonService {
       throw new Error(`Không thể đọc file JSON tại: ${path}`);
     }
   }
+   static async loadFromUrlRandomPost(
+    url: string,
+    limit: number,
+    body?: BodyInit
+  ): Promise<PredictApiPayload> {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        body, // có thể là FormData, JSON string, v.v.
+        // headers: KHÔNG set Content-Type nếu dùng FormData
+        // headers: { "Content-Type": "application/json" } nếu gửi JSON
+      });
 
+      if (!res.ok) throw new Error("HTTP error " + res.status);
+
+      const data = (await res.json()) as PredictApiPayload;
+
+      // Chỉ lấy matches ngẫu nhiên nếu có
+      if ("matches" in data && Array.isArray(data.matches) && data.matches.length > limit) {
+        const shuffled = [...data.matches].sort(() => Math.random() - 0.5);
+        data.matches = shuffled.slice(0, limit);
+      }
+
+      return data;
+    } catch (err) {
+      console.error("❌ Lỗi fetch JSON:", err);
+      throw err;
+    }
+  }
   /**
    * Đọc JSON từ URL / API → hữu ích khi bạn load json tĩnh trong frontend.
    */

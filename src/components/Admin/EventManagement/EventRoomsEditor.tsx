@@ -1,20 +1,18 @@
-// src/pages/Admin/EventRoomsEditor.tsx
 import React from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { deleteRoomAdmin } from "../../../services/streamingService"; 
+import { deleteRoomAdmin } from "../../../services/streamingService";
 import toast from "react-hot-toast";
-export type RoomType = "UPCOMING" | "LIVE" | "CLOSED";
 
+export type RoomType = "UPCOMING" | "LIVE" | "CLOSED";
 
 export interface TempRoom {
   tempId: string;
-  id?: number;          // có khi edit event
-  roomName?: string;    // 🆕 thêm: để xoá bằng API
+  id?: number; // có khi edit event
+  roomName?: string; // 🆕 thêm: để xoá bằng API
   title: string;
-  startAt: string;      // value của <input type="datetime-local">
+  startAt: string; // value của <input type="datetime-local">
   type: RoomType;
 }
-
 
 interface Props {
   rooms: TempRoom[];
@@ -22,9 +20,9 @@ interface Props {
 }
 
 const roomTypeOptions: { label: string; value: RoomType }[] = [
-  { label: "Upcoming", value: "UPCOMING" },
-  { label: "Live", value: "LIVE" },
-  { label: "Closed", value: "CLOSED" },
+  { label: "Sắp diễn ra", value: "UPCOMING" },
+  { label: "Đang diễn ra", value: "LIVE" },
+  { label: "Đã đóng", value: "CLOSED" },
 ];
 
 const EventRoomsEditor: React.FC<Props> = ({ rooms, onChange }) => {
@@ -46,13 +44,11 @@ const EventRoomsEditor: React.FC<Props> = ({ rooms, onChange }) => {
     value: any
   ) => {
     onChange(
-      rooms.map((r) =>
-        r.tempId === tempId ? { ...r, [field]: value } : r
-      )
+      rooms.map((r) => (r.tempId === tempId ? { ...r, [field]: value } : r))
     );
   };
 
-   const removeRoom = async (tempId: string) => {
+  const removeRoom = async (tempId: string) => {
     const room = rooms.find((r) => r.tempId === tempId);
     if (!room) return;
 
@@ -65,7 +61,7 @@ const EventRoomsEditor: React.FC<Props> = ({ rooms, onChange }) => {
     // 🟡 Có id nhưng không có roomName (fallback): xoá local, nhắc user bấm Lưu
     if (!room.roomName) {
       onChange(rooms.filter((r) => r.tempId !== tempId));
-      toast("Đã xoá phòng khỏi form, bấm 'Save' để cập nhật sự kiện.", {
+      toast("Đã xoá phòng khỏi form, bấm 'Lưu' để cập nhật sự kiện.", {
         duration: 2000,
       });
       return;
@@ -90,12 +86,11 @@ const EventRoomsEditor: React.FC<Props> = ({ rooms, onChange }) => {
     }
   };
 
-
   return (
     <div className="mt-6 border-t border-slate-200 pt-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-800">
-          Streaming rooms của sự kiện
+          Phòng livestream của sự kiện
         </h3>
         <button
           type="button"
@@ -121,7 +116,7 @@ const EventRoomsEditor: React.FC<Props> = ({ rooms, onChange }) => {
               className="border border-slate-200 rounded-xl px-3 py-3 bg-slate-50/60 flex flex-col gap-3 md:flex-row md:items-end"
             >
               <div className="md:w-16 text-[11px] font-semibold text-slate-500">
-                Room {idx + 1}
+                Phòng {idx + 1}
                 {room.id && (
                   <span className="block text-[10px] text-slate-400">
                     (ID: {room.id})

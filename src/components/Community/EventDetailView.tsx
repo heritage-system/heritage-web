@@ -20,25 +20,35 @@ type Props = {
 };
 
 const tagOptions: { label: string; value: EventTag }[] = [
-  { label: "Featured", value: EventTag.FEATURED },
-  { label: "Free", value: EventTag.FREE },
-  { label: "Premium", value: EventTag.PREMIUM },
-  { label: "Recorded", value: EventTag.RECORDED },
-  { label: "Q&A", value: EventTag.QNA },
+  { label: "Nổi bật", value: EventTag.FEATURED },
+  { label: "Miễn phí", value: EventTag.FREE },
+  { label: "Gói Premium", value: EventTag.PREMIUM },
+  { label: "Có ghi hình", value: EventTag.RECORDED },
+  { label: "Hỏi đáp (Q&A)", value: EventTag.QNA },
 ];
 
 const categoryLabel: Record<EventCategory, string> = {
-  [EventCategory.GENERAL]: "General",
-  [EventCategory.HERITAGE_TALK]: "Heritage Talk",
-  [EventCategory.FESTIVAL]: "Festival",
+  [EventCategory.GENERAL]: "Chung",
+  [EventCategory.HERITAGE_TALK]: "Toạ đàm di sản",
+  [EventCategory.FESTIVAL]: "Lễ hội",
   [EventCategory.WORKSHOP]: "Workshop",
-  [EventCategory.ONLINE_TOUR]: "Online Tour",
+  [EventCategory.ONLINE_TOUR]: "Tour trực tuyến",
 };
 
+// ✅ Đồng bộ logic với EventList: nếu thiếu timezone thì tự thêm 'Z' (coi là UTC)
 const formatLocal = (iso?: string | null) => {
   if (!iso) return "—";
-  const d = new Date(iso);
+
+  let normalized = iso;
+  // nếu không có Z hoặc offset (+07:00) thì coi là UTC
+  if (!/Z|[+-]\d{2}:\d{2}$/.test(iso)) {
+    normalized = iso + "Z";
+  }
+
+  const d = new Date(normalized);
   if (Number.isNaN(d.getTime())) return "—";
+
+  // Có thể dùng timeZone cố định cho VN
   return d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 };
 
@@ -139,11 +149,7 @@ const EventDetailView: React.FC<Props> = ({ eventId }) => {
     return (event.streamingRooms || []).filter((r) => {
       const type = (r as any).type as string | undefined;
       const isActive = (r as any).isActive as boolean | undefined;
-      return (
-        type === "UPCOMING" ||
-        type === "LIVE" ||
-        isActive === true
-      );
+      return type === "UPCOMING" || type === "LIVE" || isActive === true;
     });
   }, [event]);
 
@@ -196,7 +202,11 @@ const EventDetailView: React.FC<Props> = ({ eventId }) => {
                     : "bg-gray-100 text-gray-600"
                 }`}
               >
-                {event.status}
+                {event.status === EventStatus.LIVE
+                  ? "Đang diễn ra"
+                  : event.status === EventStatus.UPCOMING
+                  ? "Sắp diễn ra"
+                  : "Đã kết thúc"}
               </span>
             </div>
 
@@ -214,16 +224,14 @@ const EventDetailView: React.FC<Props> = ({ eventId }) => {
                   </div>
                   <div>
                     <span className="font-semibold">Kết thúc: </span>
-                    {event.closeAt
-                      ? formatLocal(event.closeAt as any)
-                      : "—"}
+                    {event.closeAt ? formatLocal(event.closeAt as any) : "—"}
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1 text-sm text-gray-700">
                 <div>
-                  <span className="font-semibold">Category: </span>
+                  <span className="font-semibold">Danh mục: </span>
                   {categoryLabel[event.category]}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -232,9 +240,7 @@ const EventDetailView: React.FC<Props> = ({ eventId }) => {
                     Tags:
                   </span>
                   {activeTags.length === 0 ? (
-                    <span className="text-xs text-gray-400">
-                      (none)
-                    </span>
+                    <span className="text-xs text-gray-400">(Không có)</span>
                   ) : (
                     activeTags.map((t) => (
                       <span
@@ -304,8 +310,8 @@ const EventDetailView: React.FC<Props> = ({ eventId }) => {
 
         {joinableRooms.length === 0 ? (
           <p className="text-sm text-gray-500">
-            Hiện chưa có phòng livestream sắp diễn ra hoặc đang mở cho
-            sự kiện này.
+            Hiện chưa có phòng livestream sắp diễn ra hoặc đang mở cho sự kiện
+            này.
           </p>
         ) : (
           <ul className="divide-y">
@@ -328,16 +334,14 @@ const EventDetailView: React.FC<Props> = ({ eventId }) => {
                   </div>
                 </div>
                 <div className="flex gap-2 sm:justify-end">
-                  <button
+                  {/* <button
                     onClick={() =>
-                      navigate(
-                        `/live/${encodeURIComponent(r.roomName)}`
-                      )
+                      navigate(`/live/${encodeURIComponent(r.roomName)}`)
                     }
                     className="rounded bg-gray-100 px-3 py-1 text-xs sm:text-sm text-gray-800 hover:bg-gray-200"
                   >
                     Xem nhanh
-                  </button>
+                  </button> */}
                   <button
                     onClick={() => handleJoinRoom(r.roomName)}
                     className="rounded bg-blue-600 px-3 py-1 text-xs sm:text-sm text-white hover:bg-blue-700"

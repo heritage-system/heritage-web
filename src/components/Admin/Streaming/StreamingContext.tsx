@@ -107,8 +107,8 @@ const [localPinned, setLocalPinned] = useState<RoomChatMsg | null>(null); // ghi
   const [localVideoReady, setLocalVideoReady] = useState(false);
   const [grant, setGrant] = useState<StreamingJoinGrantResponse | null>(null);
   const [joined, setJoined] = useState(false);
-  const [micOn, setMicOn] = useState(true);
-  const [camOn, setCamOn] = useState(true);
+  const [micOn, setMicOn] = useState(false);
+  const [camOn, setCamOn] = useState(false);
   const [screenOn, setScreenOn] = useState(false);
 
   const [sharing, setSharing] = useState(false);
@@ -201,7 +201,7 @@ useEffect(() => {
     } catch {
       // ignore
     }
-  }, 2000); // 2s cho responsive hơn
+  }, 10000); // 2s cho responsive hơn
 
   return () => clearInterval(timer);
 }, [joined, effectiveRoomName, grant, selfUserId, isHost, leaveLive]);
@@ -582,7 +582,7 @@ const sendRoomText = async (text: string) => {
 
 
 
- const toggleCam = async () => {
+const toggleCam: Ctx["toggleCam"] = async () => {
   if (!joined) {
     toast.error("Bạn chưa join phòng");
     return;
@@ -592,18 +592,51 @@ const sendRoomText = async (text: string) => {
     return;
   }
 
-  const next = !camOn;
-  if (next) {
-    await enableCamera(
-      document.getElementById("local-player") as HTMLDivElement
-    );
-    setLocalVideoReady(true);
+  const wantOn = !camOn;
+
+  if (wantOn) {
+    // BẬT CAMERA
+    try {
+      const container = document.getElementById("local-player") as HTMLDivElement | null;
+      await enableCamera(container ?? undefined);
+      setLocalVideoReady(true);
+      setCamOn(true);
+    } catch (err: any) {
+      console.error("[toggleCam] enableCamera error", err);
+
+      const name = err?.name || "";
+      const msg = (err?.message || "").toLowerCase();
+
+      if (
+        name === "NotAllowedError" ||
+        name === "SecurityError" ||
+        msg.includes("denied") ||
+        msg.includes("permission") ||
+        msg.includes("not allowed")
+      ) {
+        toast.error("Bạn đã từ chối cho phép sử dụng camera cho tab này.");
+      } else {
+        toast.error("Không thể bật camera. Vui lòng kiểm tra thiết bị & quyền truy cập.");
+      }
+
+      // rollback UI
+      setLocalVideoReady(false);
+      setCamOn(false);
+      // KHÔNG ném lại lỗi, tránh React show error đỏ
+    }
   } else {
-    await disableCamera();
-    setLocalVideoReady(false);
+    // TẮT CAMERA
+    try {
+      await disableCamera();
+    } catch (err) {
+      console.warn("[toggleCam] disableCamera error", err);
+    } finally {
+      setLocalVideoReady(false);
+      setCamOn(false);
+    }
   }
-  setCamOn(next);
 };
+
 
 useEffect(() => {
   if (!joined) return;
@@ -611,7 +644,7 @@ useEffect(() => {
   return () => { unbindAgoraListeners(); };
 }, [joined]);
 
- const toggleMic = async () => {
+const toggleMic: Ctx["toggleMic"] = async () => {
   if (!joined) {
     toast.error("Bạn chưa join phòng");
     return;
@@ -621,11 +654,42 @@ useEffect(() => {
     return;
   }
 
-  const next = !micOn;
-  if (next) await enableMic();
-  else await disableMic();
-  setMicOn(next);
+  const wantOn = !micOn;
+
+  if (wantOn) {
+    try {
+      await enableMic();
+      setMicOn(true);
+    } catch (err: any) {
+      console.error("[toggleMic] enableMic error", err);
+      const name = err?.name || "";
+      const msg = (err?.message || "").toLowerCase();
+
+      if (
+        name === "NotAllowedError" ||
+        name === "SecurityError" ||
+        msg.includes("denied") ||
+        msg.includes("permission") ||
+        msg.includes("not allowed")
+      ) {
+        toast.error("Bạn đã từ chối cho phép sử dụng micro cho tab này.");
+      } else {
+        toast.error("Không thể bật micro. Vui lòng kiểm tra thiết bị & quyền truy cập.");
+      }
+
+      setMicOn(false);
+    }
+  } else {
+    try {
+      await disableMic();
+    } catch (err) {
+      console.warn("[toggleMic] disableMic error", err);
+    } finally {
+      setMicOn(false);
+    }
+  }
 };
+
 
  const startShare = async (withAudio = true) => {
   if (!joined) {

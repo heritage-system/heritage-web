@@ -86,12 +86,30 @@ export async function enableCamera(container?: HTMLElement | string) {
 }
 
 export async function disableCamera() {
-  if (!client || !localVideoTrack) return;
-  await client.unpublish([localVideoTrack]);
-  localVideoTrack.stop();
-  localVideoTrack.close();
-  localVideoTrack = null;
+  // Dù client đã leave hay chưa, vẫn cố gắng stop/close track
+  try {
+    if (client && localVideoTrack) {
+      await client.unpublish([localVideoTrack]);
+    }
+  } catch (e) {
+    console.warn("[disableCamera] unpublish error", e);
+  }
+
+  if (localVideoTrack) {
+    try {
+      localVideoTrack.stop();   // dừng render & capture
+    } catch (e) {
+      console.warn("[disableCamera] stop error", e);
+    }
+    try {
+      localVideoTrack.close();  // giải phóng device
+    } catch (e) {
+      console.warn("[disableCamera] close error", e);
+    }
+    localVideoTrack = null;
+  }
 }
+
 
 export async function enableMic() {
   if (!client) throw new Error("Chưa join kênh");

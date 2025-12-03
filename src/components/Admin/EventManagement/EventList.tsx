@@ -10,7 +10,6 @@ import {
   EventWithRoomsUpdateRequest,
 } from "../../../types/event";
 import {
-
   StreamingRoomSummaryResponse, // 🆕 thêm dòng này
 } from "../../../types/event";
 import { Plus, Edit2, Trash2, Radio, X, ArrowLeft, Play } from "lucide-react";
@@ -22,24 +21,23 @@ import {
   updateEventWithRooms,
 } from "../../../services/eventService";
 
-// ⚠️ Điều chỉnh path này đúng với chỗ bạn để EventRoomsEditor
 import EventRoomsEditor, {
   TempRoom,
 } from "./EventRoomsEditor";
 
 // ===== Helpers =====
 const tagOptions: { label: string; value: EventTag }[] = [
-  { label: "Featured", value: EventTag.FEATURED },
-  { label: "Free", value: EventTag.FREE },
-  { label: "Premium", value: EventTag.PREMIUM },
-  { label: "Recorded", value: EventTag.RECORDED },
-  { label: "Q&A", value: EventTag.QNA },
+  { label: "Nổi bật", value: EventTag.FEATURED },
+  { label: "Miễn phí", value: EventTag.FREE },
+  { label: "Gói Premium", value: EventTag.PREMIUM },
+  { label: "Có ghi hình", value: EventTag.RECORDED },
+  { label: "Hỏi đáp (Q&A)", value: EventTag.QNA },
 ];
 
 const statusTabs: { label: string; value: EventStatus }[] = [
-  { label: "Upcoming", value: EventStatus.UPCOMING },
-  { label: "Live", value: EventStatus.LIVE },
-  { label: "Closed", value: EventStatus.CLOSED },
+  { label: "Sắp diễn ra", value: EventStatus.UPCOMING },
+  { label: "Đang diễn ra", value: EventStatus.LIVE },
+  { label: "Đã kết thúc", value: EventStatus.CLOSED },
 ];
 
 // ISO -> value cho input datetime-local
@@ -77,11 +75,11 @@ function toLocalDisplay(iso: string | null | undefined): string {
 }
 
 const categoryOptions = [
-  { label: "General", value: EventCategory.GENERAL },
-  { label: "Heritage Talk", value: EventCategory.HERITAGE_TALK },
-  { label: "Festival", value: EventCategory.FESTIVAL },
+  { label: "Chung", value: EventCategory.GENERAL },
+  { label: "Toạ đàm di sản", value: EventCategory.HERITAGE_TALK },
+  { label: "Lễ hội", value: EventCategory.FESTIVAL },
   { label: "Workshop", value: EventCategory.WORKSHOP },
-  { label: "Online Tour", value: EventCategory.ONLINE_TOUR },
+  { label: "Tour trực tuyến", value: EventCategory.ONLINE_TOUR },
 ];
 
 type EventFormMode = "create" | "edit";
@@ -123,7 +121,7 @@ const EventList: React.FC = () => {
   }, [loadEvents, statusFilter]);
 
   const handleDelete = async (ev: EventResponse) => {
-    const ok = window.confirm(`Delete event "${ev.title}"?`);
+    const ok = window.confirm(`Xoá sự kiện "${ev.title}"?`);
     if (!ok) return;
     await deleteEvent(ev.id);
     await loadEvents({ status: statusFilter });
@@ -133,19 +131,16 @@ const EventList: React.FC = () => {
     navigate(`/admin/stream?eventId=${ev.id}`);
   };
 
-  // mở form create
   const handleNewEvent = () => {
     setSelectedEvent(null);
     setViewMode("create");
   };
 
-  // mở form edit
   const handleEditEvent = (ev: EventResponse) => {
     setSelectedEvent(ev);
     setViewMode("edit");
   };
 
-  // sau khi save form (create / edit)
   const handleSavedFromForm = async (ev: EventResponse) => {
     setSelectedEvent(ev);
     setViewMode("list");
@@ -163,14 +158,14 @@ const EventList: React.FC = () => {
           <>
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold text-slate-800">
-                Event Management
+                Quản lý sự kiện
               </h1>
               <button
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700"
                 onClick={handleNewEvent}
               >
                 <Plus className="w-4 h-4" />
-                New Event
+                Tạo sự kiện
               </button>
             </div>
 
@@ -178,7 +173,7 @@ const EventList: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-700">
-                  Events ({events.length})
+                  Danh sách sự kiện ({events.length})
                 </h2>
                 <div className="flex items-center gap-1">
                   {statusTabs.map((tab) => (
@@ -204,7 +199,9 @@ const EventList: React.FC = () => {
               <div className="divide-y divide-slate-100 max-h-[70vh] overflow-y-auto">
                 {events.length === 0 && (
                   <div className="p-4 text-sm text-slate-500">
-                    No event yet. Create one using the button above.
+                    Chưa có sự kiện nào. Nhấn nút{" "}
+                    <span className="font-semibold">"Tạo sự kiện"</span> phía
+                    trên để thêm mới.
                   </div>
                 )}
                 {events.map((ev) => (
@@ -234,7 +231,7 @@ const EventList: React.FC = () => {
 
                       <div className="mt-1 flex items-center justify-between">
                         <span className="text-[11px] text-slate-500">
-                          {ev.registeredCount} registered
+                          {ev.registeredCount} người đã đăng ký
                         </span>
                         <div className="flex items-center gap-2">
                           <button
@@ -246,7 +243,7 @@ const EventList: React.FC = () => {
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] border border-emerald-100"
                           >
                             <Radio className="w-3 h-3" />
-                            Streams
+                            Phòng live
                           </button>
                           <button
                             type="button"
@@ -257,7 +254,7 @@ const EventList: React.FC = () => {
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] border border-indigo-100"
                           >
                             <Edit2 className="w-3 h-3" />
-                            Edit
+                            Sửa
                           </button>
                           <button
                             type="button"
@@ -278,60 +275,58 @@ const EventList: React.FC = () => {
             </div>
 
             {/* Streaming rooms của selectedEvent (view only) */}
-          {selectedEvent && selectedEvent.streamingRooms.length > 0 && (
-  <div className="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-    <h3 className="text-sm font-semibold text-slate-800 mb-3">
-      Streaming rooms of "{selectedEvent.title}"
-    </h3>
-    <div className="grid md:grid-cols-3 gap-3">
-      {selectedEvent.streamingRooms.map((r) => (
-        <div
-          key={r.id}
-          className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700"
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-semibold line-clamp-1">
-              {r.title || r.roomName}
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-              {r.type}
-            </span>
-          </div>
+            {selectedEvent && selectedEvent.streamingRooms.length > 0 && (
+              <div className="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-800 mb-3">
+                  Các phòng livestream của "{selectedEvent.title}"
+                </h3>
+                <div className="grid md:grid-cols-3 gap-3">
+                  {selectedEvent.streamingRooms.map((r) => (
+                    <div
+                      key={r.id}
+                      className="border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold line-clamp-1">
+                          {r.title || r.roomName}
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                          {r.type}
+                        </span>
+                      </div>
 
-          <div className="mt-1 text-[11px] text-slate-500">
-            {r.startAt
-              ? toLocalDisplay(r.startAt as unknown as string)
-              : "No time"}
-          </div>
+                      <div className="mt-1 text-[11px] text-slate-500">
+                        {r.startAt
+                          ? toLocalDisplay(r.startAt as unknown as string)
+                          : "Chưa thiết lập thời gian"}
+                      </div>
 
-          <div className="mt-1 text-[11px]">
-            Status:{" "}
-            <span
-              className={
-                r.isActive ? "text-emerald-600" : "text-slate-500"
-              }
-            >
-              {r.isActive ? "Active" : "Inactive"}
-            </span>
-          </div>
+                      <div className="mt-1 text-[11px]">
+                        Trạng thái:{" "}
+                        <span
+                          className={
+                            r.isActive ? "text-emerald-600" : "text-slate-500"
+                          }
+                        >
+                          {r.isActive ? "Đang hoạt động" : "Không hoạt động"}
+                        </span>
+                      </div>
 
-          {/* 🆕 Nút Enter live giống LiveRoomManager */}
-          <button
-            type="button"
-            onClick={() => handleEnterLive(r)}
-            className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-full 
+                      <button
+                        type="button"
+                        onClick={() => handleEnterLive(r)}
+                        className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-full 
                        bg-green-50 text-green-700 text-[11px] border border-green-200 
                        hover:bg-green-100"
-          >
-            <Play className="w-3 h-3" />
-            Enter live
-          </button>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
+                      >
+                        <Play className="w-3 h-3" />
+                        Vào phòng
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* ParticipantManager cho selectedEvent */}
             {selectedEvent && <ParticipantManager eventId={selectedEvent.id} />}
@@ -385,15 +380,16 @@ const EventFormWithRooms: React.FC<{
       setCategory(event.category ?? EventCategory.GENERAL);
       setTags(event.tags ?? EventTag.NONE);
 
-     const mappedRooms: TempRoom[] = (event.streamingRooms || []).map((r) => ({
-  tempId: crypto.randomUUID(),
-  id: r.id,
-  roomName: r.roomName, // 🆕 thêm
-  title: r.title || "",
-  startAt: r.startAt ? isoToLocalInput(r.startAt) : "",
-  type: r.type as any,
-}));
-
+      const mappedRooms: TempRoom[] = (event.streamingRooms || []).map(
+        (r) => ({
+          tempId: crypto.randomUUID(),
+          id: r.id,
+          roomName: r.roomName,
+          title: r.title || "",
+          startAt: r.startAt ? isoToLocalInput(r.startAt) : "",
+          type: r.type as any,
+        })
+      );
 
       setRooms(mappedRooms);
     } else {
@@ -410,7 +406,7 @@ const EventFormWithRooms: React.FC<{
   }, [mode, event]);
 
   const toggleTag = (t: EventTag) => {
-    setTags((prev) => (prev & t ? (prev & ~t) : (prev | t)));
+    setTags((prev) => (prev & t ? prev & ~t : prev | t));
   };
 
   const handleThumbnailUpload = async (
@@ -439,11 +435,11 @@ const EventFormWithRooms: React.FC<{
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error("Vui lòng nhập tiêu đề sự kiện");
       return;
     }
     if (!startAt) {
-      toast.error("Start time is required");
+      toast.error("Vui lòng chọn thời gian bắt đầu");
       return;
     }
 
@@ -457,9 +453,7 @@ const EventFormWithRooms: React.FC<{
       const mappedRooms = rooms.map((r) => ({
         id: r.id,
         title: r.title?.trim() || "",
-        startAt: r.startAt
-          ? new Date(r.startAt).toISOString()
-          : startAtIso,
+        startAt: r.startAt ? new Date(r.startAt).toISOString() : startAtIso,
         type: r.type as any,
       }));
 
@@ -481,7 +475,7 @@ const EventFormWithRooms: React.FC<{
 
         const res = await createEventWithRooms(payload);
         if ((res.code === 200 || res.code === 201) && res.result) {
-          toast.success("Event created with rooms");
+          toast.success("Tạo sự kiện và phòng livestream thành công");
           onSaved(res.result);
         } else {
           toast.error(res.message || "Tạo sự kiện thất bại");
@@ -503,7 +497,7 @@ const EventFormWithRooms: React.FC<{
 
         const res = await updateEventWithRooms(event.id, payload);
         if (res.code === 200 && res.result) {
-          toast.success("Event updated with rooms");
+          toast.success("Cập nhật sự kiện và phòng livestream thành công");
           onSaved(res.result);
         } else {
           toast.error(res.message || "Cập nhật sự kiện thất bại");
@@ -533,10 +527,10 @@ const EventFormWithRooms: React.FC<{
             </button>
             <div>
               <h1 className="text-2xl font-bold text-slate-900">
-                {mode === "create" ? "Create Event" : "Edit Event"}
+                {mode === "create" ? "Tạo sự kiện" : "Chỉnh sửa sự kiện"}
               </h1>
               <p className="text-sm text-slate-500 mt-1">
-                Điền thông tin sự kiện & thiết lập các streaming room ngay bên
+                Điền thông tin sự kiện & thiết lập các phòng livestream ngay bên
                 dưới.
               </p>
             </div>
@@ -553,7 +547,11 @@ const EventFormWithRooms: React.FC<{
                   : "bg-indigo-600 hover:bg-indigo-700"
               }`}
           >
-            {saving ? "Saving..." : mode === "create" ? "Create Event" : "Save"}
+            {saving
+              ? "Đang lưu..."
+              : mode === "create"
+              ? "Tạo sự kiện"
+              : "Lưu"}
           </button>
         </div>
       </div>
@@ -567,27 +565,27 @@ const EventFormWithRooms: React.FC<{
           {/* Title */}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              Title
+              Tiêu đề
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Event title..."
+              placeholder="Tiêu đề sự kiện..."
             />
           </div>
 
           {/* Description */}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              Description
+              Mô tả
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm h-24 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Short description..."
+              placeholder="Mô tả ngắn gọn về sự kiện..."
             />
           </div>
 
@@ -595,7 +593,7 @@ const EventFormWithRooms: React.FC<{
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-medium text-slate-700">
-                Thumbnail
+                Ảnh đại diện
               </label>
               <span className="text-[11px] text-slate-400">
                 Ảnh sẽ được upload lên Cloudinary
@@ -612,7 +610,9 @@ const EventFormWithRooms: React.FC<{
                   className="text-xs"
                 />
                 {uploadingThumb && (
-                  <span className="text-xs text-slate-500">Đang upload...</span>
+                  <span className="text-xs text-slate-500">
+                    Đang upload...
+                  </span>
                 )}
               </div>
 
@@ -626,7 +626,9 @@ const EventFormWithRooms: React.FC<{
                 />
                 {thumbnailUrl && (
                   <div className="mt-2">
-                    <p className="text-[11px] text-slate-500 mb-1">Preview:</p>
+                    <p className="text-[11px] text-slate-500 mb-1">
+                      Xem trước:
+                    </p>
                     <img
                       src={thumbnailUrl}
                       alt="thumbnail preview"
@@ -642,7 +644,7 @@ const EventFormWithRooms: React.FC<{
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                Start at
+                Thời gian bắt đầu
               </label>
               <input
                 type="datetime-local"
@@ -653,7 +655,7 @@ const EventFormWithRooms: React.FC<{
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                Close at (optional)
+                Thời gian kết thúc (tuỳ chọn)
               </label>
               <input
                 type="datetime-local"
@@ -668,7 +670,7 @@ const EventFormWithRooms: React.FC<{
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                Category
+                Danh mục sự kiện
               </label>
               <select
                 value={category}
@@ -687,7 +689,7 @@ const EventFormWithRooms: React.FC<{
 
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                Tags
+                Nhãn (tags)
               </label>
               <div className="flex flex-wrap gap-2">
                 {tagOptions.map((t) => {
@@ -722,7 +724,7 @@ const EventFormWithRooms: React.FC<{
               className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
             >
               <X className="w-3 h-3" />
-              Cancel
+              Hủy
             </button>
             <button
               type="submit"
@@ -732,12 +734,12 @@ const EventFormWithRooms: React.FC<{
               {mode === "create" ? (
                 <>
                   <Plus className="w-4 h-4" />
-                  Create Event
+                  Tạo sự kiện
                 </>
               ) : (
                 <>
                   <Edit2 className="w-4 h-4" />
-                  Save Changes
+                  Lưu thay đổi
                 </>
               )}
             </button>

@@ -14,7 +14,7 @@ const HostActionsPanel: React.FC = () => {
         <input
           className="rounded-md border px-3 py-2"
           type="number"
-          placeholder="UserId mục tiêu"
+          placeholder="Id "
           value={userId}
           onChange={(e) =>
             setUserId(e.target.value ? Number(e.target.value) : "")

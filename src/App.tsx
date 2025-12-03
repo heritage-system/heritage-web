@@ -45,11 +45,11 @@ const App: React.FC = () => {
         <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />
         <Route path="DiscoveryPage" element={<MainLayout><DiscoveryPage /></MainLayout>} />
-     
+        <Route path="/events/:eventId" element={<MainLayout><StreamingProvider><EventProvider><EventDetailPage/></EventProvider></StreamingProvider></MainLayout>}/>
         {/* <Route path="AIPredictLensPage" element={<MainLayout><AIpredictLensPage/></MainLayout>} /> */}
         {/* <Route path="CommunityPage" element={<MainLayout><CommunityPage /></MainLayout>} /> */}
         <Route path="/confirm-email-address" element={<MainLayout><ConfirmEmailPage/></MainLayout>} />
-       
+        <Route path="CommunityPage" element={<MainLayout><StreamingProvider><EventProvider><JoinRoomPage/></EventProvider></StreamingProvider></MainLayout>}/>
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
         <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
         <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
@@ -60,9 +60,7 @@ const App: React.FC = () => {
         <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
         <Route path="/contribution-form/:id?" element={<MainLayout><ContributionFormPage /></MainLayout>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
-        <Route path="/admin/adminPanelmanagement" element={<StreamingProvider><EventProvider><AdminPanelPage /></EventProvider></StreamingProvider>
-  }
-/>
+        <Route path="/admin/adminPanelmanagement" element={<StreamingProvider><EventProvider><AdminPanelPage /></EventProvider></StreamingProvider>}/>
 
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
         <Route path="/admin/reports" element={<ReportManagement />} />
@@ -70,7 +68,7 @@ const App: React.FC = () => {
         <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />  
-        <Route path="/live/:roomId" element={<LiveRoomPage />} /> 
+        <Route path="/live/:roomId" element={<StreamingProvider><LiveRoomPage /> </StreamingProvider>} /> 
         <Route path="/premium-packages" element={<MainLayout><ActivePackageList /></MainLayout>} />
         <Route path="/payment/success" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/payment/result" element={<MainLayout><PaymentResultPage /></MainLayout>} />

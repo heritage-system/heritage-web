@@ -131,7 +131,14 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
 
   const runPredictFile = async (file: File) => {
   try {
-    const res = await PredictJsonService.loadFromUrlRandom("/result-AI.json",3);
+    const formData = new FormData();
+    formData.append("file", file); // "file" phải trùng với tên field backend đọc
+
+    const url =
+      "http://127.0.0.1:8000/predict?top_k=20&results=5&threshold=0.65&robust=true&max_crops=12&do_flip=true&night_enhance=true";
+
+    const res = await PredictJsonService.loadFromUrlRandomPost(url, 5, formData);
+
     setPayload(res ?? null);
 
     const heritages = mapPredictToHeritage(res ?? null);

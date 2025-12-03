@@ -171,7 +171,7 @@ const moduleStructure = {
   icon: CalendarCheck,
   subModules: [
     { id: "events", name: "Sự kiện & Workshop", icon: CalendarRange, component: EventList },
-    { id: "eventCreate", name: "Tạo sự kiện", icon: PlusCircle, component: EventCreate },
+   // { id: "eventCreate", name: "Tạo sự kiện", icon: PlusCircle, component: EventCreate },
     { id: "liveRooms", name: "Phòng livestream", icon: Video, component: LiveRoomManager },
     { id: "participants", name: "Người tham gia", icon: Users, component: ParticipantManager },
   ]
