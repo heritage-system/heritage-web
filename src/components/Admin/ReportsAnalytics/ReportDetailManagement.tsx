@@ -79,9 +79,9 @@ const ReportDetailManagement: React.FC = () => {
 
   if (loading) {
     return (
-      <HeritageAdminPanel>
-        <div className="min-h-screen bg-gray-50 p-6">
-          <div className="max-w-5xl mx-auto space-y-6">
+      <HeritageAdminPanel initialModule="customerManagement" initialSubModule="reports">
+        <div className="p-6">
+          <div className="space-y-6">
             <div className="h-16 bg-white rounded-lg shadow animate-pulse"></div>
             <div className="h-96 bg-white rounded-lg shadow animate-pulse"></div>
           </div>
@@ -91,31 +91,34 @@ const ReportDetailManagement: React.FC = () => {
   }
 
   return (
-    <HeritageAdminPanel>
-      <div className="min-h-screen bg-gray-50">
+    <HeritageAdminPanel initialModule="customerManagement" initialSubModule="reports">
+      <div>
         {/* Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-5xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigate("/admin")}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 border border-gray-300"
-                >
-                  <ArrowLeft size={18} />
-                  Quay về danh sách
-                </button>
-                <div className="h-6 w-px bg-gray-300"></div>
-                <h1 className="text-2xl font-bold text-gray-900">Chi tiết báo cáo #{reportId}</h1>
-              </div>
-              <div className="text-sm text-gray-500">
-                {report && `Tạo lúc: ${new Date(report.createdAt).toLocaleString('vi-VN')}`}
-              </div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate("/admin/adminPanelmanagement", { 
+                  state: { 
+                    module: { title: "Quản lý Khách hàng" },
+                    subModule: { name: "Báo cáo khách hàng" }
+                  } 
+                })}
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 border border-gray-300"
+              >
+                <ArrowLeft size={18} />
+                Quay về danh sách
+              </button>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <h1 className="text-2xl font-bold text-gray-900">Chi tiết báo cáo #{reportId}</h1>
+            </div>
+            <div className="text-sm text-gray-500">
+              {report && `Tạo lúc: ${new Date(report.createdAt).toLocaleString('vi-VN')}`}
             </div>
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto p-6 space-y-8">
+        <div className="space-y-8">
           
           {/* Report Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

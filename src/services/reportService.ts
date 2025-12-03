@@ -27,14 +27,12 @@ export async function getReportById(id: number): Promise<ApiResponse<Report>> {
   );
 }
 
-export const createReport = async (
-  data: CreateReportRequest
-): Promise<ApiResponse<boolean>> => {
-  return await fetchInterceptor<boolean>(
-    `${API_URL}/api/Report/create`,
-    { method: "POST", body: data as any }
-  );
-};
+export async function createReport(data: { heritageId: number, reason: string }): Promise<ApiResponse<Report>> {
+  return await fetchInterceptor<Report>(`${API_URL}/api/Report/create`, {
+    method: "POST",
+    body: data as any,
+  });
+}
 
 
 export async function answerReport(data: { reportId: number; answer: string }): Promise<ApiResponse<void>> {
