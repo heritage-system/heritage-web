@@ -2,8 +2,8 @@
 import React from "react";
 
 type SpinnerProps = {
-  size?: number;           // px
-  thickness?: number;      // px
+  size?: number;
+  thickness?: number;
   className?: string;
   ariaLabel?: string;
 };
@@ -14,23 +14,49 @@ const Spinner: React.FC<SpinnerProps> = ({
   className = "",
   ariaLabel = "Đang tải",
 }) => {
-  const border = `${thickness}px`;
   return (
     <span
       role="status"
       aria-label={ariaLabel}
-      className={`inline-block align-middle ${className}`}
+      className={`inline-block relative ${className}`}
       style={{ width: size, height: size }}
     >
+      {/* TRACK — vòng tròn nền luôn hiện */}
       <span
-        className="block rounded-full animate-spin"
+        className="absolute inset-0 block rounded-full"
         style={{
-          width: "100%",
-          height: "100%",
-          border: `${border} solid rgba(0,0,0,0.08)`,
-          borderTop: `${border} solid`,
-          borderImage: "linear-gradient(to right, #A16207, #B91C1C) 1", 
-          // #A16207 ~ yellow-700, #B91C1C ~ red-700
+          border: `${thickness}px solid rgba(0,0,0,0.15)`,
+        }}
+      />
+
+      {/* ACTIVE — đoạn sáng chạy quanh */}
+      <span
+        className="absolute inset-0 block animate-spin rounded-full"
+        style={{
+          background: `
+            conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              transparent 240deg,
+              #A16207 270deg,
+              #B91C1C 320deg,
+              transparent 360deg
+            )
+          `,
+          mask: `
+            radial-gradient(
+              farthest-side,
+              transparent calc(100% - ${thickness}px),
+              black calc(100% - ${thickness}px)
+            )
+          `,
+          WebkitMask: `
+            radial-gradient(
+              farthest-side,
+              transparent calc(100% - ${thickness}px),
+              black calc(100% - ${thickness}px)
+            )
+          `,
         }}
       />
     </span>

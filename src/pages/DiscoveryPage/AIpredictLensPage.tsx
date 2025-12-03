@@ -222,16 +222,16 @@ const message = (isStringErr ? null : err?.message) ?? fallbackMessage;
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {getMatches(payload).map((m: PredictResponse["matches"][number]) => {
                   const thumbUrl =
-                    m.avatar_url ||
+                    m.media?.url ||
                     m.evidence.find((e) => !e.is_video)?.url ||
                     m.evidence[0]?.url ||
                     null;
 
                   return (
                     <article
-                      key={m.heritage_id}
+                      key={m.id}
                       className="rounded-xl border bg-white p-4 hover:shadow transition cursor-pointer"
-                      onClick={() => navigate(`/heritagedetail/${m.heritage_id}`)}
+                      onClick={() => navigate(`/heritagedetail/${m.id}`)}
                       title={m.name ?? "Không rõ tên"}
                     >
                       {thumbUrl && (

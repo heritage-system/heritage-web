@@ -141,7 +141,10 @@ export interface UserCreationByAdminRequest {
   username: string;
   email: string;
   fullName: string;
-  roleName?: string;                
+  address?: string,
+  phone?: string,
+  dateOfBirth?:string,
+  roleName?: string;   
   // Dành cho Staff
   staffRole?: StaffRole;
   canManageEvents?: boolean;

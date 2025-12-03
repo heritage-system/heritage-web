@@ -1,54 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Save, AlertCircle, Loader2 } from "lucide-react";
 import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
-import { StaffDetailResponse, StaffUpdateRequest } from "../../../../types/staff";
-import { StaffRole, StaffStatus } from "../../../../types/enum";
+import { ContributorResponse, ContributorUpdateRequest } from "../../../../types/contributor";
 
-interface UpdateStaffProps {
-  staff: StaffDetailResponse | null;
+interface UpdateContributorProps {
+  contributor: ContributorResponse | null;
   onClose: () => void;
-  onSave: (data: StaffUpdateRequest) => Promise<void>;
+  onSave: (data: ContributorUpdateRequest) => Promise<void>;
   isOpen: boolean;
 }
 
- const staffRoleOptions = [
-  { value: StaffRole.CONTENT_REVIEWER, label: "Duyệt nội dung" },
-  { value: StaffRole.EVENT_MANAGER, label: "Quản lý sự kiện" },
-  { value: StaffRole.SUPPORT_STAFF, label: "Hỗ trợ người dùng" },
-  { value: StaffRole.COORDINATOR, label: "Điều phối viên" },
-  { value: StaffRole.MODERATOR, label: "Kiểm duyệt viên" },
-  { value: StaffRole.ADMIN_ASSISTANT, label: "Trợ lý Admin" },
-] as const;
 
-const staffStatusOptions = [
-  { value: StaffStatus.ACTIVE, label: "Hoạt động" },
-  { value: StaffStatus.INACTIVE, label: "Tạm ngưng" },
-  { value: StaffStatus.SUSPENDED, label: "Bị đình chỉ" },
-  { value: StaffStatus.RETIRED, label: "Đã nghỉ việc" },
-] as const;
-
-export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateStaffProps) {
+export default function UpdateContributor({ contributor, onClose, onSave, isOpen }: UpdateContributorProps) {
   const [loading, setLoading] = useState(false);
+  const [isPremiumEligible, setIsPremiumEligible] = useState(contributor?.isPremiumEligible ?? false);
 
+  useEffect(() => {
+    if (contributor) {
+      setIsPremiumEligible(contributor.isPremiumEligible ?? false);
+    }
+  }, [contributor]);
   // LOADING KHI CHƯA CÓ DATA
-  if (!staff) {
+  if (!contributor) {
     return (
       <PortalModal open={isOpen} onClose={onClose} size="lg" maxWidth="900px">
         <div className="flex flex-col items-center justify-center py-32">
           <Loader2 className="animate-spin text-blue-600" size={56} />
-          <p className="mt-6 text-lg font-medium text-gray-700">Đang tải thông tin nhân viên...</p>
+          <p className="mt-6 text-lg font-medium text-gray-700">Đang tải thông tin cộng tác viên...</p>
         </div>
       </PortalModal>
     );
   }
 
+  
+
   const formatDate = (value?: string | null): string => {
     if (!value) return "";
     return value.split("T")[0]; // hoặc dùng dayjs…
   };
-
-  const isPending = staff.staffStatus === StaffStatus.PENDING;
-
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loading) return;
@@ -56,18 +46,14 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
     setLoading(true);
     const form = e.currentTarget;
 
-    const payload: StaffUpdateRequest = {
+    const payload: ContributorUpdateRequest = {
       fullName: form.fullName.value.trim() || undefined,
       phone: form.phone.value.trim() || undefined,
       address: form.address.value.trim() || undefined,
-      dateOfBirth: form.dateOfBirth.value || undefined,
-      staffRole: Number(form.staffRole.value) as StaffRole,
-      staffStatus: isPending
-        ? staff.staffStatus
-        : (Number(form.staffStatus.value) as StaffStatus),
-      canManageEvents: form.canManageEvents.checked,
-      canReplyReports: form.canReplyReports.checked,
-      canAssignTasks: form.canAssignTasks.checked,
+      dateOfBirth: form.dateOfBirth.value || undefined,   
+      bio: form.bio.value.trim(),
+      expertise: form.expertise.value.trim(),           
+      isPremiumEligible: isPremiumEligible,    
     };
 
     try {
@@ -78,6 +64,8 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
       setLoading(false);
     }
   };
+
+  
 
   const handleClose = () => {
     if (!loading) onClose();
@@ -94,7 +82,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-h-screen overflow-y-auto scrollbar-hide">
         <div className="flex items-center justify-between px-8 pt-7 pb-5 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <h3 className="text-2xl font-bold text-gray-900">Chỉnh sửa nhân viên</h3>
+          <h3 className="text-2xl font-bold text-gray-900">Chỉnh sửa cộng tác viên</h3>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -105,7 +93,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
           </button>
         </div>
 
-        {isPending && (
+        {/* {isPending && (
           <div className="mx-8 mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
             <AlertCircle size={20} className="text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
@@ -115,14 +103,14 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
               </p>
             </div>
           </div>
-        )}
+        )} */}
 
         <form onSubmit={handleSubmit} className="px-8 py-7 space-y-7">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Tên đăng nhập</label>
               <input
-                value={staff.userName}
+                value={contributor.userName}
                 disabled
                 className="w-full px-4 py-3 bg  bg-gray-50 border border-gray-300 rounded-xl text-gray-600 cursor-not-allowed"
               />
@@ -132,7 +120,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
               <input
-                value={staff.email}
+                value={contributor.email}
                 disabled
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-600 cursor-not-allowed"
               />
@@ -145,7 +133,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
               <input
                 name="fullName"
                 type="text"
-                defaultValue={staff.fullName}
+                defaultValue={contributor.fullName}
                 required
                 disabled={loading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
@@ -158,7 +146,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
               <input
                 name="phone"
                 type="text"
-                defaultValue={staff.phone || ""}
+                defaultValue={contributor.phone || ""}
                 disabled={loading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
                 placeholder="0901234567"
@@ -170,7 +158,7 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
               <input
                 name="address"
                 type="text"
-                defaultValue={staff.address || ""}
+                defaultValue={contributor.address || ""}
                 disabled={loading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
                 placeholder="123 Đường ABC, Quận 1"
@@ -182,95 +170,78 @@ export default function UpdateStaff({ staff, onClose, onSave, isOpen }: UpdateSt
               <input
                 name="dateOfBirth"
                 type="date"
-                defaultValue={formatDate(staff.dateOfBirth) || ""}
+                defaultValue={formatDate(contributor.dateOfBirth) || ""}
                 disabled={loading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Vai trò nhân viên <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="staffRole"
-                defaultValue={staff.staffRole}
-                required
-                disabled={loading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
-              >
-                {staffRoleOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Trạng thái</label>
-              <select
-                name="staffStatus"
-                defaultValue={staff.staffStatus}
-                disabled={isPending || loading}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  isPending || loading ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""
-                }`}
-              >
-                {staffStatusOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              {isPending && (
-                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                  <AlertCircle size={14} />
-                  Sẽ được duyệt sau khi admin xác nhận
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-gray-200">
-            <p className="text-sm font-semibold text-gray-700 mb-4">Quyền hạn bổ sung</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="canManageEvents"
-                  defaultChecked={staff.canManageEvents}
+          <div className="md:col-span-2">            
+               {/* BIO */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Tiểu sử</label>
+                <textarea
+                  name="bio"                         
                   disabled={loading}
-                  className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                  defaultValue={contributor.bio || ""}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 mb-2"
+                  placeholder="Nhập tiểu sử..."
                 />
-                <span className="text-gray-700">Quản lý sự kiện</span>
-              </label>
+              </div>
 
-              <label className="flex items-center gap-3 cursor-pointer">
+              {/* EXPERTISE */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Chuyên môn</label>
                 <input
-                  type="checkbox"
-                  name="canReplyReports"
-                  defaultChecked={staff.canReplyReports}
+                  type="text"
+                  name="expertise"
+                  defaultValue={contributor.expertise || ""}
                   disabled={loading}
-                  className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 mb-4"
+                  placeholder="Nhập chuyên môn..."
                 />
-                <span className="text-gray-700">Phản hồi báo cáo</span>
-              </label>
+              </div>
 
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="canAssignTasks"
-                  defaultChecked={staff.canAssignTasks}
+              {/* DOCUMENTS URL - visible when editing */}
+            
+                {/* <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tài liệu (URL)</label>
+                  <input
+                    type="url"
+                    name="documentsUrl"
+                  
+                    disabled={loading}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 mb-4"
+                    placeholder="Nhập đường dẫn tài liệu..."
+                  />
+                </div> */}
+
+              {/* IS PREMIUM ELIGIBLE */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-amber-50 to-red-50">
+                <span className="text-sm font-medium text-gray-900">
+                  Cho phép đăng bài <span className="text-red-600 font-semibold">Premium</span>
+                </span>
+
+                <button
+                  type="button"
+                  role="switch"
                   disabled={loading}
-                  className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
-                />
-                <span className="text-gray-700">Phân công nhiệm vụ</span>
-              </label>
+                  className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors
+                    ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                    ${isPremiumEligible ? "bg-gradient-to-r from-yellow-600 to-red-600" : "bg-gray-300"}
+                  `}
+                  onClick={() => setIsPremiumEligible(!isPremiumEligible)}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform
+                      ${isPremiumEligible ? "translate-x-6" : "translate-x-1"}
+                    `}
+                  />
+                </button>
+              </div>
+
             </div>
-          </div>
 
           <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
             <button

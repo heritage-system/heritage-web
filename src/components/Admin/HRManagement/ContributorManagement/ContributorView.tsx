@@ -5,7 +5,7 @@ import { getContributorDetail } from "../../../../services/contributorService";
 import { ContributorResponse } from "../../../../types/contributor";
 import { ContributorStatus } from "../../../../types/enum";
 import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
-
+import { Mail, Phone, MapPin, Calendar, User } from "lucide-react";
 interface ContributorViewProps {
   open: boolean;
   onClose: () => void;
@@ -46,6 +46,8 @@ const ContributorView: React.FC<ContributorViewProps> = ({
     loadContributorDetail();
   }, [open, contributor]);
 
+  const formatDate = (date?: string | null) =>
+    date ? new Date(date).toLocaleDateString("vi-VN") : "Chưa cập nhật";
   // Hiển thị trạng thái
   const getStatusBadge = (status: ContributorStatus | string) => {
     const normalized =
@@ -54,7 +56,7 @@ const ContributorView: React.FC<ContributorViewProps> = ({
     switch (normalized) {
       case ContributorStatus.APPLIED:
       case "APPLIED":
-        return { color: "bg-yellow-100 text-yellow-800", text: "Chờ duyệt" };
+        return { color: "bg-yellow-100 text-yellow-800", text: "Chờ xác nhận" };
 
       case ContributorStatus.REJECTED:
       case "REJECTED":
@@ -116,14 +118,14 @@ const ContributorView: React.FC<ContributorViewProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
-                <p className="text-gray-900">{contributorDetail.userEmail}</p>
+                <p className="text-gray-900">{contributorDetail.email}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Họ tên
+                  Tên đăng nhập 
                 </label>
-                <p className="text-gray-900">{contributorDetail.userFullName}</p>
+                <p className="text-gray-900">{contributorDetail.userName}</p>
               </div>
 
               <div>
@@ -166,6 +168,42 @@ const ContributorView: React.FC<ContributorViewProps> = ({
                 </p>
               </div>
             </div>
+                    
+                     <div className="space-y-4 bg-gray-50 rounded-xl p-5">
+            <h4 className="font-semibold text-gray-800 mb-3">Thông tin liên hệ</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+               <div className="flex items-start gap-3">
+                <User size={18} className="text-gray-500 mt-0.5" />
+                <div>
+                  <p className="text-gray-600">Họ tên</p>
+                  <p className="font-medium text-gray-900">{contributorDetail.fullName}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone size={18} className="text-gray-500 mt-0.5" />
+                <div>
+                  <p className="text-gray-600">Điện thoại</p>
+                  <p className="font-medium text-gray-900">{contributorDetail.phone || "Chưa cập nhật"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <MapPin size={18} className="text-gray-500 mt-0.5" />
+                <div>
+                  <p className="text-gray-600">Địa chỉ</p>
+                  <p className="font-medium text-gray-900">{contributorDetail.address || "Chưa cập nhật"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Calendar size={18} className="text-gray-500 mt-0.5" />
+                <div>
+                  <p className="text-gray-600">Ngày sinh</p>
+                  <p className="font-medium text-gray-900">{formatDate(contributorDetail.dateOfBirth)}</p>
+                </div>
+              </div>            
+            </div>
+          </div>
 
             {/* Bio */}
             <div>

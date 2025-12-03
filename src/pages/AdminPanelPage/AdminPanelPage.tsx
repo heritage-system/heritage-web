@@ -156,9 +156,9 @@ const moduleStructure = {
     id: "hrManagement",
     title: "Quản lý Nhân sự",
     icon: Users,
-    subModules: [
-      { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },
-      { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },
+    subModules: [ 
+      { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },     
+      { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },   
       { id: "attendance", name: "Theo dõi chấm công", icon: Clock, component: AttendanceTracking },
       { id: "payroll", name: "Quản lý bảng lương", icon: CreditCard, component: PayrollManagement },
       { id: "performance", name: "Đánh giá hiệu suất", icon: BarChart3, component: PerformanceReview },
@@ -258,11 +258,14 @@ interface HeritageAdminPanelProps {
 
 const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({ 
   children,
-  initialModule,
-  initialSubModule,
   onBackToDashboard 
 }) => {
-  const location = useLocation();
+  
+   const location = useLocation();
+  console.log("STATE =", location.state);
+  const initialModule = location.state?.module.id;
+  const initialSubModule = location.state?.subModule;
+  console.log("name ", initialModule  )
   const navigate = useNavigate();
   const params = useParams(); // To handle subModule from URL if needed
   const [activeModule, setActiveModule] = useState<string>(initialModule || "contentManagement");
@@ -322,8 +325,10 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
       setActiveSubModule(subModuleId);
     } else {
       const module = moduleStructure[activeModule as keyof typeof moduleStructure];
+      console.log(module)
       if (module && module.subModules.length > 0) {
         setActiveSubModule(module.subModules[0].id);
+        console.log(activeModule)
       }
     }
   }, [location, initialModule, initialSubModule, params]);

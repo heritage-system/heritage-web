@@ -4,6 +4,7 @@ export interface Module {
 }
 
 export interface ModuleGroup {
+    id: string;
     title: string;
     color: string;
     count: number;

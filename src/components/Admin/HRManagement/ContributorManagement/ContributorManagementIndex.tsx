@@ -10,7 +10,8 @@ import {
 import { toast } from "react-hot-toast";
 import { ContributorStatus } from "../../../../types/enum";
 import ContributorTable from "./ContributorTable";
-import ContributorForm from "./ContributorForm";
+import CreateContributor from "./CreateContributor";
+import UpdateContributor from "./UpdateContributor";
 import ContributorView from "./ContributorView";
 import ConfirmDialog from "./ConfirmDialog";
 import {
@@ -18,54 +19,61 @@ import {
   disableContributor,
   approveContributor,
   rejectContributor,
-  reactivateContributor
+  reactivateContributor,
+  updateContributor,
+  getContributorDetail
 } from "../../../../services/contributorService";
 import {
   ContributorSearchResponse,
   ContributorResponse,
+  ContributorUpdateRequest
 } from "../../../../types/contributor";
-
+import { UserCreationByAdminRequest } from "../../../../types/user";
+import { createUserByAdmin } from "../../../../services/userService";
 // Tab definitions with proper status mapping
 const TABS = [
-  {
-    key: "applied",
-    label: "Chờ duyệt",
-    icon: Clock,
-    status: ContributorStatus.APPLIED,
-  },
-  {
-    key: "rejected",
-    label: "Đã từ chối",
-    icon: XCircle,
-    status: ContributorStatus.REJECTED,
-  },
-   {
-    key: "active",
-    label: "Đang hoạt động",
-    icon: UserCheck,
-    status: ContributorStatus.ACTIVE,
-  },
-  {
-    key: "suspended",
-    label: "Đã đình chỉ",
-    icon: Ban,
-    status: ContributorStatus.SUSPENDED,
-  },
   {
     key: "all",
     label: "Tất cả",
     icon: Users,
     status: undefined,
   },
+  {
+    key: "active",
+    label: "Đang hoạt động",
+    icon: UserCheck,
+    status: ContributorStatus.ACTIVE,
+  },
+  {
+    key: "applied",
+    label: "Chờ xác nhận",
+    icon: Clock,
+    status: ContributorStatus.APPLIED,
+  },
+  // {
+  //   key: "rejected",
+  //   label: "Đã từ chối",
+  //   icon: XCircle,
+  //   status: ContributorStatus.REJECTED,
+  // },
+   
+  {
+    key: "suspended",
+    label: "Đã đình chỉ",
+    icon: Ban,
+    status: ContributorStatus.SUSPENDED,
+  },
+  
 ];
 
 const ContributorManagement: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("applied"); // Start with pending applications
+  const [activeTab, setActiveTab] = useState("all"); // Start with pending applications
   const [tabCounts, setTabCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
-
+  
   // Modal states
-  const [showForm, setShowForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [showView, setShowView] = useState(false);
   const [showConfirmAction, setShowConfirmAction] = useState(false);
 
@@ -94,6 +102,32 @@ const ContributorManagement: React.FC = () => {
     return status;
   };
 
+   const handleCreate = async (data: UserCreationByAdminRequest) => {
+      try {
+        const payload = { ...data, roleName: "CONTRIBUTOR" };
+        const res = await createUserByAdmin(payload);
+        if (res.code === 201 || res.result) {
+          toast.success("Tạo cộng tác viên thành công!");
+          setShowCreateForm(false)
+          handleRefresh()
+        }
+      } catch (err: any) {
+        toast.error(err?.message || "Tạo cộng tác viên thất bại");
+      }
+    };
+
+    const handleUpdate = async (staffId: number, data: ContributorUpdateRequest) => {
+      try {
+        const res = await updateContributor(staffId, data);
+        if (res.code === 200 || res.code === 201) {
+          toast.success("Cập nhật thành công!");
+          setShowEditForm(false);
+          handleRefresh()
+        }
+      } catch {
+        toast.error("Cập nhật thất bại");
+      }
+    };
   // Load counts for each tab
   const loadTabCounts = async () => {
     try {
@@ -144,15 +178,30 @@ const ContributorManagement: React.FC = () => {
 
   const handleAdd = () => {
     setSelectedContributor(null);
-    setShowForm(true);
+    setShowCreateForm(true);
   };
 
-  const handleEdit = (contributor: ContributorSearchResponse) => {
-    setSelectedContributor(
-      contributor as unknown as ContributorResponse
-    );
-    setShowForm(true);
-  };
+  const closeEditModal = useCallback(() => {  
+      setSelectedContributor(null);
+    }, []);
+
+  const openEditModal = useCallback(async (contributor: ContributorSearchResponse) => {   
+    setSelectedContributor(null); // reset
+  
+    try {
+      const res = await getContributorDetail(contributor.id);
+      if (res.result) {
+        setSelectedContributor(res.result);
+        setShowEditForm(true)
+      } else {
+        toast.error("Không tải được thông tin");
+        closeEditModal();
+      }
+    } catch {
+      toast.error("Lỗi tải dữ liệu");
+      closeEditModal();
+    }
+  }, []);
 
   const handleView = (contributor: ContributorSearchResponse) => {
     setSelectedContributor(
@@ -231,13 +280,13 @@ const ContributorManagement: React.FC = () => {
   const getActionMessage = () => {
     switch (actionType) {
       case "delete":
-        return `Bạn có chắc muốn đình chỉ cộng tác viên "${selectedContributor?.userFullName}"? Họ sẽ không thể thực hiện các hoạt động đóng góp.`;
+        return `Bạn có chắc muốn đình chỉ cộng tác viên "${selectedContributor?.fullName}"? Họ sẽ không thể thực hiện các hoạt động đóng góp.`;
       case "approve":
-        return `Bạn có chắc muốn phê duyệt cộng tác viên "${selectedContributor?.userFullName}"? Họ sẽ có thể bắt đầu thực hiện các hoạt động đóng góp.`;
+        return `Bạn có chắc muốn phê duyệt cộng tác viên "${selectedContributor?.fullName}"? Họ sẽ có thể bắt đầu thực hiện các hoạt động đóng góp.`;
       case "reject":
-        return `Bạn có chắc muốn từ chối đơn của "${selectedContributor?.userFullName}"? Đơn đăng ký sẽ bị từ chối và họ cần nộp lại đơn mới.`;
+        return `Bạn có chắc muốn từ chối đơn của "${selectedContributor?.fullName}"? Đơn đăng ký sẽ bị từ chối và họ cần nộp lại đơn mới.`;
       case "restore":
-        return `Bạn có chắc muốn khôi phục cộng tác viên "${selectedContributor?.userFullName}"? Họ sẽ có thể tiếp tục hoạt động.`;
+        return `Bạn có chắc muốn khôi phục cộng tác viên "${selectedContributor?.fullName}"? Họ sẽ có thể tiếp tục hoạt động.`;
       default:
         return "";
     }
@@ -307,20 +356,35 @@ const ContributorManagement: React.FC = () => {
       {/* Table */}
       <ContributorTable
         filterStatus={currentTabStatus}
-        onEdit={handleEdit}
+        onEdit={openEditModal}
         onView={handleView}
         onAction={handleAction}
         refreshTrigger={refreshTrigger}
         onDataChange={loadTabCounts}
       />
 
+        <UpdateContributor
+          isOpen={showEditForm}
+          contributor={selectedContributor}
+          onClose={() => setShowEditForm(false)}
+          onSave={(data) => handleUpdate(selectedContributor!.id, data)}
+        />
+
+          
+      <CreateContributor
+        isOpen={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+        onSave={handleCreate}
+      />
       {/* Modals */}
-      <ContributorForm
+      {/* <ContributorForm
         open={showForm}
         onClose={() => setShowForm(false)}
         contributor={selectedContributor}
         onSuccess={handleRefresh}
-      />
+      /> */}
+
+
 
       <ContributorView
         open={showView}
