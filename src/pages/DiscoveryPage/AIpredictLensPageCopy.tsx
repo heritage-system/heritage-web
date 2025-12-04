@@ -189,6 +189,15 @@ useEffect(() => {
     console.error("Cannot save payload to sessionStorage", e);
   }
 }, [payload]);
+
+useEffect(() => {
+  const savedUrl = sessionStorage.getItem("ai-lens-url");
+  if (savedUrl) {
+    setAiUrl(savedUrl);
+  }
+}, []);
+
+
   return (
     <div className=" bg-gray-50">
       <main className="mx-auto w-full sm:px-6s">       
@@ -275,14 +284,16 @@ useEffect(() => {
                     />
 
                     <button
-                      onClick={() => {                      
-                        // cập nhật ảnh chính                    
-                        setAiUrl(AiUrl);                     
+                      onClick={() => {
+                        if (AiUrl) {
+                          sessionStorage.setItem("ai-lens-url", AiUrl);
+                        }
                       }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
                       Lưu
                     </button>
+
                   </div>
                 </div>
               ) : getError(payload) ? (
