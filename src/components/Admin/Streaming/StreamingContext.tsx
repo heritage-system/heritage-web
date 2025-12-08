@@ -163,6 +163,7 @@ useEffect(() => {
   if (!grant) return;
   if (isHost) return; // host/cohost không bị kick bằng cơ chế này
 
+
   const myUserId = selfUserId;
   const myRtcUid = grant.rtcUid;
 
@@ -206,6 +207,7 @@ useEffect(() => {
   return () => clearInterval(timer);
 }, [joined, effectiveRoomName, grant, selfUserId, isHost, leaveLive]);
 
+
 useEffect(() => {
   if (!joined) return;
   const rn = effectiveRoomName;
@@ -231,8 +233,44 @@ useEffect(() => {
   };
 }, [joined, effectiveRoomName]);
 
-  
+const refreshRoster = useCallback(async () => {
+  if (!effectiveRoomName) return;
+  const res = await getParticipants(effectiveRoomName, "ADMITTED");
+  if (res.code === 200 && res.result) {
+    setRoster(
+      res.result.map((p) => ({
+        uid: p.rtcUid,
+        userId: p.userId,
+        role: p.role,
+        isSelf: grant ? String(p.rtcUid) === String(grant.rtcUid) : false,
+      }))
+    );
+  }
+}, [effectiveRoomName, grant]);
  
+const resyncParticipants = useCallback(async () => {
+  if (!effectiveRoomName) return;
+  setIsResyncing(true);
+  try {
+    await refreshRoster();
+    toast.success("Đã đồng bộ danh sách người tham gia");
+  } finally {
+    setIsResyncing(false);
+  }
+}, [effectiveRoomName, refreshRoster]);
+
+const resyncParticipantsAll = useCallback(async () => {
+  // 1) gửi tín hiệu RTM để mọi client tự refresh
+  await channelSendText(JSON.stringify({ type: "resync" })).catch(() => {});
+  // 2) tự refresh cho chính mình
+  await resyncParticipants();
+}, [resyncParticipants]);
+
+ useEffect(() => {
+  if (!joined) return;
+  // khi vừa join xong, cố sync roster một lần nữa theo logic chuẩn
+  void resyncParticipants();
+}, [joined, resyncParticipants]);
 
 const createRoom: Ctx["createRoom"] = async (title, startAtIso, eventId) => {
   if (!title.trim()) {
@@ -320,20 +358,6 @@ const setRoleFn: Ctx["setRole"] = async (userId, role) => {
   }
 };
   // ----- Roster & Waiting helpers -----
-const refreshRoster = useCallback(async () => {
-  if (!effectiveRoomName) return;
-  const res = await getParticipants(effectiveRoomName, "ADMITTED");
-  if (res.code === 200 && res.result) {
-    setRoster(
-      res.result.map((p) => ({
-        uid: p.rtcUid,
-        userId: p.userId,
-        role: p.role,
-        isSelf: grant ? String(p.rtcUid) === String(grant.rtcUid) : false,
-      }))
-    );
-  }
-}, [effectiveRoomName, grant]);
 
 
 
@@ -420,23 +444,7 @@ const unbindAgoraListeners = () => {
 
 const [isResyncing, setIsResyncing] = useState(false);
 
-const resyncParticipants = useCallback(async () => {
-  if (!effectiveRoomName) return;
-  setIsResyncing(true);
-  try {
-    await refreshRoster();
-    toast.success("Đã đồng bộ danh sách người tham gia");
-  } finally {
-    setIsResyncing(false);
-  }
-}, [effectiveRoomName, refreshRoster]);
 
-const resyncParticipantsAll = useCallback(async () => {
-  // 1) gửi tín hiệu RTM để mọi client tự refresh
-  await channelSendText(JSON.stringify({ type: "resync" })).catch(() => {});
-  // 2) tự refresh cho chính mình
-  await resyncParticipants();
-}, [resyncParticipants]);
 
 
 
@@ -482,7 +490,7 @@ const joinLive: Ctx["joinLive"] = async (arg) => {
   const isHostRole =
     roleHint ? roleHint === "host" : ["Host", "CoHost"].includes(g.role);
 
-  await joinChannel({
+    await joinChannel({
     appId,
     channel: g.channel,
     token: g.rtcToken,
@@ -491,8 +499,30 @@ const joinLive: Ctx["joinLive"] = async (arg) => {
   });
 
   await catchUpExistingRemotes((uid) => createRemoteSlot(remoteWrapEl, uid));
+
+  // 🔥 AUTO LOAD ROSTER NGAY SAU KHI JOIN (không cần bấm "Đồng bộ")
+  try {
+    const res = await getParticipants(name, "ADMITTED" as any);
+    if (res.code === 200 && res.result) {
+      setRoster(
+        res.result.map((p) => ({
+          uid: p.rtcUid,
+          userId: p.userId,
+          role: p.role,
+          // dùng grant hiện tại (g) để đánh dấu "mình"
+          isSelf: String(p.rtcUid) === String(g.rtcUid),
+        }))
+      );
+    }
+  } catch (e) {
+    console.warn("[joinLive] initial getParticipants failed", e);
+  }
+
+  // vẫn có thể giữ scheduleRefreshRoster để sync tiếp nếu cần
   await scheduleRefreshRoster();
+
   setJoined(true);
+
 
   // === RTM ===
   console.groupCollapsed("[RTM] join start");
