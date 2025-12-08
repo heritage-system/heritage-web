@@ -28,8 +28,8 @@ export interface PanoramaTourSearchForAdminResponse {
     heritageId: number,
     heritageName: string,
     name: string,
-    status: string,
-    premiumType: string,  
+    status: number,
+    premiumType: number,  
     numberOfScenes: number,
     createdAt: string;
     updatedAt: string;
@@ -54,8 +54,8 @@ export interface PanoramaTourDetailForAdminResponse {
     name: string,
     thumbnailUrl: string,
     description: string,
-    status: string,
-    premiumType: string,
+    status: number,
+    premiumType: number,
     scenes: PanoramaSceneResponse[], 
     createdBy?: string;
     updatedBy?: string;
@@ -70,8 +70,8 @@ export interface PanoramaSceneResponse {
     sceneThumbnail: string,
     panoramaUrl?: string,
     description: string,
-    status: string,
-    premiumType: string    
+    status: number,
+    premiumType: number    
 }
 
 
@@ -79,9 +79,9 @@ export interface PanoramaTourCreationRequest {
     heritageId?: number,
     name: string,
     thumbnailUrl: string,
-    premiumType: string,
+    premiumType: PremiumType,
     description?: string,
-    status: string,
+    status: PanoramaStatus,
     scenes: PanoramaSceneCreationRequest[]  
 }
 
@@ -91,8 +91,8 @@ export interface PanoramaSceneCreationRequest {
     sceneThumbnail: string,
     panoramaUrl: string,
     description?: string,
-    status: string,
-    premiumType: string
+    status: PanoramaStatus,
+    premiumType: PremiumType
 }
 
 export interface TempScene {
@@ -101,8 +101,8 @@ export interface TempScene {
   sceneThumbnail: string;
   panoramaUrl: string;
   description?: string;
-  status: string;
-  premiumType: string;
+  status: number;
+  premiumType: number;
 
   thumbnailMode?: "url" | "file";
   localSceneThumbnail?: File | null;

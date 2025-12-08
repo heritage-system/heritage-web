@@ -11,7 +11,7 @@ import {
   CheckCircle,
   ListChecks
 } from "lucide-react";
-import { PremiumType } from "../../../../types/enum";
+
 import {
   PanoramaTourDetailForAdminResponse,
   PanoramaSceneResponse,
@@ -83,12 +83,12 @@ const PanoramaTourDetailView: React.FC<Props> = ({
               <p className="text-sm text-gray-500 font-medium">Trạng thái</p>
               <span
                 className={`inline-block px-4 py-1.5 text-sm font-medium border-2 rounded-full ${
-                  panoramaTour.status === "ACTIVE"
+                  panoramaTour.status === 0
                     ? "bg-green-50 text-green-700 border-green-300"
                     : "bg-yellow-50 text-red-700 border-red-300"
                 }`}
               >
-                {panoramaTour.status === "ACTIVE" ? "Hoạt động" : "Ẩn"}
+                {panoramaTour.status === 0 ? "Hoạt động" : "Ẩn"}
               </span>
             </div>
 
@@ -96,12 +96,12 @@ const PanoramaTourDetailView: React.FC<Props> = ({
               <p className="text-sm text-gray-500 font-medium">Loại truy cập</p>
               <span
                 className={`inline-block px-4 py-1.5 text-sm font-medium border-2 rounded-full ${
-                  panoramaTour.premiumType ==="FREE"
+                  panoramaTour.premiumType === 0
                     ? "bg-green-50 text-green-700 border-green-300"
                     : "bg-yellow-50 text-yellow-700 border-yellow-300"
                 }`}
               >
-                {panoramaTour.premiumType === "FREE" ? "Miễn phí" : "Thành viên"}
+                {panoramaTour.premiumType === 0 ? "Miễn phí" : "Thành viên"}
               </span>
             </div>
           </div>             
@@ -166,12 +166,12 @@ const PanoramaTourDetailView: React.FC<Props> = ({
 
                             <div
                               className={`inline-flex items-center justify-center mt-2 px-6 py-2 text-sm font-semibold rounded-full border 
-                                ${scene.status === "ACTIVE"
+                                ${scene.status === 0
                                   ? "bg-green-50 text-green-600 border-green-300"
                                   : "bg-red-50 text-red-600 border-red-300"
                                 }`}
                             >
-                              {scene.status === "ACTIVE" ? "Hoạt động" : "Ẩn"}
+                              {scene.status === 0 ? "Hoạt động" : "Ẩn"}
                             </div>
                           </div>
 
@@ -181,12 +181,12 @@ const PanoramaTourDetailView: React.FC<Props> = ({
 
                             <div
                               className={`inline-flex items-center justify-center mt-2 px-6 py-2 text-sm font-semibold rounded-full border 
-                                ${scene.premiumType === "FREE"
+                                ${scene.premiumType === 0
                                   ? "bg-green-50 text-green-600 border-green-300"
                                   : "bg-yellow-50 text-yellow-600 border-yellow-300"
                                 }`}
                             >
-                              {scene.premiumType === "FREE" ? "Miễn phí" : "Thành viên"}
+                              {scene.premiumType === 0 ? "Miễn phí" : "Thành viên"}
                             </div>
                           </div>
 

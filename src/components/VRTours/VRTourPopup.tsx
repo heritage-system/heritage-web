@@ -303,7 +303,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
                             />
 
                             {/* ⭐ PREMIUM STAR ICON (Lucide) */}
-{scene.premiumType !== "FREE" && (
+{scene.premiumType !== 0 && (
   <div className="absolute top-2 right-2 group">
     <div
       className="

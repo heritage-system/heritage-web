@@ -48,9 +48,9 @@ const PanoramaTourFormCreate: React.FC<Props> = ({
     heritageId: undefined,
     name: "",
     thumbnailUrl: "",
-    premiumType: PremiumType.FREE.toString(),
+    premiumType: PremiumType.FREE,
     description: "",
-    status: "ACTIVE",
+    status: 0,
     scenes: [],
   });
 
@@ -80,7 +80,6 @@ const PanoramaTourFormCreate: React.FC<Props> = ({
   // ---------------------------------------------------
   useEffect(() => {
     if (mode === "edit" && panoramaTour) {
-      console.log(panoramaTour)
       const mappedScenes = panoramaTour.scenes.map((s) => ({
         panoramaTourId: panoramaTour.id,
         sceneName: s.sceneName,
@@ -167,8 +166,8 @@ const PanoramaTourFormCreate: React.FC<Props> = ({
         finalScenes.push({
           ...s,
           sceneThumbnail,
-          status: s.status,
-          premiumType: s.premiumType,
+          status: Number(s.status),
+          premiumType: Number(s.premiumType),
         });
       }
 
@@ -176,8 +175,8 @@ const PanoramaTourFormCreate: React.FC<Props> = ({
       const payload: PanoramaTourCreationRequest = {
         ...formData,
         thumbnailUrl,
-        premiumType: formData.premiumType,
-        status: formData.status,
+        premiumType: Number(formData.premiumType),
+        status: Number(formData.status),
         scenes: finalScenes,
       };
       onSave(payload);
@@ -472,13 +471,13 @@ const PanoramaTourFormCreate: React.FC<Props> = ({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    premiumType: e.target.value,
+                    premiumType: Number(e.target.value),
                   })
                 }
                 className="w-full px-4 py-3 border rounded-xl"
               >
-                <option value={"FREE"}>Miễn phí</option>
-                <option value={"SUBSCRIPTIONONLY"}>Thành viên</option>
+                <option value={0}>Miễn phí</option>
+                <option value={1}>Thành viên</option>
               </select>
             </div>
 
@@ -491,13 +490,13 @@ const PanoramaTourFormCreate: React.FC<Props> = ({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    status: e.target.value,
+                    status: Number(e.target.value),
                   })
                 }
                 className="w-full px-4 py-3 border rounded-xl"
               >
-                <option value={"ACTIVE"}>Hoạt động</option>
-                <option value={"INACTIVE"}>Ẩn</option>
+                <option value={0}>Hoạt động</option>
+                <option value={1}>Ẩn</option>
               </select>
             </div>
           </div>
