@@ -54,16 +54,16 @@ const PanoramaTourTable: React.FC<Props> = ({ panoramaTours, onView, onEdit, onD
 
               {/* Premium Type */}
               <td className="px-4 py-3 text-sm text-center">
-                {t.premiumType === 1 ? (
-                  <span className="text-yellow-600 font-medium">Premium</span>
+                {t.premiumType === "FREE" ? (
+                   <span className="text-gray-700">Free</span>                
                 ) : (
-                  <span className="text-gray-700">Free</span>
+                   <span className="text-yellow-600 font-medium">Premium</span>
                 )}
               </td>
 
               {/* Status */}
               <td className="px-4 py-3 text-sm text-center">
-                {t.status === 0 ? (
+                {t.status === "ACTIVE" ? (
                   <span className="text-green-600 font-medium">Hoạt động</span>
                 ) : (
                   <span className="text-red-600 font-medium">Ẩn</span>

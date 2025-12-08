@@ -158,3 +158,12 @@ export interface ContributionSaveResponse{
 export interface ContributionAcceptanceDecisionRequest {
   note?: string;
 }
+
+export interface ContributionAccessLogCreationRequest { 
+  contributionId: number,
+  clientUuid: string,
+  timeSpentMs: number,
+  scrollDepth: number,
+  scrollVelocity: number,
+  interactions: number
+}

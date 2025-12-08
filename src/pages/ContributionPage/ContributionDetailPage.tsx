@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import ContentPreview from "../../components/ContributionForm/ContentPreview";
+import ContributionContent from "../../components/ContributionDetail/ContributionContent";
 import { getContributionDetail, unlockContribution, addContributionSave, removeContributionSave, getContributionRelated } from "../../services/contributionService";
 import { ContributionResponse } from "../../types/contribution";
 import { HeritageContributorPosts } from "../../components/HeritageDetail/HeritageContributorPosts";
@@ -150,7 +150,8 @@ const ArticleDetailPage = () => {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3 order-2 lg:order-1">
-            <ContentPreview
+            <ContributionContent
+              contributionId={article.id}
               title={article.title}
               cover={article.mediaUrl}
               html={article.content}

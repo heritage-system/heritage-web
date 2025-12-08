@@ -7,10 +7,11 @@ import BattlePlay from "./BattlePlay";
 import BattleCard from "./BattleCard";
 import QuizGrid from "./QuizGrid";
 import toast from 'react-hot-toast';
-
+import { tokenStorage } from '../../utils/tokenStorage';
 const HUB_URL = `${API_URL}/gamehub`;
 
-interface RandomBattleV2Props {
+interface RandomBattleProps {
+  userId?: number;
   name?: string;
   avatar?: string;
   onBack: () => void;
@@ -18,7 +19,7 @@ interface RandomBattleV2Props {
 
 
 
-const RandomBattle: React.FC<RandomBattleV2Props> = ({ name, avatar, onBack }) => {
+const RandomBattle: React.FC<RandomBattleProps> = ({userId, name, avatar, onBack }) => {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
   const [mode, setMode] = useState<"random" | "friend" | "custom">("random");
   const [isSearching, setIsSearching] = useState(false);
@@ -37,11 +38,13 @@ const RandomBattle: React.FC<RandomBattleV2Props> = ({ name, avatar, onBack }) =
   
   // ===== SIGNALR =====
   useEffect(() => {
-    const conn = new signalR.HubConnectionBuilder()
-      .withUrl(HUB_URL, { withCredentials: true })
-      .withAutomaticReconnect()
-      .build();
-
+    console.log("claim", localStorage.getItem("accessToken"))
+   const conn = new signalR.HubConnectionBuilder()
+    .withUrl(HUB_URL, {
+      accessTokenFactory: () => tokenStorage.getAccessToken() || ""
+    })
+    .withAutomaticReconnect()
+    .build();
     conn.start().then(() => console.log("✅ Connected")).catch(console.error);
 
     conn.on("WaitingForOpponent", () => {

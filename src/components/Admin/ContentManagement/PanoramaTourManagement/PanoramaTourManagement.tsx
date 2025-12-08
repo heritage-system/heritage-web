@@ -139,6 +139,7 @@ const PanoramaTourManagement: React.FC = () => {
       if (viewMode === "create") {
         res = await createPanoramaTour(data as PanoramaTourCreationRequest);
       } else {
+        console.log("data up:",data);
         res = await updatePanoramaTour(selectedPanoramaTour.id, data as PanoramaTourCreationRequest);
       }
 

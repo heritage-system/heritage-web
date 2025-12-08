@@ -6,7 +6,7 @@ import {
 import { toast } from "react-hot-toast";
 import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
 import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
-
+import { PremiumType } from "../../../../types/enum";
 interface Props {
   mode: "create" | "edit";
   formData: PanoramaTourCreationRequest;
@@ -52,8 +52,8 @@ const PanoramaSceneList: React.FC<Props> = ({
       sceneThumbnail: "",
       panoramaUrl: "",
       description: "",
-      status: 0, // ACTIVE
-      premiumType: 0, // FREE
+      status: "", // ACTIVE
+      premiumType: "", // FREE
     };
 
     const updated = [...scenes, newScene];
@@ -429,12 +429,12 @@ const SceneFormUI = ({
           <select
             value={scene.status}
             onChange={(e) =>
-              setScene({ ...scene, status: Number(e.target.value) })
+              setScene({ ...scene, status: e.target.value })
             }
             className="w-full border p-3 rounded-xl"
           >
-            <option value={0}>Hoạt động</option>
-            <option value={1}>Ẩn</option>
+            <option value={"ACTIVE"}>Hoạt động</option>
+            <option value={"INACTIVE"}>Ẩn</option>
           </select>
         </div>
 
@@ -445,12 +445,12 @@ const SceneFormUI = ({
           <select
             value={scene.premiumType}
             onChange={(e) =>
-              setScene({ ...scene, premiumType: Number(e.target.value) })
+              setScene({ ...scene, premiumType: e.target.value })
             }
             className="w-full border p-3 rounded-xl"
           >
-            <option value={0}>Miễn phí</option>
-            <option value={1}>Thành viên</option>
+            <option value={"FREE"}>Miễn phí</option>
+            <option value={"SUBSCRIPTIONONLY"}>Thành viên</option>
           </select>
         </div>
       </div>

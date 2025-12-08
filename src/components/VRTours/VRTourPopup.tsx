@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Eye, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { PanoramaTourDetailResponse } from "../../types/panoramaTour";
+import { useNavigate } from "react-router-dom";
 type Scene = {
   title: string;
   description: string;
@@ -17,6 +18,7 @@ type VRTourPopupProps = {
 };
 
 const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock, unlockLoading }) => {
+  const navigate = useNavigate();
   const [currentScene, setCurrentScene] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
@@ -183,9 +185,9 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
       hover:opacity-90 transition-all
       ${unlockLoading ? "opacity-60 cursor-not-allowed animate-none" : "animate-bounce"}
     `}
-    onClick={() => alert('Đăng ký Premium để mở khóa bé yêu ❤️')}
+    onClick={() => navigate("/premium-packages")}
   >
-    {unlockLoading ? "Đang mở khóa..." : "Mở khóa để xem"}
+    {unlockLoading ? "Đang mở khóa..." : "Đăng kí gói Premium"}
   </button>
 )}
 
@@ -301,7 +303,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
                             />
 
                             {/* ⭐ PREMIUM STAR ICON (Lucide) */}
-{scene.premiumType === 1 && (
+{scene.premiumType !== "FREE" && (
   <div className="absolute top-2 right-2 group">
     <div
       className="
@@ -367,7 +369,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
                                       whitespace-nowrap pointer-events-none
                                     "
                                   >
-                                    Nội dung dành cho thành viên
+                                    Nội dung dành cho hội viên
                                   </div>
                                 </div>
                               </div>

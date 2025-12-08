@@ -14,7 +14,8 @@ import {
   ContributionOverviewSearchRequest,
   ContributionDetailUpdatedResponse,
   ContributionUpdateRequest,
-  ContributionSaveResponse
+  ContributionSaveResponse,
+  ContributionAccessLogCreationRequest
 } from "../types/contribution";
 import {
   ContributionReviewCreateRequest,
@@ -300,4 +301,16 @@ export const getContributionSaves = async (
     );
 
   return response;
+};
+
+export const sendContributionAccessLog = async (
+  data: ContributionAccessLogCreationRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/register_access_log`,
+    {
+      method: "POST",
+      body: data as any,
+    }
+  );
 };

@@ -10,6 +10,7 @@ import {
   UserSearchResponse,
   UserDetailResponse,
   UserCreationByAdminRequest,
+  UserPointResponse
 } from "../types/user";
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
@@ -113,6 +114,15 @@ export const changeUserStatusForAdmin = async (
         "Content-Type": "application/json", 
       },
       body: JSON.stringify(status),
+    }
+  );
+};
+
+export const getUserPoint = async (): Promise<ApiResponse<UserPointResponse>> => {
+  return await fetchInterceptor<UserPointResponse>(
+    `${API_URL}/api/v1/users/user_point`,
+    {
+      method: "GET",
     }
   );
 };

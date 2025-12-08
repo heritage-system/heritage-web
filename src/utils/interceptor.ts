@@ -31,7 +31,8 @@ const OPTIONAL_AUTH_ENDPOINTS: string[] = [
   '/api/v1/reviews/reviewByheritage',
   '/api/v1/quiz/search_quiz',
   '/api/v1/quiz/get_quiz_detail',
-  '/api/v1/panorama_tours/get_panorama_tour_detail'
+  '/api/v1/panorama_tours/get_panorama_tour_detail',
+  '/api/v1/contributions/register_access_log'
 ]
 
 // Helpers nhận diện body

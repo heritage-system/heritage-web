@@ -37,10 +37,11 @@ import ConfirmEmailPage from './pages/AuthPage/ConfirmEmailPage';
 import { EventProvider } from "./components/Admin/EventManagement/EventContext";
 import EventDetailPage from './pages/CommunityPage/EventDetailPage';
 import EventDetailView from './components/Community/EventDetailView';
-
+import ScrollToTop from "./components/Layouts/ScrollToTop";
 const App: React.FC = () => {
   return (
     <Router>
+       <ScrollToTop />
       <Routes>
         <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
         <Route path="VRToursPage" element={<MainLayout><VRToursPage /></MainLayout>} />

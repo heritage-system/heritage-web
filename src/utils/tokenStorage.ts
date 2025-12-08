@@ -86,3 +86,15 @@ export const heritageNameStorage = {
 
   clear: () => localStorage.removeItem(HERITAGE_LIST_KEY),
 };
+
+export function getOrCreateClientUuid(): string {
+  const KEY = "client_uuid";
+
+  let uuid = localStorage.getItem(KEY);
+  if (uuid) return uuid;
+
+  uuid = crypto.randomUUID();
+  localStorage.setItem(KEY, uuid);
+
+  return uuid;
+}
