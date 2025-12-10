@@ -31,10 +31,10 @@ const PanoramaTourManagement: React.FC = () => {
   const [selectedPanoramaTour, setSelectedPanoramaTour] = useState<any>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  const [sortBy, setSortBy] = useState("dateDesc");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -182,6 +182,8 @@ const PanoramaTourManagement: React.FC = () => {
             setSearchTerm={setSearchTerm}
             sortBy={sortBy}
             setSortBy={setSortBy}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
           />
 
           <PanoramaTourTable

@@ -34,7 +34,7 @@ const QuizzManagement: React.FC = () => {
   const [sortBy, setSortBy] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -177,6 +177,9 @@ const QuizzManagement: React.FC = () => {
             setSearchTerm={setSearchTerm}
             sortBy={sortBy}
             setSortBy={setSortBy}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+            showItemsPerPage={true}
           />
 
           <QuizTable

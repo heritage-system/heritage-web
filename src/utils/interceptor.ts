@@ -18,7 +18,7 @@ const PUBLIC_ONLY_ENDPOINTS: string[] = [
   '/api/v1/contributions/contribution_related',
   '/api/Heritage/heritage_related',
   '/api/v1/panorama_tours/search_panorama_tour',
-  
+  '/api/v1/auth/confirm-email',
   '/api/Heritage/heritage_related',
   '/api/v1/PremiumPackage/byActive'
 ];

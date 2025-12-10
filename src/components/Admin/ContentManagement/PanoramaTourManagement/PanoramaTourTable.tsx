@@ -23,15 +23,15 @@ const PanoramaTourTable: React.FC<Props> = ({ panoramaTours, onView, onEdit, onD
       <table className="min-w-full divide-y divide-gray-300">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">ID</th>       
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">Tên tour</th>
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">Di sản</th>
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">Số cảnh</th>
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">Premium</th>
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">Trạng thái</th>
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">Ngày tạo</th>
-            <th className="px-4 py-3 text-xs text-gray-500 uppercase">Cập nhật</th>
-            <th className="px-4 py-3 text-right text-xs text-gray-500 uppercase">Hành động</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>       
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên tour</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Di sản</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số cảnh</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Premium</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tạo</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cập nhật</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
           </tr>
         </thead>
 
