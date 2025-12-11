@@ -122,7 +122,8 @@ export enum SubscriptionStatus {
   ACTIVE = 0, 
   EXPIRED = 1,
   CANCELLED = 2,
-  PENDING = 3
+  PENDING = 3,
+  UPGRADED = 4
 }
 // ⚡ Khớp với backend C#
 export enum RoomRole {

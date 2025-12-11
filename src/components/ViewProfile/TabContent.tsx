@@ -12,7 +12,7 @@ import ContributionFormPage from '../../pages/ContributionPage/ContributionFormP
 import {
   ContributionOverviewItemListResponse 
 } from "../../types/contribution";
-
+import InteractionHistory from './InteractionHistory/InteractionHistory';
 
 interface ContributionForm {
   title: string;
@@ -56,6 +56,8 @@ const TabContent: React.FC<TabContentProps> = ({
 
     case "quiz":
       return <QuizSection />;
+    case "interaction_history":
+      return <InteractionHistory />;
 
     case "contributions":
       return selectedContributionId ? (
