@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Video } from "lucide-react";
 import {
   EventResponse,
-  EventStatus,
-  EventCategory,
+ 
 } from "../../types/event";
 import {
   getEvents,
@@ -14,6 +13,7 @@ import LiveEventPanel from "../../components/Community/LiveEventPanel";
 import EventCard from "../../components/Community/EventCard";
 import UpcomingEventsSidebar from "../../components/Community/UpcomingEventsSidebar";
 import { toast } from "react-hot-toast";
+import { EventCategory, EventStatus } from "../../types/enum";
 
 type CategoryFilter = "all" | EventCategory;
 

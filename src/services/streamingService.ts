@@ -1,6 +1,6 @@
 import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
-import type {
+import {
   StreamingRoomResponse,
   StreamingJoinGrantResponse,
   StreamingRoomCreateRequest,
@@ -8,25 +8,14 @@ import type {
   StreamingParticipantResponse,
   StreamingRoomWithCountResponse,
   KickRequest,
-  ParticipantStatus,
+  
   StreamingRoomUpdateRequest,
   StreamingRoomDetailResponse,
-  StreamingRoomType,
+  
 } from "../types/streaming";
-import { ApiResponse } from "../types/apiResponse";
 
-export const createStreamingRoom = async (
-  data: StreamingRoomCreateRequest
-): Promise<ApiResponse<StreamingRoomResponse>> => {
-  return await fetchInterceptor<StreamingRoomResponse>(
-    `${API_URL}/api/v1/stream/rooms`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: data as any,
-    }
-  );
-};
+import { ApiResponse } from "../types/apiResponse";
+import { ParticipantStatus, StreamingRoomType } from "../types/enum";
 
 export const setParticipantRole = async (
   roomName: string,
@@ -53,9 +42,13 @@ export const issueJoinTokens = async (
 
 export const getParticipants = async (
   roomName: string,
-  status?: ParticipantStatus | "Kicked"
+  status?: ParticipantStatus
 ) => {
-  const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+  const qs =
+    typeof status === "number"
+      ? `?status=${encodeURIComponent(String(status))}`
+      : "";
+
   return await fetchInterceptor<StreamingParticipantResponse[]>(
     `${API_URL}/api/v1/stream/rooms/${encodeURIComponent(
       roomName
@@ -64,33 +57,22 @@ export const getParticipants = async (
   );
 };
 
+
 export async function getRoomsWithPeople(
   minCount = 2,
-  status: ParticipantStatus = "ADMITTED"
+  status: ParticipantStatus = ParticipantStatus.ADMITTED
 ) {
   return await fetchInterceptor<StreamingRoomWithCountResponse[]>(
     `${API_URL}/api/v1/stream/rooms/with-people?minCount=${minCount}&status=${encodeURIComponent(
-      status
+      String(status)
     )}`,
     { method: "GET" }
   );
 }
 
-// ✨ NEW: danh sách upcoming rooms (dùng để đăng ký)
-export async function getUpcomingRooms() {
-  return await fetchInterceptor<StreamingRoomResponse[]>(
-    `${API_URL}/api/v1/stream/rooms/upcoming`,
-    { method: "GET" }
-  );
-}
 
-// ✨ NEW: đăng ký tham gia event (Backend đã có RegisterAsync)
-export async function registerForRoom(roomName: string) {
-  return await fetchInterceptor<unknown>(
-    `${API_URL}/api/v1/stream/rooms/${encodeURIComponent(roomName)}/register`,
-    { method: "POST" }
-  );
-}
+
+
 
 export const heartbeat = async (
   roomName: string
@@ -124,15 +106,7 @@ export const kickParticipant = async (
     }
   );
 };
-export const getAdminRooms = async (
-  type?: StreamingRoomType
-): Promise<ApiResponse<StreamingRoomResponse[]>> => {
-  const qs = type ? `?type=${encodeURIComponent(type)}` : "";
-  return await fetchInterceptor<StreamingRoomResponse[]>(
-    `${API_URL}/api/v1/stream/rooms/admin${qs}`,
-    { method: "GET" }
-  );
-};
+
 
 // 🔥 NEW: Admin – chi tiết 1 room (kèm participants)
 export const getRoomDetailAdmin = async (
