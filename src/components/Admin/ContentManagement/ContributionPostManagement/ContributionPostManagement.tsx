@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FileText, Clock, XCircle, CheckCircle, Search } from "lucide-react";
+import { FileText, Clock, XCircle, CheckCircle, Search, CircleSlash } from "lucide-react";
 import {
   getListContributionsOverviewForStaff,
   getContributionOverviewForStaff,
   approveContributionAcceptance,
   rejectContributionAcceptance,
 } from "../../../../services/contributionAcceptanceService";
+import {
+  disableContributionStatusAdmin,
+  reactiveContributionStatusAdmin
+} from "../../../../services/contributionService";
 import {
   ContributionOverviewItemListResponse,
   ContributionOverviewSearchRequest,
@@ -22,6 +26,7 @@ const TABS = [
   { key: "pending" as const, label: "Chờ duyệt", icon: Clock, status: ContributionStatus.PENDING },
   { key: "approved" as const, label: "Đã duyệt", icon: CheckCircle, status: ContributionStatus.APPROVED },
   { key: "rejected" as const, label: "Đã từ chối", icon: XCircle, status: ContributionStatus.REJECTED },
+  { key: "disable" as const, label: "Vô hiệu hóa", icon: CircleSlash, status: ContributionStatus.DISABLE },
   { key: "all" as const, label: "Tất cả", icon: FileText, status: undefined },
 ];
 
@@ -29,6 +34,7 @@ interface TabCounts {
   pending: number;
   approved: number;
   rejected: number;
+  disable: number;
   all: number;
 }
 
@@ -38,6 +44,7 @@ const ContributionPostManagement: React.FC = () => {
     pending: 0,
     approved: 0,
     rejected: 0,
+    disable: 0,
     all: 0,
   });
 
@@ -50,6 +57,8 @@ const ContributionPostManagement: React.FC = () => {
 
   const [showDetail, setShowDetail] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showDisableConfirm, setShowDisableConfirm] = useState(false);
+  const [showReactiveConfirm, setReactiveShowConfirm] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [selectedContribution, setSelectedContribution] = useState<ContributionOverviewItemListResponse | null>(null);
   const [selectedContributionId, setSelectedContributionId] = useState<number | null>(null);
@@ -71,14 +80,15 @@ const ContributionPostManagement: React.FC = () => {
         return response?.result?.totalElements || 0;
       };
 
-      const [pending, approved, rejected, all] = await Promise.all([
+      const [pending, approved, rejected, disable, all] = await Promise.all([
         fetchCount(ContributionStatus.PENDING),
         fetchCount(ContributionStatus.APPROVED),
         fetchCount(ContributionStatus.REJECTED),
+        fetchCount(ContributionStatus.DISABLE),
         fetchCount(undefined),
       ]);
 
-      setTabCounts({ pending, approved, rejected, all });
+      setTabCounts({ pending, approved, rejected, disable, all });
     } catch (error) {
       console.error("Error fetching tab counts:", error);
     }
@@ -134,10 +144,12 @@ const ContributionPostManagement: React.FC = () => {
     setShowDetail(true);
   };
 
-  const handleAction = (item: ContributionOverviewItemListResponse, action: "approve" | "reject") => {
+  const handleAction = (item: ContributionOverviewItemListResponse, action: "approve" | "reject" | "disable" | "reactive") => {
     setSelectedContribution(item);
     if (action === "approve") setShowConfirm(true);
-    else setShowRejectDialog(true);
+    else if (action === "reject") setShowRejectDialog(true);
+    else if (action === "disable") setShowDisableConfirm(true);
+    else if (action === "reactive") setReactiveShowConfirm(true);
   };
 
   const handleApproveFromDetail = () => {
@@ -170,6 +182,59 @@ const ContributionPostManagement: React.FC = () => {
       if (activeTab !== "pending") setRefreshTrigger((p) => p + 1);
     } catch {
       alert("Có lỗi khi duyệt bài!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmDisable = async () => {
+    if (!selectedContribution) return;
+    setLoading(true);
+    try {
+      await disableContributionStatusAdmin(selectedContribution.id);
+      setContributions((prev) => prev.filter((i) => i.acceptanceId !== selectedContribution.acceptanceId));
+
+      setTabCounts((prev) => ({
+        ...prev,
+        approved: Math.max(prev.approved - 1, 0),
+        disable: prev.disable + 1,
+      }));
+
+      setShowDisableConfirm(false);
+      if (showDetail) {
+        setShowDetail(false);
+        setSelectedContributionId(null);
+      }
+      setSelectedContribution(null);
+      if (activeTab !== "approved") setRefreshTrigger((p) => p + 1);
+    } catch {
+      alert("Có lỗi khi vô hiệu bài!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const confirmReactive = async () => {
+    if (!selectedContribution) return;
+    setLoading(true);
+    try {
+      await reactiveContributionStatusAdmin(selectedContribution.id);
+      setContributions((prev) => prev.filter((i) => i.acceptanceId !== selectedContribution.acceptanceId));
+
+      setTabCounts((prev) => ({
+        ...prev,
+        disable: Math.max(prev.disable - 1, 0),
+        approved: prev.approved + 1,
+      }));
+
+      setReactiveShowConfirm(false);
+      if (showDetail) {
+        setShowDetail(false);
+        setSelectedContributionId(null);
+      }
+      setSelectedContribution(null);
+      if (activeTab !== "disable") setRefreshTrigger((p) => p + 1);
+    } catch {
+      alert("Có lỗi khi tái kích hoạt bài!");
     } finally {
       setLoading(false);
     }
@@ -341,6 +406,31 @@ const ContributionPostManagement: React.FC = () => {
         title="Xác nhận duyệt bài"
         message={`Bạn có chắc muốn duyệt bài "${selectedContribution?.title}"?`}
         confirmText="Duyệt"
+        cancelText="Hủy"
+        type="info"
+        loading={loading}
+      />
+
+      {/* Dialogs */}
+      <ConfirmDialog
+        open={showDisableConfirm}
+        onClose={() => setShowDisableConfirm(false)}
+        onConfirm={confirmDisable}
+        title="Xác nhận vô hiệu hóa"
+        message={`Bạn có chắc muốn vô hiệu hóa bài "${selectedContribution?.title}"?`}
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        type="info"
+        loading={loading}
+      />
+
+      <ConfirmDialog
+        open={showReactiveConfirm}
+        onClose={() => setReactiveShowConfirm(false)}
+        onConfirm={confirmReactive}
+        title="Xác nhận tái kích hoạt"
+        message={`Bạn có chắc muốn tái kích hoạt bài "${selectedContribution?.title}"?`}
+        confirmText="Xác nhận"
         cancelText="Hủy"
         type="info"
         loading={loading}

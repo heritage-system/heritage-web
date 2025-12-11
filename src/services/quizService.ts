@@ -11,7 +11,8 @@ import {
   QuizUpdateRequest,
   QuizQuestionCreationRequest,
   QuizQuestionUpdateRequest,
-  QuizDetailAdminResponse 
+  QuizDetailAdminResponse ,
+  QuizOverviewResponse
 } from "../types/quiz";
 
 
@@ -49,6 +50,17 @@ export const getQuizDetail = async (id: number): Promise<ApiResponse<QuizDetailR
     }
   );
 };
+
+export const getQuizOverview = async (id: number): Promise<ApiResponse<QuizOverviewResponse>> => {
+  const queryString = new URLSearchParams({ id: id.toString() });
+  return await fetchInterceptor<QuizOverviewResponse>(
+    `${API_URL}/api/v1/quiz/get_quiz_overview?${queryString}`,
+    {
+      method: "GET",
+    }
+  );
+};
+
 
 export const saveQuizResult = async (
   data: SaveQuizResultRequest
@@ -120,6 +132,16 @@ export const getQuizDetailAdmin = async (
     `${API_URL}/api/v1/quiz/admin/detail/${quizId}`,
     {
       method: "GET",
+    }
+  );
+};
+
+export const unlockQuiz = async (id: number): Promise<ApiResponse<boolean>> => {
+  const queryString = new URLSearchParams({ id: id.toString() });
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/quiz/unlock_quiz?${queryString}`,
+    {
+      method: "POST",
     }
   );
 };

@@ -27,6 +27,7 @@ import {
 } from "../../../types/enum";
 import SectionLoader from "../../Layouts/LoadingLayouts/SectionLoader";
 import Pagination from "../../Layouts/Pagination";
+import ConfirmModal from "../../Layouts/ModalLayouts/ConfirmModal";
 import { toast } from "react-hot-toast";
 
 interface ContributionsSectionProps {
@@ -50,9 +51,12 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
     ContributionOverviewItemListResponse[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [loadingChange, setLoadingChange] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [total, setTotal] = useState<number>(0);
-
+  const [showDisableConfirm, setShowDisableConfirm] = useState(false);
+  const [showReactiveConfirm, setReactiveShowConfirm] = useState(false);
+   const [selectedContribution, setSelectedContribution] = useState<ContributionOverviewItemListResponse | null>(null);
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(5);
@@ -158,6 +162,16 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
       }
     };
 
+    const onShowDiableConfirm = (item: ContributionOverviewItemListResponse) => {
+      setShowDisableConfirm(true);
+      setSelectedContribution(item)
+
+    }
+    const onShowReactiveConfirm = (item: ContributionOverviewItemListResponse) => {
+      setReactiveShowConfirm(true);
+      setSelectedContribution(item)
+
+    }
     const canDisable = (approvedAt?: string) => {
       if (!approvedAt) return false;
       const approvedDate = new Date(approvedAt);
@@ -169,8 +183,10 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
       return diffDays <= 3; // còn trong 3 ngày
     };  
 
-    const onDisableContribution = async (item: ContributionOverviewItemListResponse) => {
-      if (item.status !== "APPROVED") {
+    const onDisableContribution = async () => {
+      if(!selectedContribution) return;
+      setLoadingChange(true);
+      if (selectedContribution.status !== "APPROVED") {
         toast.error("Chỉ có thể vô hiệu hóa nội dung đã duyệt");
         return;
       }
@@ -181,10 +197,12 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
       // }
 
       try {      
-        var result =  await disableContributionStatus(item.id);
+        var result =  await disableContributionStatus(selectedContribution.id);
 
         if(result.code === 200 || result.code === 201) {
           toast.success("Đã vô hiệu hóa nội dung");
+          setSelectedContribution(null);
+          
         }
         else {
           toast.error("Không thể vô hiệu hóa nội dung");
@@ -193,19 +211,26 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
       } catch (err) {
         toast.error("Không thể vô hiệu hóa nội dung");
         console.error(err);
+      } finally {
+          setLoadingChange(false);
+          setShowDisableConfirm(false);
       }
     };
 
-    const onReactiveContribution = async (item: ContributionOverviewItemListResponse) => {
-      if (item.status !== "DISABLE") {
+    const onReactiveContribution = async () => {
+      if(!selectedContribution) return;
+      setLoadingChange(true);
+      if (selectedContribution.status !== "DISABLE") {
         toast.error("Chỉ có thể vô hiệu hóa nội dung đã duyệt");
         return;
       }
       try {      
-        var result =  await reactiveContributionStatus(item.id);
+        var result =  await reactiveContributionStatus(selectedContribution.id);
 
         if(result.code === 200 || result.code === 201) {
           toast.success("Tái kích hoạt thành công nội dung");
+          setSelectedContribution(null);
+          
         }
         else {
           toast.error("Không thể tái kích hoạt nội dung");
@@ -214,6 +239,9 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
       } catch (err) {
         toast.error("Không thể tái kích hoạt nội dung");
         console.error(err);
+      } finally {
+          setLoadingChange(false);
+          setReactiveShowConfirm(false);
       }
     };
 
@@ -289,7 +317,7 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
             {item.status === "APPROVED"  && (
               <button
                 className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center"
-                onClick={() => onDisableContribution(item)}
+                onClick={() => onShowDiableConfirm(item)}
               >
                 <XCircle className="w-4 h-4 mr-2" />
                 Vô hiệu hóa               
@@ -298,7 +326,7 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
             {item.status === "DISABLE" && (
               <button
                 className="px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center"
-                onClick={() => onReactiveContribution(item)}
+                onClick={() => onShowReactiveConfirm(item)}
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Kích hoạt lại
@@ -314,6 +342,28 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
             </button>
           </div>
         </div>
+
+         <ConfirmModal
+        open={showDisableConfirm}
+        onClose={() => setShowDisableConfirm(false)}
+        onConfirm={onDisableContribution}
+        title="Xác nhận vô hiệu hóa"
+        message={`Bạn có chắc muốn vô hiệu hóa bài "${selectedContribution?.title}"?`}
+        confirmText="Xác nhận"
+        cancelText="Hủy"    
+        loading={loadingChange}
+      />
+
+      <ConfirmModal
+        open={showReactiveConfirm}
+        onClose={() => setReactiveShowConfirm(false)}
+        onConfirm={onReactiveContribution}
+        title="Xác nhận tái kích hoạt"
+        message={`Bạn có chắc muốn tái kích hoạt bài "${selectedContribution?.title}"?`}
+        confirmText="Xác nhận"
+        cancelText="Hủy"   
+        loading={loadingChange}
+      />
       </div>
     );
   };
@@ -407,7 +457,11 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
           />
         </div>
       )}
+
+      
     </div>
+
+    
   );
 };
 

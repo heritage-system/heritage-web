@@ -50,7 +50,8 @@ import {
   PlusCircle,
   Video,
   Ticket,
-  Home, History
+  Home, History,
+  FileBadge
 } from "lucide-react";
 import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 
@@ -106,7 +107,7 @@ import PremiumPackageManagement from "../../components/Admin/ContentManagement/P
 import { useAuth } from '../../hooks/useAuth';
 import UserManagement from "../../components/Admin/HRManagement/UserManagement/UserManagement";
 import ReportManagement from '../../components/Admin/ReportsAnalytics/ReportManagement';
-
+import ContributionReportManagement from '../../components/Admin/ReportsAnalytics/ContributionReportManagement';
 
 // Mapping from module title to module ID for state handling
 const moduleIdByTitle: Record<string, string> = {
@@ -143,11 +144,11 @@ const moduleStructure = {
     title: "Quản lý Tài chính",
     icon: DollarSign,
     subModules: [
-      { id: "budget", name: "Quản lý ngân sách", icon: DollarSign, component: BudgetManagement },
+      // { id: "budget", name: "Quản lý ngân sách", icon: DollarSign, component: BudgetManagement },
       { id: "payment", name: "Lịch sử tương tác", icon: History, component: PaymentProcessing },
       { id: "financialReports", name: "Báo cáo tài chính", icon: PieChart, component: FinancialReports },
-      { id: "invoice", name: "Quản lý hóa đơn", icon: FileSpreadsheet, component: InvoiceManagement },
-      { id: "expense", name: "Theo dõi chi phí", icon: TrendingUp, component: ExpenseTracking }
+      // { id: "invoice", name: "Quản lý hóa đơn", icon: FileSpreadsheet, component: InvoiceManagement },
+      // { id: "expense", name: "Theo dõi chi phí", icon: TrendingUp, component: ExpenseTracking }
     ]
   },
   hrManagement: {
@@ -157,10 +158,10 @@ const moduleStructure = {
     subModules: [ 
       { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },     
       { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },   
-      { id: "attendance", name: "Theo dõi chấm công", icon: Clock, component: AttendanceTracking },
-      { id: "payroll", name: "Quản lý bảng lương", icon: CreditCard, component: PayrollManagement },
-      { id: "performance", name: "Đánh giá hiệu suất", icon: BarChart3, component: PerformanceReview },
-      { id: "rolePermission", name: "Vai trò & Quyền", icon: Shield, component: RolePermissionManagement }
+      // { id: "attendance", name: "Theo dõi chấm công", icon: Clock, component: AttendanceTracking },
+      // { id: "payroll", name: "Quản lý bảng lương", icon: CreditCard, component: PayrollManagement },
+      // { id: "performance", name: "Đánh giá hiệu suất", icon: BarChart3, component: PerformanceReview },
+      // { id: "rolePermission", name: "Vai trò & Quyền", icon: Shield, component: RolePermissionManagement }
     ]
   },
   eventManagement: {
@@ -197,6 +198,7 @@ const moduleStructure = {
       { id: "support", name: "Vé hỗ trợ", icon: MessageSquare, component: SupportTickets },
       { id: "communication", name: "Trung tâm liên lạc", icon: Mail, component: CommunicationHub },
       { id: "reports", name: "Báo cáo khách hàng", icon: FileText, component: ReportManagement },
+      { id: "contribution_reports", name: "Báo cáo bài viết", icon: FileBadge, component: ContributionReportManagement },
       // { id: "feedback", name: "Quản lý phản hồi", icon: MessageSquare, component: FeedbackManagement },
       // { id: "analytics", name: "Phân tích khách hàng", icon: BarChart3, component: CustomerAnalytics }
     ]

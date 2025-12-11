@@ -178,5 +178,6 @@ export enum PointHistoriesReason
     CONTRIBUTION_VIEW = 1,      
     UNLOCK_CONTRIBUTION = 2,
     UNLOCK_SCENE = 3,
-    DAILY_BONUS = 4,          
+    UNLOCK_QUIZ = 4,
+    DAILY_BONUS = 5,          
 }

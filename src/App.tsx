@@ -20,6 +20,7 @@ import CallbackGoogle from './pages/oauth2/callback/google/page';
 import AdminPanelPage from './pages/AdminPanelPage/AdminPanelPage';
 import ReportManagement from './components/Admin/ReportsAnalytics/ReportManagement';
 import ReportDetailManagement from './components/Admin/ReportsAnalytics/ReportDetailManagement';
+import ContributionReportDetailManagement from './components/Admin/ReportsAnalytics/ContributionReportDetailManagement';
 import ContributionFormPage from './pages/ContributionPage/ContributionFormPage';
 import ContributionSearchResponse from './pages/ContributionPage/ContributionPage';
 import AdminHomeDashboard from './pages/AdminPage/AdminDashboard';
@@ -69,7 +70,7 @@ const App: React.FC = () => {
 
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
         <Route path="/admin/reports" element={<ReportManagement />} />
-        <Route path="/reports/:id" element={<ReportDetailManagement />} />
+       
         <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
         <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />  

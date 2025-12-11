@@ -2,16 +2,24 @@ import { useState, useEffect } from "react";
 import QuizCard from "./QuizCard";
 import QuizCardSkeleton from "./QuizCardSkeleton";
 import TestView from "./QuizDetailView";
+import UnlockQuizPopup from "./UnlockQuizPopup";
 import { QuizListResponse } from "../../types/quiz";
-import { searchQuizz } from "../../services/quizService";
+import { searchQuizz, unlockQuiz } from "../../services/quizService";
+import { tradePointToUnlockQuiz } from "../../services/userPointService";
 import Pagination from "../Layouts/Pagination";
 import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
+import toast from 'react-hot-toast';
+import {PointHistoriesReason} from "../../types/enum";
+import { useAuth } from '../../hooks/useAuth';
 const QuizGrid: React.FC = () => {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizListResponse | null>(null);
   const [quizList, setQuizList] = useState<QuizListResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [unlockLoading, setUnlockLoading] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
   // ✅ Phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -41,13 +49,17 @@ const QuizGrid: React.FC = () => {
     fetchData();
   }, [currentPage]);
 
+  const handleGoBack = () => {
+    setSelectedQuiz(null)
+    setCanPlay(false); 
+  };
   // ✅ Nếu chọn quiz thì hiển thị chi tiết
-  if (selectedQuiz) {
+  if (selectedQuiz && canPlay) {    
     return (
       <div className="max-w-7xl mx-auto">
         <TestView 
           id={selectedQuiz.id} 
-          onBack={() => setSelectedQuiz(null)} 
+          onBack={() => handleGoBack()} 
           onQuizCompleted={(quizId, numberOfClear) => {
             setQuizList((prev) =>
               prev.map((q) =>
@@ -59,6 +71,106 @@ const QuizGrid: React.FC = () => {
       </div>
     );
   }
+
+  const handleQuizClick = (quiz: QuizListResponse) => {
+    // Nếu quiz premium nhưng chưa mở khóa → bật popup
+    if (quiz.isPremium && !quiz.isUnlock) {
+      setSelectedQuiz(quiz);
+      setIsPopupOpen(true);
+      return;
+    }
+
+    // Nếu quiz free hoặc premium đã mở → vào TestView
+    setSelectedQuiz(quiz);
+    setCanPlay(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedQuiz(null); 
+  };
+
+  
+  const handleUnlock = async (quizId: number) => {
+    if (!quizId || !selectedQuiz) return;
+
+    setUnlockLoading(true);
+
+    try {
+      const res = await unlockQuiz(quizId);
+
+      if (res.code === 201 && res.result === true) {
+
+        
+        setCanPlay(true);
+
+      
+        setQuizList(prev =>
+          prev.map(q =>
+            q.id === quizId ? { ...q, isUnlock: true } : q
+          )
+        );
+
+      
+        setSelectedQuiz(prev =>
+          prev ? { ...prev, isUnlock: true } : prev
+        );
+
+        toast.success("Mở khóa thành công!");
+      } else {
+        toast.error("Không mở khóa được nội dung");
+      }
+
+    } catch (e) {
+      console.error(e);
+      toast.error("Có lỗi xảy ra khi mở khóa");
+    } finally {
+      setUnlockLoading(false);
+    }
+  };
+
+
+  const onUnlockWithPoints = async (quizId: number) => {
+    if (!quizId || !selectedQuiz) return;
+    setUnlockLoading(true);
+    try {
+
+      const payload = {
+        changeAmount: 60,
+        reason: PointHistoriesReason.UNLOCK_QUIZ,      
+        referenceId: quizId
+      };
+      const res = await tradePointToUnlockQuiz(payload);
+
+      if (res.code === 201 && res.result === true) {
+
+        
+        setCanPlay(true);
+
+      
+        setQuizList(prev =>
+          prev.map(q =>
+            q.id === quizId ? { ...q, isUnlock: true } : q
+          )
+        );
+
+      
+        setSelectedQuiz(prev =>
+          prev ? { ...prev, isUnlock: true } : prev
+        );
+
+        toast.success("Mở khóa thành công!");
+      } else {
+        toast.error("Không mở khóa được nội dung");
+      }
+
+    } catch (e) {
+      console.error(e);
+      toast.error("Có lỗi xảy ra khi mở khóa");
+    } finally {
+      setUnlockLoading(false);
+    }
+  };
 
   // ✅ Nếu đang loading
   if (loading) {
@@ -97,7 +209,7 @@ const QuizGrid: React.FC = () => {
               <QuizCard
                 key={quiz.id}
                 quiz={quiz}
-                onPlay={() => setSelectedQuiz(quiz)}
+                onPlay={() => handleQuizClick(quiz)}
               />
             ))}
           </div>
@@ -114,6 +226,11 @@ const QuizGrid: React.FC = () => {
               />
             </div>
           )}
+
+           {isPopupOpen && selectedQuiz && (
+              <UnlockQuizPopup quiz={selectedQuiz} onClose={handleClosePopup}  onHandleUnlock={handleUnlock} unlockLoading={unlockLoading} onUnlockWithPoints={onUnlockWithPoints} isAuthenticated={isLoggedIn}/>
+            )}
+
       </div>
     </section>
   );
