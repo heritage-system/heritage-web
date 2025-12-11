@@ -13,26 +13,56 @@ const formatDateSafe = (dateString: string | undefined | null) => {
   return isValid(date) ? format(date, "dd/MM/yyyy") : "...";
 };
 
-const renderStatusBadge = (status: any) => {
-  const statusKey = String(status).toUpperCase();
+// =========================================================================
+// SỬA LỖI TẠI ĐÂY: CẬP NHẬT renderStatusBadge ĐỂ KIỂM TRA startAt
+// Hàm nhận vào toàn bộ item thay vì chỉ status
+const renderStatusBadge = (item: SubscriptionResponse) => {
+  const statusKey = String(item.status).toUpperCase();
+  
+  // SỬ DỤNG Date() GỐC CỦA JS
+  const startAtDate = new Date(item.startAt);
+  const now = new Date();
+
+  let displayStatusKey = statusKey;
+
+  // LOGIC "CHỜ MỞ": 
+  // Nếu trạng thái hiện tại là ACTIVE (đã xác nhận) hoặc PENDING (chờ thanh toán/kích hoạt)
+  // VÀ ngày bắt đầu (startAt) còn SAU thời điểm hiện tại.
+  if (
+    (statusKey === "ACTIVE" || statusKey === "PENDING" || statusKey === "UPGRADED") &&
+    startAtDate.getTime() > now.getTime()
+  ) {
+    displayStatusKey = "AWAITING_START"; // Key mới cho trạng thái "Chờ mở"
+  } 
+
   const styles: Record<string, string> = {
     "ACTIVE": "bg-green-100 text-green-700 border-green-200",
     "EXPIRED": "bg-red-100 text-red-700 border-red-200",
     "PENDING": "bg-yellow-100 text-yellow-700 border-yellow-200",
     "CANCELLED": "bg-gray-100 text-gray-700 border-gray-200",
+    "UPGRADED": "bg-blue-100 text-blue-700 border-blue-200",
+    // THÊM STYLE CHO TRẠNG THÁI MỚI
+    "AWAITING_START": "bg-purple-100 text-purple-700 border-purple-200", 
   };
+
   const labels: Record<string, string> = {
     "ACTIVE": "Đang hoạt động",
     "EXPIRED": "Hết hạn",
     "PENDING": "Chờ xử lý",
     "CANCELLED": "Đã hủy",
+    "UPGRADED": "Đã nâng cấp",
+    // THÊM LABEL CHO TRẠNG THÁI MỚI
+    "AWAITING_START": "Chờ mở",
   };
+
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${styles[statusKey] || "bg-gray-100 text-gray-500 border-gray-200"}`}>
-      {labels[statusKey] || "Không xác định"}
+    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${styles[displayStatusKey] || "bg-gray-100 text-gray-500 border-gray-200"}`}>
+      {labels[displayStatusKey] || "Không xác định"}
     </span>
   );
 };
+// =========================================================================
+
 
 const InteractionHistory: React.FC = () => {
   const [dataList, setDataList] = useState<SubscriptionResponse[]>([]);
@@ -62,8 +92,10 @@ const InteractionHistory: React.FC = () => {
 
   const totalSpent = dataList.reduce((acc, item) => {
     const s = String(item.status).toUpperCase();
-    if (s === "ACTIVE" || s === "EXPIRED") {
-      return acc + item.package.price;
+    // Giả định tổng tiền chi tiêu là giá gói của các gói đã ACTIVE hoặc EXPIRED
+    if (s === "ACTIVE" || s === "EXPIRED" || s === "UPGRADED") {
+      // Lưu ý: Tùy thuộc vào cách bạn quản lý thanh toán, có thể cần tính tổng payments thay vì giá gói
+      return acc + item.package.price; 
     }
     return acc;
   }, 0);
@@ -85,7 +117,8 @@ const InteractionHistory: React.FC = () => {
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3 mb-2">
               <h3 className="text-lg font-bold text-gray-800">{item.package.name}</h3>
-              {renderStatusBadge(item.status)}
+              {/* SỬA LỖI TẠI ĐÂY: Truyền toàn bộ item */}
+              {renderStatusBadge(item)} 
             </div>
             <div className="text-sm text-gray-500 space-y-1">
               <div className="flex items-center gap-2">
@@ -121,7 +154,7 @@ const InteractionHistory: React.FC = () => {
         <div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-700 to-yellow-600 bg-clip-text text-black mb-3 flex items-center gap-3">
             <History className="w-10 h-10 text-blue-600" />
-            Lịch sử gói dịch vụ
+            Lịch sử tương tác
           </h2>
           <p className="text-gray-700 text-lg">Theo dõi trạng thái và thanh toán</p>
         </div>
@@ -140,13 +173,13 @@ const InteractionHistory: React.FC = () => {
           {/* Card 3: Tổng tiền (VND nhỏ ở trên) */}
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-emerald-300/50 shadow-lg min-w-[150px] flex-1 lg:flex-none">
             <div className="text-3xl font-bold text-emerald-700 flex items-start">
-               {loading ? "-" : (
-                 <>
-                   <span>{totalSpent.toLocaleString("vi-VN")}</span>
-                   {/* Dùng relative -top-2 để đẩy chữ lên cao */}
-                   <span className="text-sm font-semibold ml-1 relative -top-2">VND</span>
-                 </>
-               )}
+                {loading ? "-" : (
+                  <>
+                    <span>{totalSpent.toLocaleString("vi-VN")}</span>
+                    {/* Dùng relative -top-2 để đẩy chữ lên cao */}
+                    <span className="text-sm font-semibold ml-1 relative -top-2">VND</span>
+                  </>
+                )}
             </div>
             <div className="text-sm text-emerald-600 font-medium">Đã chi tiêu</div>
           </div>

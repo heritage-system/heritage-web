@@ -37,8 +37,9 @@ import ConfirmEmailPage from './pages/AuthPage/ConfirmEmailPage';
 import { EventProvider } from "./components/Admin/EventManagement/EventContext";
 import EventDetailPage from './pages/CommunityPage/EventDetailPage';
 import EventDetailView from './components/Community/EventDetailView';
-
 import TermsPage from './pages/TermsPage/TermsPage';
+import InteractionHistory from './components/ViewProfile/InteractionHistory/InteractionHistory';
+
 
 import ScrollToTop from "./components/Layouts/ScrollToTop";
 const App: React.FC = () => {
@@ -77,11 +78,11 @@ const App: React.FC = () => {
         <Route path="/payment/success" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/payment/result" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/payment/cancel" element={<MainLayout><PaymentResultPage /></MainLayout>} />
+        <Route path="/term" element={<MainLayout><TermsPage /></MainLayout>} />
+        <Route path="/interaction-history" element={<MainLayout><InteractionHistory /></MainLayout>} />
 
       
        
-        <Route path="/term" element={<MainLayout><TermsPage /></MainLayout>} />
-      
       </Routes>
 
       {/* <ChatBoxAI /> */}

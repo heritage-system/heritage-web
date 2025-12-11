@@ -111,3 +111,11 @@ export const getSubscriptionByUser = async (): Promise<
     }
   );
 };
+
+export const GetSubscriptions = async (): Promise<ApiResponse<SubscriptionResponse[]>> => {
+  return await fetchInterceptor<SubscriptionResponse[]>(
+    `${API_URL}/api/v1/subscriptions`,
+    { method: "GET" }
+  );
+};
+
