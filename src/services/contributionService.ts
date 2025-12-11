@@ -32,6 +32,9 @@ import {
 import {
   ContributionReportCreationRequest
 } from "../types/contributionReport";
+import {
+  ContributionStatus
+} from "../types/enum";
 import { LikeReviewResponse, LikeReviewRequest} from "../types/review";
 
 export const searchContribution = async (
@@ -312,5 +315,19 @@ export const sendContributionAccessLog = async (
       method: "POST",
       body: data as any,
     }
+  );
+};
+
+export const disableContributionStatus = async (id: number) => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/${id}/disable_contribution`,
+    { method: "PUT" }
+  );
+};
+
+export const reactiveContributionStatus = async (id: number) => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/${id}/reactive_contribution`,
+    { method: "PUT" }
   );
 };

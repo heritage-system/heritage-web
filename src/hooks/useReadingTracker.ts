@@ -133,10 +133,10 @@ function isValidReadingLog({ time, depth }: {
   depth: number;
 }) {
   // < 10s = spam
-  if (time < 10_000) return false;
+  if (time < 30_000) return false;
 
   // Không kéo gì cả
-  if (depth < 0.2) return false;
+  if (depth < 0.5) return false;
 
   return true;
 }

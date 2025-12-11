@@ -136,7 +136,8 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
     formData.append("file", file);
 
     //const res = await PredictJsonService.loadFromUrlRandomPost(url, 5, formData);
-    const res = await PredictJsonService.loadFromUrlPost(AiUrl!, formData);
+    //const res = await PredictJsonService.loadFromUrlPost(AiUrl!, formData);
+    const res = await PredictJsonService.loadFromUrlRandom("/result-AI.json",3);
     setPayload(res ?? null);
 
     const heritages = mapPredictToHeritage(res ?? null);

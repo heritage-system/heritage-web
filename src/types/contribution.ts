@@ -66,6 +66,8 @@ export interface ContributionResponse {
   status: string;
   view: number;
   subscription: SubscriptionDto;
+  userPoint: number,
+  unSubscriptionLock: boolean,
   isSave: boolean
 }
 

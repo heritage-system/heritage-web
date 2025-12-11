@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { X, Eye, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { X, Eye, ChevronDown, ChevronUp, Star, HelpCircle, Coins, Ticket } from "lucide-react";
 import { PanoramaTourDetailResponse } from "../../types/panoramaTour";
 import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../Layouts/ModalLayouts/ConfirmModal"
 type Scene = {
   title: string;
   description: string;
@@ -14,16 +15,21 @@ type VRTourPopupProps = {
   tour: PanoramaTourDetailResponse;
   onClose: () => void;
   onHandleUnlock: (id: number) => void;
+  onUnlockWithPoints: (id: number) => void;
+  isAuthenticated?: boolean;  
   unlockLoading: boolean
+
 };
 
-const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock, unlockLoading }) => {
+const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock, unlockLoading, onUnlockWithPoints,isAuthenticated }) => {
   const navigate = useNavigate();
   const [currentScene, setCurrentScene] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [isInfoOpen, setIsInfoOpen] = useState<boolean>(false);
-
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"points" | "subscription" | null>(null);
+  const [usePoints, setUsePoints] = useState(false);
   const scenes: Scene[] = [
     {
       title: "Phố Cổ Hội An",
@@ -68,6 +74,29 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
     setTimeout(() => setIsLoading(false), 800);
   };
 
+  const triggerConfirm = (type: "points" | "subscription") => {
+    setConfirmAction(type);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = (sceneId:number) => {
+    if (!confirmAction) return;
+
+    if (confirmAction === "points") {
+      onUnlockWithPoints(sceneId);
+    } else {
+      onHandleUnlock(sceneId);
+    }
+
+    setConfirmOpen(false);
+  };
+
+  const isOutOfSubscription =
+    tour.subscription &&
+    !tour.subscription.isUnlimited &&
+    tour.subscription.used >= tour.subscription.total;
+
+  const isNotEnoughPoints = usePoints && tour.userPoint < 60;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
       <div className="
@@ -136,11 +165,11 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
 
         {/* Message */}
         <p className="text-lg font-semibold text-center my-2">
-          Nội dung dành cho thành viên
+          Nội dung dành cho hội viên
         </p>
 
         {/* Remaining usage */}
-      {tour.subscription ? (
+      {/* {tour.subscription ? (        
         <p className="text-base font-medium text-yellow-300 mb-4">
           Số lượt mở còn lại: {tour.subscription.used}/{tour.subscription.total}
         </p>
@@ -148,48 +177,184 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
         <p className="text-base font-medium text-yellow-300 mb-4">
           Bạn chưa có gói Premium
         </p>
-      )}
+      )} */}
 
       {/* Unlock Button */}
-{tour.subscription ? (
-  tour.subscription.used < tour.subscription.total ? (
+  {/* CASE 1 — Chưa đăng nhập */}
+  {!isAuthenticated && (
     <button
-      disabled={unlockLoading}
-      className={`
-        px-6 py-3 rounded-full shadow-lg text-white font-semibold
-        bg-gradient-to-r from-yellow-500 via-red-600 to-amber-700
-        hover:opacity-90 transition-all
-        ${unlockLoading ? "opacity-60 cursor-not-allowed animate-none" : "animate-bounce"}
-      `}
-      onClick={() => onHandleUnlock(tour.scenes[currentScene].id)}
+      onClick={() => navigate("/premium-packages")}
+      className="bg-gradient-to-r from-yellow-700 to-red-700 
+        text-white text-lg font-semibold px-6 py-3 
+        rounded-full shadow-lg animate-bounce mt-4"
     >
-      {unlockLoading ? "Đang mở khóa..." : "Mở khóa để xem"}
+      ⭐ Nâng cấp Premium để xem
     </button>
-  ) : (
-    <button
-      className="
-        bg-gray-700 px-6 py-3 rounded-full 
-        text-gray-300 cursor-not-allowed
-      "
-      disabled
-    >
-      Đã hết lượt mở
-    </button>
-  )
-) : (
-  <button
-    disabled={unlockLoading}
-    className={`
-      px-6 py-3 rounded-full shadow-lg text-white font-semibold
-      bg-gradient-to-r from-yellow-500 via-red-600 to-amber-700
-      hover:opacity-90 transition-all
-      ${unlockLoading ? "opacity-60 cursor-not-allowed animate-none" : "animate-bounce"}
-    `}
-    onClick={() => navigate("/premium-packages")}
-  >
-    {unlockLoading ? "Đang mở khóa..." : "Đăng kí gói Premium"}
-  </button>
-)}
+  )}
+
+  {/* CASE 2 — Đã login nhưng chưa có subscription */}
+  {isAuthenticated && !tour.subscription && (
+    <>
+      {/* Thông tin điểm / tooltip */}
+      <div className="flex items-center gap-2 mb-5">
+        <span 
+          title="Bạn có thể mở bài bằng lượt Premium hoặc dùng điểm Linh Hội."
+          className="inline-flex"
+        >
+          <HelpCircle className="w-4 h-4 text-yellow-300" />
+        </span>       
+        {usePoints ? (
+          <p className="text-base font-medium text-yellow-300">
+            Điểm Linh Hội hiện có:{" "}
+            <span className={tour.userPoint < 60 ? "text-red-600 font-semibold" : "text-yellow-300 font-semibold"}>
+              {tour.userPoint.toLocaleString()}
+            </span>
+          </p>
+        ) : (
+          <p className="text-base font-medium text-yellow-300">Bạn chưa phải hội viên</p>
+        )}
+      </div>
+
+      {/* Nút mở + đổi chế độ */}
+      <div className="flex items-center gap-3 animate-bounce mb-1">
+        <button
+          disabled={unlockLoading || isNotEnoughPoints}
+          onClick={() => {
+            if (usePoints) triggerConfirm("points");
+            else navigate("/premium-packages");
+          }}
+          className={`
+            px-8 py-3 rounded-full shadow-lg text-lg font-semibold flex items-center gap-2
+            ${usePoints
+              ? isNotEnoughPoints
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-green-700 to-emerald-700 text-white hover:brightness-110"
+              : "bg-gradient-to-r from-yellow-700 to-red-700 text-white hover:brightness-110"
+            }
+          `}
+        >
+          {unlockLoading
+            ? "Đang mở..."
+            : usePoints
+              ? isNotEnoughPoints ? "Cần 60 điểm Linh Hội" : "Mở bằng 60 điểm Linh Hội"
+              : "Đăng ký Premium để mở"}
+        </button>
+
+        {/* nút đổi chế độ */}
+        <button
+          disabled={unlockLoading}
+          onClick={() => setUsePoints(!usePoints)}
+          title={
+            usePoints
+              ? "Chuyển sang mở bằng lượt Premium"
+              : "Chuyển sang mở bằng điểm Linh Hội"
+          }
+          className="p-3 rounded-full bg-gray-200 hover:bg-gray-300 shadow"
+        >
+          {usePoints
+            ? <Ticket className="w-5 h-5 text-yellow-700" />
+            : <Coins className="w-5 h-5 text-yellow-700" />}
+        </button>
+      </div>
+
+      {tour.scenes[currentScene].unSubscriptionLock ? (
+        <p className="text-sm text-white">
+          Bạn đã mở bài viết bằng lượt từ trước. Muốn mở vĩnh viễn bằng điểm Linh Hội không?      
+        </p>
+      ) : (
+        <>
+        {usePoints ? (
+          <p className="text-sm text-white">Dùng điểm Linh Hội có thể mở khóa vĩnh viễn nội dung</p>
+        ) : (
+          <p className="text-sm text-white">Dùng lượt mở cho phép truy cập trong thời gian gói hội viên</p>
+        )}
+        </>
+      )}
+      </>
+    )}
+
+  {/* CASE 3 — Có subscription */}
+  {isAuthenticated && tour.subscription && (
+    <>
+      {/* Thông tin lượt / điểm */}
+      <div className="flex items-center gap-2 mb-5">
+        <span 
+          title="Bạn có thể mở bài bằng lượt Premium hoặc dùng điểm Linh Hội."
+          className="inline-flex"
+        >
+          <HelpCircle className="w-4 h-4 text-yellow-300" />
+        </span>   
+
+        {usePoints ? (
+          <p className="text-base font-medium text-yellow-300">
+            Điểm Linh Hội hiện có:{" "}
+            <span className={isNotEnoughPoints ? "text-red-600 font-semibold" : "text-yellow-300 font-semibold"}>
+              {tour.userPoint.toLocaleString()}
+            </span>
+          </p>
+        ) : (
+          <p className="text-base font-medium text-yellow-300">
+            Số lượt mở còn lại:{" "}
+            <span className={isOutOfSubscription ? "text-red-600 font-semibold" : "text-yellow-300 font-semibold"}>
+              {tour.subscription.isUnlimited ? "∞/∞" : `${tour.subscription.used}/${tour.subscription.total}`}
+            </span>
+          </p>
+        )}
+      </div>
+
+      {/* Nút mở */}
+      <div className="flex items-center gap-3 animate-bounce mb-1">
+        <button
+          disabled={
+            unlockLoading ||
+            (usePoints && isNotEnoughPoints) ||
+            (!usePoints && isOutOfSubscription)
+          }
+          onClick={() => triggerConfirm(usePoints ? "points" : "subscription")}
+          className={`
+            px-8 py-3 rounded-full shadow-lg text-lg font-semibold flex items-center gap-2
+            ${
+              usePoints
+                ? isNotEnoughPoints
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-green-700 to-emerald-700 text-white"
+                : isOutOfSubscription
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-yellow-700 to-red-700 text-white"
+            }
+          `}
+        >
+          {unlockLoading
+            ? "Đang mở..."
+            : usePoints
+              ? isNotEnoughPoints ? "Cần 60 điểm Linh Hội" : "Mở bằng 60 điểm Linh Hội"
+              : isOutOfSubscription ? "Hết lượt mở" : "Mở bằng lượt Premium"}
+        </button>
+
+        {/* nút đổi chế độ */}
+        <button
+          disabled={unlockLoading}
+          onClick={() => setUsePoints(!usePoints)}
+          title={
+            usePoints
+              ? "Chuyển sang mở bằng lượt Premium"
+              : "Chuyển sang mở bằng điểm Linh Hội"
+          }
+          className="p-3 rounded-full bg-gray-200 hover:bg-gray-300 shadow"
+        >
+          {usePoints
+            ? <Ticket className="w-5 h-5 text-yellow-700" />
+            : <Coins className="w-5 h-5 text-yellow-700" />}
+        </button>
+      </div>
+
+      <p className="text-sm text-white">
+        {usePoints ? "Dùng điểm Linh Hội có thể mở khóa vĩnh viễn nội dung" : "Dùng lượt mở cho phép truy cập trong thời gian gói hội viên"}
+      </p>
+    </>
+  )}
+
+
 
       </div>
     </div>
@@ -388,6 +553,20 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
               )}
             </div>         
       </div>
+       <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() =>handleConfirm(tour.scenes[currentScene].id)}
+        title="Xác nhận mở khóa"
+        message={
+          confirmAction === "points"
+            ? "Bạn có chắc muốn dùng 60 điểm Linh Hội để mở khóa vĩnh viễn nội dung này không?"
+            : "Bạn có chắc muốn dùng 1 lượt hội viên để mở khóa nội dung này không?"
+        }
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        loading={unlockLoading}
+      />
     </div>
   );
 };

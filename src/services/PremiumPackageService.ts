@@ -1,4 +1,4 @@
-import { PremiumBenefitCreateRequest,PremiumBenefitResponse, PremiumPackageResponse,  PremiumPackageSearchRequest, PremiumPackageCreateRequest, PremiumPackageUpdateRequest } from "@/types/premiumPackage";
+import { PremiumBenefitCreateRequest,PremiumBenefitResponse, PremiumPackageResponse,  PremiumPackageSearchRequest,PremiumPackageListResponse, PremiumPackageCreateRequest, PremiumPackageUpdateRequest } from "@/types/premiumPackage";
 import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
 import { API_URL } from "../utils/baseUrl";
@@ -132,8 +132,8 @@ export async function createPremiumBenefit(
   });
 }
 
-export const getAllActivePackage = async (): Promise<ApiResponse<PremiumPackageResponse[]>> => {
-  return await fetchInterceptor<PremiumPackageResponse[]>(
+export const getAllActivePackage = async (): Promise<ApiResponse<PremiumPackageListResponse>> => {
+  return await fetchInterceptor<PremiumPackageListResponse>(
     `${API_URL}/api/v1/PremiumPackage/byActive`,
     { method: "GET" }
   );

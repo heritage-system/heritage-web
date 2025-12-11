@@ -9,17 +9,21 @@ import ContributionComments from "../../components/ContributionDetail/Contributi
 import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
 import toast from 'react-hot-toast';
 import {ContributionSearchResponse} from "../../types/contribution";
-
+import {PointHistoriesReason} from "../../types/enum";
+import { tradePointToUnlockContribution } from "../../services/userPointService";
+import { useAuth } from '../../hooks/useAuth';
 const ArticleDetailPage = () => {
   const { id } = useParams<{ id: string }>();
 
   const [article, setArticle] = useState<ContributionResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unlockLoading, setUnlockLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
   const [relatedPosts, setRelatedPosts] = useState<ContributionSearchResponse[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);  
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
   useEffect(() => {
     const loadDetail = async () => {
       if (!id) return;
@@ -75,10 +79,12 @@ const ArticleDetailPage = () => {
 
   const handleUnlock = async () => {
     if (!article) return;
+    setUnlockLoading(true)
     try {
       const res = await unlockContribution(article.id);
       if (res.code === 200 && res.result) {
         setArticle(res.result);
+         toast.success("Mở khóa bài viết thành công")
       } else {
         toast.error("Không mở khóa được bài viết", {
           duration: 5000,
@@ -93,8 +99,45 @@ const ArticleDetailPage = () => {
         position: "top-right",
         style: { background: "#DC2626", color: "#fff" },
       });         
+    } finally {
+      setUnlockLoading(false)
     }
   };
+
+  const onUnlockWithPoints = async () => {
+    if (!article) return;
+    setUnlockLoading(true)
+    try {
+      const payload = {
+        changeAmount: 60,
+        reason: PointHistoriesReason.UNLOCK_CONTRIBUTION,      
+        referenceId: article.id
+      };
+      const res = await tradePointToUnlockContribution(payload);
+
+      if (res.code === 201 && res.result) {
+        setArticle(res.result);
+        toast.success("Mở khóa bài viết thành công");
+      } else {
+        toast.error("Không mở khóa được bài viết", {
+          duration: 5000,
+          position: "top-right",
+          style: { background: "#DC2626", color: "#fff" }
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Có lỗi xảy ra khi mở khóa", {
+        duration: 5000,
+        position: "top-right",
+        style: { background: "#DC2626", color: "#fff" }
+      });
+    } finally {
+      setUnlockLoading(false)
+    }
+  };
+
+
 
   const handleSave = async () => {
     if (!article) return;
@@ -161,6 +204,11 @@ const ArticleDetailPage = () => {
               view={article.view}
               subscription={article.subscription}
               onUnlock={handleUnlock}
+              onUnlockWithPoints={onUnlockWithPoints}
+              isAuthenticated={isLoggedIn}
+              userPoints={article.userPoint}
+              isUnSubscriptionLock={article.unSubscriptionLock}
+              unlockLoading={unlockLoading}
             />
 
             {/* Comments Section */}

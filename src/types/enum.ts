@@ -26,6 +26,7 @@ export enum ContributionStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
+  DISABLE = "DISABLE"
 }
 
 export enum ContributionPremiumTypes {
@@ -122,4 +123,13 @@ export enum SubscriptionStatus {
   EXPIRED = 1,
   CANCELLED = 2,
   PENDING = 3
+}
+
+export enum PointHistoriesReason
+{
+    PVP_WIN = 0,  
+    CONTRIBUTION_VIEW = 1,      
+    UNLOCK_CONTRIBUTION = 2,
+    UNLOCK_SCENE = 3,
+    DAILY_BONUS = 4,          
 }

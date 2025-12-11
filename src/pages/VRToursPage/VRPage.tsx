@@ -11,6 +11,9 @@ import { fetchCategories } from "../../services/categoryService";
 import { Category } from "../../types/category";
 import Pagination from '../../components/Layouts/Pagination';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
+import {PointHistoriesReason} from "../../types/enum";
+import { tradePointToUnlockScene } from "../../services/userPointService";
 
 const VRToursPage = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -27,7 +30,7 @@ const VRToursPage = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] =  useState(0);
-
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
   useEffect(() => {     
     const loadCategories = async () => {
       try {
@@ -125,6 +128,65 @@ const VRToursPage = () => {
     }
   };
 
+  const onUnlockWithPoints = async (sceneId: number) => {
+    if (!sceneId || !selectedTour) return;
+    setUnlockLoading(true);
+    try {
+
+      const payload = {
+        changeAmount: 60,
+        reason: PointHistoriesReason.UNLOCK_SCENE,      
+        referenceId: sceneId
+      };
+      const res = await tradePointToUnlockScene(payload);
+
+      if (res.code === 201 && res.result) {
+    
+        setSelectedTour(prev => {
+          if (!prev) return prev;
+
+          const updatedScenes = prev.scenes.map(scene =>
+            scene.id === sceneId
+              ? { ...scene, panoramaUrl: res.result!.panoramaUrl } 
+              : scene
+          );
+
+          // 2. Update subscription.used (nếu có)
+          let updatedSubscription = prev.subscription;
+
+          if (updatedSubscription) {
+            updatedSubscription = {
+              ...updatedSubscription,
+              used: updatedSubscription.used + 1,
+            };
+          }
+
+          return {
+            ...prev,
+            scenes: updatedScenes,
+            subscription: updatedSubscription
+          };
+        });
+
+        // 3. Thông báo thành công
+        toast.success("Mở khóa thành công!");
+
+      } else {
+        toast.error("Không mở khóa được nội dung", {
+          duration: 5000,
+          position: "top-right",
+        });
+      }
+
+    } catch (e) {
+      console.error(e);
+      toast.error("Có lỗi xảy ra khi mở khóa");
+    } finally {
+      setUnlockLoading(false);
+    }
+  };
+
+
   
 
   const handlePageChange = (page: number) => {
@@ -192,7 +254,7 @@ const VRToursPage = () => {
 
       
       {isPopupOpen && selectedTour && (
-        <VRTourPopup tour={selectedTour} onClose={handleClosePopup}  onHandleUnlock={handleUnlock} unlockLoading={unlockLoading}/>
+        <VRTourPopup tour={selectedTour} onClose={handleClosePopup}  onHandleUnlock={handleUnlock} unlockLoading={unlockLoading} onUnlockWithPoints={onUnlockWithPoints} isAuthenticated={isLoggedIn}/>
       )}
 
 {/* 

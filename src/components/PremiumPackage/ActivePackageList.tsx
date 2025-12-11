@@ -29,6 +29,7 @@ const THEME = {
 const UpgradePackagePage = () => {
   const navigate = useNavigate();
   const [packages, setPackages] = useState<PremiumPackageResponse[]>([]);
+  const [currentPackage, setCurrentPackage] = useState<PremiumPackageResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [processingPackageId, setProcessingPackageId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,7 +40,11 @@ const UpgradePackagePage = () => {
     try {
       const res = await getAllActivePackage();
       if (res.code === 200 && res.result) {
-        const sortedPackages = res.result.sort((a, b) => a.price - b.price);
+        const sortedPackages = res.result.premiumPackages.sort((a, b) => a.price - b.price);       
+        setCurrentPackage(
+          res.result.premiumPackages.find(c => c.id === res.result?.currentPackageId) || null
+        );
+
         setPackages(sortedPackages);
       } else {
         toast.error(res.message || "Không lấy được dữ liệu gói Premium", {
@@ -77,7 +82,7 @@ const UpgradePackagePage = () => {
         },
         iconTheme: {
           primary: "#fff",
-          secondary: "#EF4444",
+          secondary: "#EF4444", 
         },
       });
     } finally {
@@ -339,6 +344,7 @@ const UpgradePackagePage = () => {
         displayText = `Thời hạn: ${days} ngày`;
       }
     }
+    
 
     return (
       <div
@@ -584,6 +590,28 @@ const renderBenefitsList = (benefits: any[]) => {
                       Phổ biến nhất
                     </div>
                   )}
+
+                  {currentPackage?.id === pkg.id && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: -12,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        backgroundColor: "#16a34a",
+                        color: "white",
+                        padding: "4px 14px",
+                        borderRadius: "14px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        zIndex: 2,
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)"
+                      }}
+                    >
+                      Gói hiện tại
+                    </div>
+                  )}
+
                   
                   <div
                     style={{
@@ -793,6 +821,36 @@ const renderBenefitsList = (benefits: any[]) => {
                 </div>
               </div>
             </div>
+            <p className="mb-5" 
+              style={{ 
+                background: "#f9f9f9",
+                padding: "12px 16px",
+                borderRadius: 8,
+                fontSize: 14,
+                lineHeight: "20px",
+                color: "#555",
+                border: "1px solid #eee"
+              }}
+            >
+              {!currentPackage ? (
+                <>
+                  <strong style={{ color: THEME.primary }}>Đăng ký gói mới:</strong>{" "}
+                  Gói sẽ được kích hoạt ngay sau khi thanh toán. Bạn sẽ nhận toàn bộ lượt tương ứng.
+                </>
+              ) : currentPackage?.price < selectedPackage.price ? (
+                <>
+                  <strong style={{ color: THEME.primary }}>Nâng cấp gói:</strong>{" "}
+                  Gói mới sẽ được kích hoạt ngay lập tức. Tất cả lượt mở sẽ được 
+                  <strong> làm mới từ đầu</strong>.
+                </>
+              ) : (
+                <>
+                  <strong style={{ color: THEME.primary }}>Gia hạn gói:</strong>{" "}
+                  Gói mới sẽ tự động bắt đầu sau khi gói hiện tại kết thúc, 
+                  không làm mất lượt còn lại.
+                </>
+              )}
+            </p>
 
             <div style={{ display: "flex", gap: 16 }}>
               <Button
@@ -819,8 +877,9 @@ const renderBenefitsList = (benefits: any[]) => {
                 }}
               >
                 Thanh toán
-              </Button>
+              </Button>             
             </div>
+            
           </div>
         )}
       </PortalModal>
