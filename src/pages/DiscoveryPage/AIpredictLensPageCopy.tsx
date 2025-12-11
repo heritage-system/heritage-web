@@ -17,12 +17,12 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
 
   const [lastCrop, setLastCrop] = useState<Rect01 | null>(null);
   const [payload, setPayload] = useState<PredictApiPayload | null>(null);
-
+  const [AiUrl, setAiUrl] = useState<string | null>(null);
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [fullImgUrl, setFullImgUrl] = useState<string | null>(null);
   const [cropUrl, setCropUrl] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
   const savedPayload = sessionStorage.getItem("ai-lens-payload");
   if (savedPayload) {
@@ -128,17 +128,15 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
   //     setPayload(null);
   //   }
   // };
-
   const runPredictFile = async (file: File) => {
   try {
+    setLoading(true); // bật loading
+
     const formData = new FormData();
-    formData.append("file", file); // "file" phải trùng với tên field backend đọc
+    formData.append("file", file);
 
-    const url =
-      "http://127.0.0.1:8000/predict?top_k=20&results=5&threshold=0.65&robust=true&max_crops=12&do_flip=true&night_enhance=true";
-
-    const res = await PredictJsonService.loadFromUrlRandomPost(url, 5, formData);
-
+    //const res = await PredictJsonService.loadFromUrlRandomPost(url, 5, formData);
+    const res = await PredictJsonService.loadFromUrlPost(AiUrl!, formData);
     setPayload(res ?? null);
 
     const heritages = mapPredictToHeritage(res ?? null);
@@ -149,10 +147,14 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
     console.error(e);
     setPayload(null);
     fetchHeritagesAi([]);
+  } finally {
+    setLoading(false); // tắt loading
   }
 };
 
   const runPredictBlob = async (blob: Blob) => {
+  setLoading(true);
+  try {
     const file = new File([blob], `lens-crop-${Date.now()}.png`, {
       type: "image/png",
     });
@@ -160,7 +162,11 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
     if (cropUrl) URL.revokeObjectURL(cropUrl);
     setCropUrl(url);
     await runPredictFile(file);
-  };
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const getInputDescription = (payload: PredictApiPayload | null): string | null => {
       if (!payload) return null;
@@ -183,6 +189,15 @@ useEffect(() => {
     console.error("Cannot save payload to sessionStorage", e);
   }
 }, [payload]);
+
+useEffect(() => {
+  const savedUrl = sessionStorage.getItem("ai-lens-url");
+  if (savedUrl) {
+    setAiUrl(savedUrl);
+  }
+}, []);
+
+
   return (
     <div className=" bg-gray-50">
       <main className="mx-auto w-full sm:px-6s">       
@@ -219,7 +234,7 @@ useEffect(() => {
           <div className="rounded-2xl border bg-white shadow p-4">
            <div className="flex items-center justify-between">
             <h4 className="font-semibold text-lg">Kết quả</h4>
-
+            
             <button
               onClick={() => setCollapsed((x) => !x)}
               className="text-sm px-3 py-1 rounded-lg border bg-gray-50 hover:bg-gray-100 transition flex items-center gap-1"
@@ -236,8 +251,51 @@ useEffect(() => {
 
           {!collapsed && (
             <>
+            {loading ? (
+  <div className="flex items-center gap-2 text-blue-600 text-sm mt-3">
+    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+        fill="none"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      />
+    </svg>
+    Đang nhận diện ảnh...
+  </div>
+) : (
+  <>
               {!payload ? (
-                <div className="text-sm text-gray-600"></div>
+                <div className="text-sm text-gray-600">
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      type="text"                   
+                      value={AiUrl ?? ""}
+                      onChange={(e) => setAiUrl(e.target.value)}
+                      className="flex-1 px-3 py-2 border rounded-lg"
+                    />
+
+                    <button
+                      onClick={() => {
+                        if (AiUrl) {
+                          sessionStorage.setItem("ai-lens-url", AiUrl);
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Lưu
+                    </button>
+
+                  </div>
+                </div>
               ) : getError(payload) ? (
                 <ErrorCard err={getError(payload)} />
               ) : getMatches(payload).length === 0 ? (
@@ -254,7 +312,8 @@ useEffect(() => {
               )}
             </>
           )}
-
+ </>
+)}
           </div>
         </section>
       </main>

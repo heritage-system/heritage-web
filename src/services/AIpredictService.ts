@@ -73,6 +73,26 @@ export class PredictJsonService {
       throw err;
     }
   }
+
+  static async loadFromUrlPost(
+    url: string,
+    body?: BodyInit
+  ): Promise<PredictApiPayload> {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        body,
+      });
+
+      if (!res.ok) throw new Error("HTTP error " + res.status);
+
+      return await res.json();
+    } catch (err) {
+      console.error("❌ Lỗi fetch JSON:", err);
+      throw err;
+    }
+  }
+
   /**
    * Đọc JSON từ URL / API → hữu ích khi bạn load json tĩnh trong frontend.
    */
