@@ -8,10 +8,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import {
   EventResponse,
-  EventCategory,
-  EventTag,
-  EventStatus,
+
 } from "../../types/event";
+import { EventCategory, EventStatus } from "../../types/enum";
 
 type EventCardProps = {
   event: EventResponse;
@@ -19,11 +18,11 @@ type EventCardProps = {
 };
 
 const CATEGORY_LABEL: Record<EventCategory, string> = {
-  GENERAL: "Chung",
-  HERITAGE_TALK: "Toạ đàm",
-  FESTIVAL: "Lễ hội",
-  WORKSHOP: "Workshop",
-  ONLINE_TOUR: "Tour online",
+  0: "Chung",
+  1: "Toạ đàm",
+  2: "Lễ hội",
+  3: "Workshop",
+  4: "Tour online",
 };
 
 const EventCard: React.FC<EventCardProps> = ({ event, onToggleRegister }) => {

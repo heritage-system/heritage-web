@@ -124,6 +124,52 @@ export enum SubscriptionStatus {
   CANCELLED = 2,
   PENDING = 3
 }
+// ⚡ Khớp với backend C#
+export enum RoomRole {
+  HOST = 0,
+  COHOST = 1,
+  SPEAKER = 2,
+  AUDIENCE = 3,
+}
+
+export enum ParticipantStatus {
+  WAITING = 0,
+  ADMITTED = 1,
+  KICKED = 2,
+  BANNED = 3,
+  LEFT = 4,
+}
+
+export enum StreamingRoomType {
+  UPCOMING = 0,
+  LIVE = 1,
+  CLOSED = 2,
+}
+export enum EventStatus {
+  DRAFT = 0,
+  UPCOMING = 1,
+  LIVE = 2,
+  CLOSED = 3,
+  ARCHIVED = 4,
+}
+
+export enum EventCategory {
+  GENERAL = 0,
+  HERITAGE_TALK = 1,
+  FESTIVAL = 2,
+  WORKSHOP = 3,
+  ONLINE_TOUR = 4,
+}
+
+// bit flags — giữ nguyên nhưng ghi rõ cho chắc
+export enum EventTag {
+  NONE = 0,
+  FEATURED = 1 << 0, // 1
+  FREE = 1 << 1,     // 2
+  PREMIUM = 1 << 2,  // 4
+  RECORDED = 1 << 3, // 8
+  QNA = 1 << 4,      // 16
+}
 
 export enum PointHistoriesReason
 {

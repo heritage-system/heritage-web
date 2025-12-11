@@ -7,7 +7,7 @@ import WaitingListPanel from "../../components/Admin/Streaming/WaitingListPanel"
 import EnterLiveButton from "../../components/Admin/Streaming/EnterLiveButton";
 import ParticipantsListPanel from "../../components/Admin/Streaming/ParticipantsListPanel";
 import { useSearchParams } from "react-router-dom";
-import EventCreate from "../../components/Admin/EventManagement/EventCreate";
+import EventCreate from "../../components/Admin/EventManagement/EventDetail";
 
 const AdminStreamPage: React.FC = () => {
   const [searchParams] = useSearchParams();

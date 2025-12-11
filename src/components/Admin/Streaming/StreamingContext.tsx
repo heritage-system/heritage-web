@@ -2,7 +2,6 @@ import React, { useEffect, createContext, useContext, useMemo, useRef, useState,
 import { toast } from "react-hot-toast";
 
 import {
-  createStreamingRoom,
   issueJoinTokens,
   setParticipantRole,
   getParticipants,
@@ -10,11 +9,13 @@ import {
   leaveRoom,
   kickParticipant,
 } from "../../../services/streamingService";
-import type {
-  RoomRole,
+import {
   StreamingRoomResponse,
   StreamingJoinGrantResponse,
 } from "../../../types/streaming";
+
+
+
 import {
   joinChannel,
   leaveChannel,
@@ -34,10 +35,13 @@ import {
 import { initRtm, loginRtm, joinRtmChannel, leaveRtmChannel, destroyRtm, onChannelMessage, channelSendText } from "../../../services/agoraRtm";
 import { setClientRole as rtcSetClientRole, renewRtcToken } from "../../../services/agoraRtc";
 import { startScreenShare, stopScreenShare, isScreenSharing } from "../../../services/agoraRtc";
+import { ParticipantStatus, RoomRole } from "../../../types/enum";
 
 
 type RoomChatMsg = { id: string; from: string; text: string; ts: number };
-type RosterItem = { uid: string | number; userId: number; role: RoomRole; isSelf: boolean };
+type RosterItem = {
+  userName: string ; uid: string | number; userId: number; role: RoomRole; isSelf: boolean 
+};
 
 type Ctx = {
   // room info
@@ -58,7 +62,7 @@ type Ctx = {
   setLocalVideoReady: (b: boolean) => void;
 
   // admin actions
-      createRoom: (title: string, startAtIso: string, eventId?: number) => Promise<void>;
+    
   setRole: (userId: number, role: RoomRole) => Promise<void>;
   kick: (userId: number) => Promise<void>;
 
@@ -129,39 +133,75 @@ const selfUserId = useMemo(() => {
     [roomName, room]
   );
   // isHost: ưu tiên role trong roster của chính mình, fallback grant.role
+// Ưu tiên role từ roster, fallback role trong grant
 const selfRole = useMemo<RoomRole | undefined>(() => {
-  const me = roster.find(r => r.isSelf);
-  return me?.role ?? (["Host","CoHost","Speaker","Audience"].includes((grant?.role||"") as any) ? grant!.role as RoomRole : undefined);
+  const me = roster.find((r) => r.isSelf);
+  if (typeof me?.role === "number") return me.role;
+  if (typeof grant?.role === "number") return grant.role as RoomRole;
+  return undefined;
 }, [roster, grant]);
+
 const isHost = useMemo(
-  () => !!selfRole && (selfRole === "HOST" || selfRole === "COHOST"),
+  () =>
+    selfRole === RoomRole.HOST ||
+    selfRole === RoomRole.COHOST,
   [selfRole]
 );
+
 const leaveLive: Ctx["leaveLive"] = async () => {
   const rn = effectiveRoomName;
-  try { await leaveChannel(); } catch {}
+
+  // 1️⃣ Backend trước
   try {
-    rtmUnsubRef.current?.(); rtmUnsubRef.current = null;
+    if (rn) {
+      await leaveRoom(rn);
+    }
+  } catch (e) {
+    console.warn("[leaveLive] leaveRoom error", e);
+  }
+
+  // 2️⃣ RTM resync (nếu đang join RTM)
+  try {
+    await channelSendText(JSON.stringify({ type: "resync" }));
+  } catch (e) {
+    console.warn("[leaveLive] send resync failed", e);
+    // nếu RTM chưa join (join channel first) thì thôi, chỉ rely vào "user-left" của Agora
+  }
+
+  // 3️⃣ Rời kênh RTC
+  try {
+    await leaveChannel();
+  } catch (e) {
+    console.warn("[leaveLive] leaveChannel error", e);
+  }
+
+  // 4️⃣ Rời RTM + destroy client
+  try {
+    rtmUnsubRef.current?.();
+    rtmUnsubRef.current = null;
     await leaveRtmChannel();
     await destroyRtm();
-  } catch {}
-  try {
-    if (rn) await leaveRoom(rn);
-  } catch {}
+  } catch (e) {
+    console.warn("[leaveLive] RTM leave/destroy error", e);
+  }
 
+  // 5️⃣ Reset state
   setJoined(false);
   setCamOn(false);
   setMicOn(false);
   setLocalVideoReady(false);
   setRoster([]);
   setRoomMessages([]);
-  setGrant(null); // 👈 QUAN TRỌNG
+  setGrant(null);
 };
+
+
  // --- KICK WATCHER ---
 useEffect(() => {
   if (!joined || !effectiveRoomName) return;
   if (!grant) return;
   if (isHost) return; // host/cohost không bị kick bằng cơ chế này
+
 
   const myUserId = selfUserId;
   const myRtcUid = grant.rtcUid;
@@ -169,7 +209,10 @@ useEffect(() => {
   const timer = setInterval(async () => {
     try {
       // 1) Còn trong Admitted thì thôi
-      const adm = await getParticipants(effectiveRoomName, "ADMITTED" as any);
+    const adm = await getParticipants(effectiveRoomName, ParticipantStatus.ADMITTED);
+// ...
+
+
       const stillAdmitted =
         adm.code === 200 &&
         adm.result?.some(
@@ -181,7 +224,7 @@ useEffect(() => {
       if (stillAdmitted) return;
 
       // 2) Không còn trong Admitted → xem đã bị KICKED chưa
-      const kicked = await getParticipants(effectiveRoomName, "KICKED" as any);
+     const kicked = await getParticipants(effectiveRoomName, ParticipantStatus.KICKED);
       const isKicked =
         kicked.code === 200 &&
         kicked.result?.some(
@@ -201,10 +244,11 @@ useEffect(() => {
     } catch {
       // ignore
     }
-  }, 10000); // 2s cho responsive hơn
+  }, 10000); // 10s cho responsive hơn
 
   return () => clearInterval(timer);
 }, [joined, effectiveRoomName, grant, selfUserId, isHost, leaveLive]);
+
 
 useEffect(() => {
   if (!joined) return;
@@ -230,47 +274,77 @@ useEffect(() => {
     window.removeEventListener("pagehide", onPageHide);
   };
 }, [joined, effectiveRoomName]);
+const effectiveRoomNameRef = useRef(effectiveRoomName);
+useEffect(() => {
+  effectiveRoomNameRef.current = effectiveRoomName;
+}, [effectiveRoomName]);
 
-  
+const grantRef = useRef<StreamingJoinGrantResponse | null>(grant);
+useEffect(() => {
+  grantRef.current = grant;
+}, [grant]);
+const refreshRoster = useCallback(async () => {
+  const rn = effectiveRoomNameRef.current;
+  if (!rn) return;
+
+  const g = grantRef.current;
+
+  const res = await getParticipants(rn, ParticipantStatus.ADMITTED);
+
+  if (res.code === 200 && res.result) {
+    setRoster(
+      res.result.map((p) => ({
+        uid: p.rtcUid,
+        userId: p.userId,
+        userName: p.userName,
+        role: p.role,
+        isSelf: g ? String(p.rtcUid) === String(g.rtcUid) : false,
+      }))
+    );
+  }
+}, []); // 👈 không còn deps nữa, dùng ref
+
+
  
-
-const createRoom: Ctx["createRoom"] = async (title, startAtIso, eventId) => {
-  if (!title.trim()) {
-    toast.error("Nhập tiêu đề phòng");
-    return;
+const resyncParticipants = useCallback(async () => {
+  if (!effectiveRoomName) return;
+  setIsResyncing(true);
+  try {
+    await refreshRoster();
+    toast.success("Đã đồng bộ danh sách người tham gia");
+  } finally {
+    setIsResyncing(false);
   }
-  if (!startAtIso) {
-    toast.error("Chọn thời gian bắt đầu");
-    return;
-  }
+}, [effectiveRoomName, refreshRoster]);
 
-  const res = await createStreamingRoom({
-    title,
-    startAt: startAtIso,
-    eventId: eventId ?? null,  // 👈 map sang EventId trên backend
-  });
+const resyncParticipantsAll = useCallback(async () => {
+  // 1) gửi tín hiệu RTM để mọi client tự refresh
+  await channelSendText(JSON.stringify({ type: "resync" })).catch(() => {});
+  // 2) tự refresh cho chính mình
+  await resyncParticipants();
+}, [resyncParticipants]);
 
-  if (res.code === 201 && res.result) {
-    setRoom(res.result);
-    setRoomName(res.result.roomName);
-    toast.success("Đã tạo phòng");
-  } else {
-    toast.error(res.message || "Tạo phòng thất bại");
-  }
-};
+ useEffect(() => {
+  if (!joined) return;
+  // khi vừa join xong, cố sync roster một lần nữa theo logic chuẩn
+  void resyncParticipants();
+}, [joined, resyncParticipants]);
+
+
 
 
 const kick: Ctx["kick"] = async (userId) => {
-  if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
+  if (!effectiveRoomName) { toast.error("chưa Nhập roomName"); return; }
   const res = await kickParticipant(effectiveRoomName, { userId });
   if (res.code === 200) {
     toast.success(`Đã kick user ${userId}`);
-    await scheduleRefreshRoster();
+
+    // 🔥 Thay vì chỉ refresh local → đồng bộ TOÀN PHÒNG giống nút "Đồng bộ toàn phòng"
+    await resyncParticipantsAll();
   } else {
     toast.error(res.message || "Kick thất bại");
   }
 };
-
  
 const fetchTokens = async (nameOverride?: string) => {
   const name = nameOverride ?? effectiveRoomName;
@@ -301,7 +375,13 @@ const setRoleFn: Ctx["setRole"] = async (userId, role) => {
       const newGrant = await fetchTokens(); // lấy token publisher nếu thành host-ish
       if (newGrant) {
         // map role → clientRole
-        const clientRole = (role === "HOST" || role === "COHOST" || role === "SPEAKER") ? "host" : "audience";
+       const clientRole =
+  role === RoomRole.HOST ||
+  role === RoomRole.COHOST ||
+  role === RoomRole.SPEAKER
+    ? "host"
+    : "audience";
+
         try {
           await rtcSetClientRole(clientRole);
           await renewRtcToken(newGrant.rtcToken);
@@ -320,20 +400,6 @@ const setRoleFn: Ctx["setRole"] = async (userId, role) => {
   }
 };
   // ----- Roster & Waiting helpers -----
-const refreshRoster = useCallback(async () => {
-  if (!effectiveRoomName) return;
-  const res = await getParticipants(effectiveRoomName, "ADMITTED");
-  if (res.code === 200 && res.result) {
-    setRoster(
-      res.result.map((p) => ({
-        uid: p.rtcUid,
-        userId: p.userId,
-        role: p.role,
-        isSelf: grant ? String(p.rtcUid) === String(grant.rtcUid) : false,
-      }))
-    );
-  }
-}, [effectiveRoomName, grant]);
 
 
 
@@ -341,22 +407,18 @@ const refreshRoster = useCallback(async () => {
 
 
 const rosterBusyRef = useRef(false);
-const waitingBusyRef = useRef(false);
-let rosterCooldown = false;
-
-const waitingErrRef = useRef(0);
-
 
 const scheduleRefreshRoster = useCallback(async () => {
-  if (rosterBusyRef.current || rosterCooldown) return;
+  // chỉ tránh chồng lấp, KHÔNG cooldown
+  if (rosterBusyRef.current) return;
   rosterBusyRef.current = true;
-  try { await refreshRoster(); }
-  finally {
+  try {
+    await refreshRoster();
+  } finally {
     rosterBusyRef.current = false;
-    rosterCooldown = true;
-    setTimeout(() => { rosterCooldown = false; }, 800); // throttle
   }
 }, [refreshRoster]);
+
 
 
 const listenersRef = useRef<{
@@ -420,23 +482,7 @@ const unbindAgoraListeners = () => {
 
 const [isResyncing, setIsResyncing] = useState(false);
 
-const resyncParticipants = useCallback(async () => {
-  if (!effectiveRoomName) return;
-  setIsResyncing(true);
-  try {
-    await refreshRoster();
-    toast.success("Đã đồng bộ danh sách người tham gia");
-  } finally {
-    setIsResyncing(false);
-  }
-}, [effectiveRoomName, refreshRoster]);
 
-const resyncParticipantsAll = useCallback(async () => {
-  // 1) gửi tín hiệu RTM để mọi client tự refresh
-  await channelSendText(JSON.stringify({ type: "resync" })).catch(() => {});
-  // 2) tự refresh cho chính mình
-  await resyncParticipants();
-}, [resyncParticipants]);
 
 
 
@@ -479,10 +525,13 @@ const joinLive: Ctx["joinLive"] = async (arg) => {
   }
   remoteWrapRef.current = remoteWrapEl;
 
-  const isHostRole =
-    roleHint ? roleHint === "host" : ["Host", "CoHost"].includes(g.role);
+ const isHostRole =
+  roleHint
+    ? roleHint === "host"
+    : g.role === RoomRole.HOST || g.role === RoomRole.COHOST;
 
-  await joinChannel({
+
+    await joinChannel({
     appId,
     channel: g.channel,
     token: g.rtcToken,
@@ -491,10 +540,32 @@ const joinLive: Ctx["joinLive"] = async (arg) => {
   });
 
   await catchUpExistingRemotes((uid) => createRemoteSlot(remoteWrapEl, uid));
+
+  // 🔥 AUTO LOAD ROSTER NGAY SAU KHI JOIN (không cần bấm "Đồng bộ")
+  try {
+    const res = await getParticipants(name, "ADMITTED" as any);
+    if (res.code === 200 && res.result) {
+      setRoster(
+        res.result.map((p) => ({
+          uid: p.rtcUid,
+          userName : p.userName,
+          userId: p.userId,
+          role: p.role,
+          // dùng grant hiện tại (g) để đánh dấu "mình"
+          isSelf: String(p.rtcUid) === String(g.rtcUid),
+        }))
+      );
+    }
+  } catch (e) {
+    console.warn("[joinLive] initial getParticipants failed", e);
+  }
+
+  // vẫn có thể giữ scheduleRefreshRoster để sync tiếp nếu cần
   await scheduleRefreshRoster();
+
   setJoined(true);
 
-  // === RTM ===
+    // === RTM ===
   console.groupCollapsed("[RTM] join start");
   console.log("[RTM] appId", appId);
   console.log("[RTM] grant", {
@@ -510,40 +581,62 @@ const joinLive: Ctx["joinLive"] = async (arg) => {
     await joinRtmChannel(g.channel);
 
     rtmUnsubRef.current?.();
-    rtmUnsubRef.current = onChannelMessage((m) => {
-      try {
-        const data = JSON.parse(m.text);
-        if (data?.type === "chat" && data.payload) {
-          setRoomMessages((prev) => [...prev, data.payload as RoomChatMsg]);
-        } else if (data?.type === "pin" && data.payload) {
-          setPinned(data.payload as RoomChatMsg);
-        } else if (data?.type === "unpin") {
-          setPinned(null);
-        } else if (data?.type === "resync") {
-          scheduleRefreshRoster();
-        } else {
-          setRoomMessages((prev) => [
-            ...prev,
-            {
-              id: `${m.from}-${m.ts}`,
-              from: m.from,
-              text: m.text,
-              ts: m.ts,
-            },
-          ]);
-        }
-      } catch {
-        setRoomMessages((prev) => [
-          ...prev,
-          {
-            id: `${m.from}-${m.ts}`,
-            from: m.from,
-            text: m.text,
-            ts: m.ts,
-          },
-        ]);
-      }
-    });
+  rtmUnsubRef.current = onChannelMessage((m) => {
+  try {
+    const data = JSON.parse(m.text);
+
+    if (data?.type === "chat" && data.payload) {
+      setRoomMessages((prev) => [...prev, data.payload as RoomChatMsg]);
+
+    } else if (data?.type === "pin" && data.payload) {
+      setPinned(data.payload as RoomChatMsg);
+
+    } else if (data?.type === "unpin") {
+      setPinned(null);
+
+    } else if (data?.type === "resync") {
+      // 🔥 nhận lệnh resync → luôn refresh roster ngay, KHÔNG đi qua schedule/throttle
+      refreshRoster().catch((err) => {
+        console.warn("[RTM] auto refreshRoster failed", err);
+      });
+
+    } else {
+      // các message text cũ / fallback
+      setRoomMessages((prev) => [
+        ...prev,
+        {
+          id: `${m.from}-${m.ts}`,
+          from: m.from,
+          text: m.text,
+          ts: m.ts,
+        },
+      ]);
+    }
+  } catch {
+    // nếu parse JSON fail → lưu lại dạng text thường
+    setRoomMessages((prev) => [
+      ...prev,
+      {
+        id: `${m.from}-${m.ts}`,
+        from: m.from,
+        text: m.text,
+        ts: m.ts,
+      },
+    ]);
+  }
+});
+
+
+    // 🔥 SAU KHI ĐÃ JOIN RTM CHANNEL:
+    // Gửi tín hiệu "resync" để TẤT CẢ client trong phòng
+    // gọi scheduleRefreshRoster() giống như bấm "Đồng bộ toàn phòng"
+    try {
+      await channelSendText(JSON.stringify({ type: "resync" }));
+      // đồng bộ chính mình luôn cho chắc (tương đương resyncParticipantsAll)
+      await resyncParticipants();
+    } catch (err) {
+      console.warn("[joinLive] auto resync after join failed", err);
+    }
   } catch (e: any) {
     console.error("[RTM] init/login/join error =", e, "stack=", e?.stack);
     toast.error("Không thể vào kênh chat");
@@ -552,6 +645,7 @@ const joinLive: Ctx["joinLive"] = async (arg) => {
   setJoined(true);
   toast.success("Đã vào phòng");
 };
+
 
 
 const pinForEveryone = async (msg: RoomChatMsg) => {
@@ -744,51 +838,51 @@ const stopShare = async () => {
 
 
   const value: Ctx = {
-  room,
-  roomName,
-  setRoomName,
-  grant,
-  joined,
-  micOn,
-  camOn,
-  roster,
-  isHost,
-  localVideoReady,
-  setLocalVideoReady,
+    room,
+    roomName,
+    setRoomName,
+    grant,
+    joined,
+    micOn,
+    camOn,
+    roster,
+    isHost,
+    localVideoReady,
+    setLocalVideoReady,
 
-  createRoom,
-  setRole: setRoleFn,
-  kick,
+    setRole: setRoleFn,
+    kick,
 
-  // chat & pin
-  roomMessages,
-  sendRoomText,
-  pinned,
-  localPinned,
-  pinForEveryone,
-  clearPinForEveryone,
-  pinForMe,
-  clearPinForMe,
+    // chat & pin
+    roomMessages,
+    sendRoomText,
+    pinned,
+    localPinned,
+    pinForEveryone,
+    clearPinForEveryone,
+    pinForMe,
+    clearPinForMe,
 
-  // sync
-  isResyncing,
-  refreshRoster,
-  scheduleRefreshRoster,
-  resyncParticipants,
-  resyncParticipantsAll,
+    // sync
+    isResyncing,
+    refreshRoster,
+    scheduleRefreshRoster,
+    resyncParticipants,
+    resyncParticipantsAll,
 
-  // rtc
-  fetchTokens,
-  joinLive,
-  leaveLive,
-  toggleMic,
-  toggleCam,
+    // rtc
+    fetchTokens,
+    joinLive,
+    leaveLive,
+    toggleMic,
+    toggleCam,
 
-  // screen share
-  sharing,
-  startShare,
-  stopShare,
-};
+    // screen share
+    sharing,
+    startShare,
+    stopShare,
+   
+  };
 
 
   return <StreamingContext.Provider value={value}>{children}</StreamingContext.Provider>;

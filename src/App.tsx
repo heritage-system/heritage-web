@@ -37,6 +37,8 @@ import ConfirmEmailPage from './pages/AuthPage/ConfirmEmailPage';
 import { EventProvider } from "./components/Admin/EventManagement/EventContext";
 import EventDetailPage from './pages/CommunityPage/EventDetailPage';
 import EventDetailView from './components/Community/EventDetailView';
+
+
 import ScrollToTop from "./components/Layouts/ScrollToTop";
 const App: React.FC = () => {
   return (

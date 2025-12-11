@@ -58,7 +58,7 @@ const ContributionPostManagement: React.FC = () => {
 
   const currentTabStatus = TABS.find((tab) => tab.key === activeTab)?.status;
 
-  // Fetch all tab counts
+  // Fetch tab counts
   const fetchAllTabCounts = useCallback(async () => {
     try {
       const fetchCount = async (status?: ContributionStatus) => {
@@ -80,11 +80,11 @@ const ContributionPostManagement: React.FC = () => {
 
       setTabCounts({ pending, approved, rejected, all });
     } catch (error) {
-      console.error("❌ Error fetching tab counts:", error);
+      console.error("Error fetching tab counts:", error);
     }
   }, []);
 
-  // Fetch contributions for current tab
+  // Fetch contributions
   const fetchContributions = useCallback(async () => {
     try {
       setLoading(true);
@@ -103,13 +103,12 @@ const ContributionPostManagement: React.FC = () => {
         setTotalItems(data.totalElements);
       }
     } catch (error) {
-      console.error("❌ Error fetching contributions:", error);
+      console.error("Error fetching contributions:", error);
     } finally {
       setLoading(false);
     }
   }, [keyword, currentTabStatus, sortBy, page, pageSize]);
 
-  // Load detail for refresh after reject
   const loadDetail = useCallback(async (acceptanceId: number) => {
     try {
       const response = await getContributionOverviewForStaff(acceptanceId);
@@ -117,22 +116,20 @@ const ContributionPostManagement: React.FC = () => {
         setSelectedContribution(response.result as any);
       }
     } catch (error) {
-      console.error("❌ Error reloading contribution detail:", error);
+      console.error("Error reloading contribution detail:", error);
     }
   }, []);
 
-  // Load counts once on mount and after actions
   useEffect(() => {
     fetchAllTabCounts();
   }, [fetchAllTabCounts, refreshTrigger]);
 
-  // Load contributions when filters change
   useEffect(() => {
     fetchContributions();
   }, [fetchContributions]);
 
   const handleView = (item: ContributionOverviewItemListResponse) => {
-    setSelectedContribution(item); 
+    setSelectedContribution(item);
     setSelectedContributionId(item.id);
     setShowDetail(true);
   };
@@ -143,18 +140,12 @@ const ContributionPostManagement: React.FC = () => {
     else setShowRejectDialog(true);
   };
 
-  // Approve từ detail view
   const handleApproveFromDetail = () => {
-    if (selectedContribution) {
-      setShowConfirm(true);
-    }
+    if (selectedContribution) setShowConfirm(true);
   };
 
-  // Reject từ detail view
   const handleRejectFromDetail = () => {
-    if (selectedContribution) {
-      setShowRejectDialog(true);
-    }
+    if (selectedContribution) setShowRejectDialog(true);
   };
 
   const confirmApprove = async () => {
@@ -162,7 +153,7 @@ const ContributionPostManagement: React.FC = () => {
     setLoading(true);
     try {
       await approveContributionAcceptance(selectedContribution.acceptanceId);
-      setContributions((prev) => prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId));
+      setContributions((prev) => prev.filter((i) => i.acceptanceId !== selectedContribution.acceptanceId));
 
       setTabCounts((prev) => ({
         ...prev,
@@ -171,17 +162,14 @@ const ContributionPostManagement: React.FC = () => {
       }));
 
       setShowConfirm(false);
-      
       if (showDetail) {
         setShowDetail(false);
         setSelectedContributionId(null);
       }
-      
       setSelectedContribution(null);
-      if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
-    } catch (error) {
-      console.error("❌ Error approving contribution:", error);
-      alert("Có lỗi xảy ra khi duyệt bài!");
+      if (activeTab !== "pending") setRefreshTrigger((p) => p + 1);
+    } catch {
+      alert("Có lỗi khi duyệt bài!");
     } finally {
       setLoading(false);
     }
@@ -194,13 +182,11 @@ const ContributionPostManagement: React.FC = () => {
       const request: ContributionAcceptanceDecisionRequest = { note };
       await rejectContributionAcceptance(selectedContribution.acceptanceId, request);
 
-      const updatedDetail = await getContributionOverviewForStaff(selectedContribution.acceptanceId);
-      if (updatedDetail?.result) {
-        setSelectedContribution(updatedDetail.result as any);
-      }
+      const updated = await getContributionOverviewForStaff(selectedContribution.acceptanceId);
+      if (updated?.result) setSelectedContribution(updated.result as any);
 
       setContributions((prev) =>
-        prev.filter((item) => item.acceptanceId !== selectedContribution.acceptanceId)
+        prev.filter((i) => i.acceptanceId !== selectedContribution.acceptanceId)
       );
 
       setTabCounts((prev) => ({
@@ -210,17 +196,13 @@ const ContributionPostManagement: React.FC = () => {
       }));
 
       setShowRejectDialog(false);
-
-      // Nếu đang ở detail view, quay về list
       if (showDetail) {
         setShowDetail(false);
         setSelectedContributionId(null);
       }
-
-      if (activeTab !== "pending") setRefreshTrigger((prev) => prev + 1);
-    } catch (error) {
-      console.error("❌ Error rejecting contribution:", error);
-      alert("Có lỗi xảy ra khi từ chối bài!");
+      if (activeTab !== "pending") setRefreshTrigger((p) => p + 1);
+    } catch {
+      alert("Có lỗi khi từ chối bài!");
     } finally {
       setLoading(false);
     }
@@ -234,7 +216,7 @@ const ContributionPostManagement: React.FC = () => {
 
   return (
     <>
-      {/* Main Content */}
+      {/* Detail View */}
       {showDetail && selectedContributionId ? (
         <ContributionDetailSection
           contributionId={selectedContributionId}
@@ -244,11 +226,11 @@ const ContributionPostManagement: React.FC = () => {
           onReject={handleRejectFromDetail}
         />
       ) : (
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">Quản Lý Bài Đăng Đóng Góp</h2>
+        <div className="p-6 space-y-6">
+          <h2 className="text-2xl font-bold text-gray-900">Quản Lý Bài Đăng Đóng Góp</h2>
 
           {/* Tabs */}
-          <div className="border-b border-gray-200 mb-4">
+          <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
@@ -261,17 +243,17 @@ const ContributionPostManagement: React.FC = () => {
                       setActiveTab(tab.key);
                       setPage(1);
                     }}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                    className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
                       isActive
                         ? "border-blue-500 text-blue-600"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    <Icon size={16} />
+                    <Icon size={18} />
                     {tab.label}
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        isActive ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
+                      className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        isActive ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"
                       }`}
                     >
                       {count}
@@ -282,30 +264,58 @@ const ContributionPostManagement: React.FC = () => {
             </nav>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="relative w-64">
-              <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+          {/* SEARCH + SORT + PAGE SIZE - ĐẸP CHUẨN NHƯ CATEGORY/TAG */}
+          <div className="flex flex-col lg:flex-row gap-4 items-end">
+            {/* Search */}
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Tìm kiếm..."
-                className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg w-full text-sm"
+                placeholder="Tìm kiếm tiêu đề, người gửi, email..."
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && fetchContributions()}
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
               />
             </div>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortBy)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            >
-              <option value={SortBy.IdDesc}>Mới nhất</option>
-              <option value={SortBy.IdAsc}>Cũ nhất</option>
-              <option value={SortBy.NameAsc}>Tên A-Z</option>
-              <option value={SortBy.NameDesc}>Tên Z-A</option>
-            </select>
+            {/* Sắp xếp */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortBy)}
+                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white shadow-sm"
+              >
+                <option value={SortBy.DateDesc}>Mới nhất</option>
+                <option value={SortBy.DateAsc}>Cũ nhất</option>
+                <option value={SortBy.NameAsc}>Tên: A to Z</option>
+                <option value={SortBy.NameDesc}>Tên: Z to A</option>
+                <option value={SortBy.IdAsc}>ID tăng dần</option>
+                <option value={SortBy.IdDesc}>ID giảm dần</option>
+              </select>
+            </div>
+
+            {/* Số mục / trang */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Hiển thị:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-white shadow-sm"
+              >
+                {[10, 20, 50, 100].map((n) => (
+                  <option key={n} value={n}>
+                    {n} / trang
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Table */}
@@ -323,6 +333,7 @@ const ContributionPostManagement: React.FC = () => {
         </div>
       )}
 
+      {/* Dialogs */}
       <ConfirmDialog
         open={showConfirm}
         onClose={() => setShowConfirm(false)}

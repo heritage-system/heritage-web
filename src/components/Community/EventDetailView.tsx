@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Video, Users, Clock, Tag as TagIcon } from "lucide-react";
 import { toast } from "react-hot-toast";
 import {
-  EventCategory,
+ 
   EventResponse,
-  EventStatus,
-  EventTag,
+ 
 } from "../../types/event";
 import {
   getEventDetail,
@@ -14,6 +13,7 @@ import {
   unregisterFromEvent,
 } from "../../services/eventService";
 import { useStreaming } from "../Admin/Streaming/StreamingContext";
+import { EventCategory, EventStatus, EventTag } from "../../types/enum";
 
 type Props = {
   eventId: number;
