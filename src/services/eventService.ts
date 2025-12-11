@@ -4,24 +4,14 @@ import { fetchInterceptor } from "../utils/interceptor";
 import type { ApiResponse } from "../types/apiResponse";
 import {
   EventResponse,
-  EventCreateRequest,
-  EventUpdateRequest,
-  EventStatus,
   EventRegistrationResponse,
   EventRegistrationUserResponse,
   EventWithRoomsUpdateRequest,
   EventWithRoomsCreateRequest,
+  EventSearchRequest,
 } from "../types/event";
-
-export async function createEvent(
-  data: EventCreateRequest
-): Promise<ApiResponse<EventResponse>> {
-  return await fetchInterceptor<EventResponse>(`${API_URL}/api/v1/events`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: data as any, // interceptor will JSON.stringify
-  });
-}
+import { EventStatus } from "../types/enum";
+import { PageResponse } from "../types/pageResponse";
 
 export async function getEvents(opts?: {
   status?: EventStatus;
@@ -29,8 +19,12 @@ export async function getEvents(opts?: {
 }): Promise<ApiResponse<EventResponse[]>> {
   const params: string[] = [];
 
-  if (opts?.status) params.push(`status=${encodeURIComponent(opts.status)}`);
-  if (opts?.from) params.push(`from=${encodeURIComponent(opts.from)}`);
+  if (typeof opts?.status === "number") {
+    params.push(`status=${encodeURIComponent(String(opts.status))}`);
+  }
+  if (opts?.from) {
+    params.push(`from=${encodeURIComponent(opts.from)}`);
+  }
 
   const qs = params.length ? `?${params.join("&")}` : "";
 
@@ -46,20 +40,6 @@ export async function getEventDetail(
   return await fetchInterceptor<EventResponse>(
     `${API_URL}/api/v1/events/${id}`,
     { method: "GET" }
-  );
-}
-
-export async function updateEvent(
-  id: number,
-  data: EventUpdateRequest
-): Promise<ApiResponse<EventResponse>> {
-  return await fetchInterceptor<EventResponse>(
-    `${API_URL}/api/v1/events/${id}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: data as any,
-    }
   );
 }
 
@@ -89,6 +69,7 @@ export async function unregisterFromEvent(
     { method: "POST" }
   );
 }
+
 export const getEventRegistrations = async (
   eventId: number
 ): Promise<ApiResponse<EventRegistrationUserResponse[]>> => {
@@ -97,6 +78,7 @@ export const getEventRegistrations = async (
     { method: "GET" }
   );
 };
+
 export const createEventWithRooms = async (
   data: EventWithRoomsCreateRequest
 ): Promise<ApiResponse<EventResponse>> => {
@@ -114,4 +96,42 @@ export const updateEventWithRooms = async (
     `${API_URL}/api/v1/events/with-rooms/${id}`,
     { method: "PUT", body: data as any }
   );
+};
+export const searchEvents = async (
+  params: EventSearchRequest
+): Promise<ApiResponse<PageResponse<EventResponse>>> => {
+  const query = new URLSearchParams();
+
+  if (params.keyword) query.append("Keyword", params.keyword);
+  if (typeof params.status === "number") {
+    query.append("Status", String(params.status));
+  }
+  if (typeof params.category === "number") {
+    query.append("Category", String(params.category));
+  }
+  if (typeof params.tag === "number") {
+    query.append("Tag", String(params.tag));
+  }
+  if (params.fromDate) {
+    query.append("FromDate", params.fromDate);
+  }
+  if (params.toDate) {
+    query.append("ToDate", params.toDate);
+  }
+  if (params.page) {
+    query.append("Page", params.page.toString());
+  }
+  if (params.pageSize) {
+    query.append("PageSize", params.pageSize.toString());
+  }
+
+  const qs = query.toString();
+  const url =
+    qs.length > 0
+      ? `${API_URL}/api/v1/events/search?${qs}`
+      : `${API_URL}/api/v1/events/search`;
+
+  return await fetchInterceptor<PageResponse<EventResponse>>(url, {
+    method: "GET",
+  });
 };

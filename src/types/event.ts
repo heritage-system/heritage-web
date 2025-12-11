@@ -1,31 +1,9 @@
 // src/types/event.ts
-import type { StreamingRoomType } from "./streaming";
 
-export enum EventStatus {
-  DRAFT = "DRAFT",
-  UPCOMING = "UPCOMING",
-  LIVE = "LIVE",
-  CLOSED = "CLOSED",
-  ARCHIVED = "ARCHIVED",
-}
+import { EventCategory, EventStatus, EventTag, StreamingRoomType } from "./enum";
 
-export enum EventCategory {
-  GENERAL = "GENERAL",
-  HERITAGE_TALK = "HERITAGE_TALK",
-  FESTIVAL = "FESTIVAL",
-  WORKSHOP = "WORKSHOP",
-  ONLINE_TOUR = "ONLINE_TOUR",
-}
 
-// bit flags — keep as number
-export enum EventTag {
-  NONE = 0,
-  FEATURED = 1 << 0,
-  FREE = 1 << 1,
-  PREMIUM = 1 << 2,
-  RECORDED = 1 << 3,
-  QNA = 1 << 4,
-}
+
 
 export interface StreamingRoomSummaryResponse {
   id: number;
@@ -94,7 +72,16 @@ export interface StreamingRoomForEventCreateRequest {
   startAt: string;            // ISO
   type: StreamingRoomType;    // UPCOMING/LIVE/CLOSED
 }
-
+export interface EventSearchRequest {
+  keyword?: string;
+  status?: EventStatus;
+  category?: EventCategory;
+  tag?: EventTag;
+  fromDate?: string; // ISO date (yyyy-MM-dd) nếu cần
+  toDate?: string;   // ISO date
+  page?: number;
+  pageSize?: number;
+}
 export interface StreamingRoomForEventUpdateRequest
   extends StreamingRoomForEventCreateRequest {
   id?: number; // null/0 => new room
@@ -109,3 +96,18 @@ export interface EventWithRoomsCreateRequest extends EventCreateRequest {
 export interface EventWithRoomsUpdateRequest extends EventUpdateRequest {
   rooms: StreamingRoomForEventUpdateRequest[];
 }
+export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
+  [EventStatus.DRAFT]: "Nháp",
+  [EventStatus.UPCOMING]: "Sắp diễn ra",
+  [EventStatus.LIVE]: "Đang diễn ra",
+  [EventStatus.CLOSED]: "Đã kết thúc",
+  [EventStatus.ARCHIVED]: "Đã lưu trữ",
+};
+
+export const EVENT_CATEGORY_LABEL: Record<EventCategory, string> = {
+  [EventCategory.GENERAL]: "Chung",
+  [EventCategory.HERITAGE_TALK]: "Toạ đàm di sản",
+  [EventCategory.FESTIVAL]: "Lễ hội",
+  [EventCategory.WORKSHOP]: "Workshop",
+  [EventCategory.ONLINE_TOUR]: "Tour trực tuyến",
+};

@@ -38,6 +38,7 @@ import { EventProvider } from "./components/Admin/EventManagement/EventContext";
 import EventDetailPage from './pages/CommunityPage/EventDetailPage';
 import EventDetailView from './components/Community/EventDetailView';
 
+
 const App: React.FC = () => {
   return (
     <Router>

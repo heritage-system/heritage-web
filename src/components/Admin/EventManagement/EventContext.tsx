@@ -4,37 +4,34 @@ import React, {
   useContext,
   useState,
   useCallback,
-  useEffect,
 } from "react";
 import { toast } from "react-hot-toast";
+import { EventResponse } from "../../../types/event";
 import {
-  EventResponse,
-  EventCreateRequest,
-  EventUpdateRequest,
-  EventStatus,
-  EventTag,
-} from "../../../types/event";
-import type { ApiResponse } from "../../../types/apiResponse";
-import {
-  createEvent,
-  getEvents,
+  searchEvents,
   getEventDetail,
-  updateEvent,
-  deleteEvent,
+  deleteEvent as deleteEventApi,
   registerForEvent,
   unregisterFromEvent,
 } from "../../../services/eventService";
+
+import { EventCategory, EventStatus, EventTag } from "../../../types/enum";
 
 type EventCtx = {
   events: EventResponse[];
   selectedEvent: EventResponse | null;
   loading: boolean;
 
-  loadEvents: (opts?: { status?: EventStatus; from?: string }) => Promise<void>;
+  loadEvents: (opts?: {
+  status?: EventStatus;
+  keyword?: string;
+  category?: EventCategory;
+  tag?: EventTag;
+  fromDate?: string;
+  toDate?: string;
+}) => Promise<void>;
   loadEvent: (id: number) => Promise<EventResponse | null>;
 
-  createEvent: (req: EventCreateRequest) => Promise<EventResponse | null>;
-  updateEvent: (id: number, req: EventUpdateRequest) => Promise<EventResponse | null>;
   deleteEvent: (id: number) => Promise<void>;
 
   register: (id: number) => Promise<void>;
@@ -51,27 +48,40 @@ export const useEvent = () => {
   return ctx;
 };
 
-export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
   const loadEvents: EventCtx["loadEvents"] = useCallback(async (opts) => {
-    setLoading(true);
-    try {
-      const res = await getEvents(opts);
-      if (res.code === 200 && res.result) {
-        setEvents(res.result);
-      } else {
-        toast.error(res.message || "Không thể tải danh sách sự kiện");
-      }
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Lỗi tải danh sách sự kiện");
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const res = await searchEvents({
+      status: opts?.status,
+      keyword: opts?.keyword,
+      category: opts?.category,
+      tag: opts?.tag,
+      fromDate: opts?.fromDate,
+      toDate: opts?.toDate,
+      page: 1,
+      pageSize: 50, // tuỳ bạn
+    });
+
+    if (res.code === 200 && res.result) {
+      setEvents(res.result.items); // ⬅️ dùng items từ PageResponse
+    } else {
+      toast.error(res.message || "Không thể tải danh sách sự kiện");
     }
-  }, []);
+  } catch (e: any) {
+    console.error(e);
+    toast.error("Lỗi tải danh sách sự kiện");
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   const loadEvent: EventCtx["loadEvent"] = useCallback(async (id) => {
     try {
@@ -80,7 +90,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSelectedEvent(res.result);
         // update list cache
         setEvents((prev) => {
-          const idx = prev.findIndex(e => e.id === id);
+          const idx = prev.findIndex((e) => e.id === id);
           if (idx === -1) return [...prev, res.result!];
           const clone = [...prev];
           clone[idx] = res.result!;
@@ -97,63 +107,24 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const createEventFn: EventCtx["createEvent"] = useCallback(async (req) => {
-    try {
-      const res = await createEvent(req);
-      if ((res.code === 200 || res.code === 201) && res.result) {
-        toast.success("Tạo sự kiện thành công");
-        setEvents((prev) => [...prev, res.result!]);
-        setSelectedEvent(res.result!);
-        return res.result;
+  const deleteEventFn: EventCtx["deleteEvent"] = useCallback(
+    async (id) => {
+      try {
+        const res = await deleteEventApi(id);
+        if (res.code === 200) {
+          toast.success("Đã xoá sự kiện");
+          setEvents((prev) => prev.filter((e) => e.id !== id));
+          if (selectedEvent?.id === id) setSelectedEvent(null);
+        } else {
+          toast.error(res.message || "Xoá sự kiện thất bại");
+        }
+      } catch (e: any) {
+        console.error(e);
+        toast.error("Lỗi xoá sự kiện");
       }
-      toast.error(res.message || "Tạo sự kiện thất bại");
-      return null;
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Lỗi tạo sự kiện");
-      return null;
-    }
-  }, []);
-
-  const updateEventFn: EventCtx["updateEvent"] = useCallback(async (id, req) => {
-    try {
-      const res = await updateEvent(id, { ...req, id });
-      if (res.code === 200 && res.result) {
-        toast.success("Cập nhật sự kiện thành công");
-        setEvents((prev) => {
-          const idx = prev.findIndex(e => e.id === id);
-          if (idx === -1) return prev;
-          const clone = [...prev];
-          clone[idx] = res.result!;
-          return clone;
-        });
-        setSelectedEvent(res.result!);
-        return res.result;
-      }
-      toast.error(res.message || "Cập nhật sự kiện thất bại");
-      return null;
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Lỗi cập nhật sự kiện");
-      return null;
-    }
-  }, []);
-
-  const deleteEventFn: EventCtx["deleteEvent"] = useCallback(async (id) => {
-    try {
-      const res = await deleteEvent(id);
-      if (res.code === 200) {
-        toast.success("Đã xoá sự kiện");
-        setEvents((prev) => prev.filter(e => e.id !== id));
-        if (selectedEvent?.id === id) setSelectedEvent(null);
-      } else {
-        toast.error(res.message || "Xoá sự kiện thất bại");
-      }
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Lỗi xoá sự kiện");
-    }
-  }, [selectedEvent]);
+    },
+    [selectedEvent]
+  );
 
   const registerFn: EventCtx["register"] = useCallback(async (id) => {
     try {
@@ -161,14 +132,24 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (res.code === 200 && res.result?.registered) {
         toast.success("Đăng ký tham gia sự kiện thành công");
         // update selected and list
-        setEvents(prev =>
-          prev.map(e =>
-            e.id === id ? { ...e, registeredByMe: true, registeredCount: e.registeredCount + 1 } : e
+        setEvents((prev) =>
+          prev.map((e) =>
+            e.id === id
+              ? {
+                  ...e,
+                  registeredByMe: true,
+                  registeredCount: e.registeredCount + 1,
+                }
+              : e
           )
         );
-        setSelectedEvent(prev =>
+        setSelectedEvent((prev) =>
           prev && prev.id === id
-            ? { ...prev, registeredByMe: true, registeredCount: prev.registeredCount + 1 }
+            ? {
+                ...prev,
+                registeredByMe: true,
+                registeredCount: prev.registeredCount + 1,
+              }
             : prev
         );
       } else {
@@ -185,14 +166,18 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const res = await unregisterFromEvent(id);
       if (res.code === 200 && !res.result?.registered) {
         toast.success("Huỷ đăng ký sự kiện thành công");
-        setEvents(prev =>
-          prev.map(e =>
+        setEvents((prev) =>
+          prev.map((e) =>
             e.id === id
-              ? { ...e, registeredByMe: false, registeredCount: Math.max(0, e.registeredCount - 1) }
+              ? {
+                  ...e,
+                  registeredByMe: false,
+                  registeredCount: Math.max(0, e.registeredCount - 1),
+                }
               : e
           )
         );
-        setSelectedEvent(prev =>
+        setSelectedEvent((prev) =>
           prev && prev.id === id
             ? {
                 ...prev,
@@ -216,13 +201,13 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loading,
     loadEvents,
     loadEvent,
-    createEvent: createEventFn,
-    updateEvent: updateEventFn,
     deleteEvent: deleteEventFn,
     register: registerFn,
     unregister: unregisterFn,
     setSelectedEvent,
   };
 
-  return <EventContext.Provider value={value}>{children}</EventContext.Provider>;
+  return (
+    <EventContext.Provider value={value}>{children}</EventContext.Provider>
+  );
 };

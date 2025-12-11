@@ -1,7 +1,8 @@
 import React from "react";
 import { Video, Wifi, Users, Calendar, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { EventResponse, EventStatus } from "../../types/event";
+import { EventResponse } from "../../types/event";
+import { EventStatus } from "../../types/enum";
 
 type LiveEventPanelProps = {
   event: EventResponse | null;

@@ -22,6 +22,7 @@ import {
 import { useStreaming } from "../../components/Admin/Streaming/StreamingContext";
 import { ReactionFloat } from "./ReactionFloat";
 import { RefreshCcw } from "lucide-react";
+import { RoomRole } from "../../types/enum";
 
 /**
  * LiveRoomPage - All-in-one
@@ -338,36 +339,35 @@ const LiveRoomPage: React.FC = () => {
       onMouseEnter={resetTimer}
     >
       {/* HEADER */}
-      {showUI && (
-        <div className="bg-white shadow-sm border-b border-gray-200 p-4 z-40 transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate(-1)}
-                className="text-gray-600 hover:text-blue-600 font-medium text-sm"
-              >
-                Quay lại
-              </button>
-              <div className="w-px h-8 bg-gray-300" />
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                  W
-                </div>
-                <div>
-                  <h1 className="text-base font-bold text-gray-800">
-                    Phòng: {effectiveRoom}
-                  </h1>
-                  <p className="text-xs text-gray-500">
-                    {isHost
-                      ? "Bạn là Host/Co-host"
-                      : "Bạn là khán giả/diễn giả"}
-                  </p>
-                </div>
-              </div>
-            </div>
+    {showUI && (
+  <div className="bg-white shadow-sm border-b border-gray-200 p-4 z-40 transition-all duration-300">
+    <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleLeaveAll}   // 👈 dùng chung hàm leaveAll
+          className="text-gray-600 hover:text-blue-600 font-medium text-sm"
+        >
+          Quay lại
+        </button>
+        <div className="w-px h-8 bg-gray-300" />
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
+            W
+          </div>
+          <div>
+            <h1 className="text-base font-bold text-gray-800">
+              Phòng: {effectiveRoom}
+            </h1>
+            <p className="text-xs text-gray-500">
+              {isHost ? "Bạn là Host/Co-host" : "Bạn là khán giả/diễn giả"}
+            </p>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* VIDEO AREA */}
       <div
@@ -538,30 +538,31 @@ const LiveRoomPage: React.FC = () => {
                     >
                       <div className="text-sm">
                         <div>
-                          <span className="font-medium">Mã người dùng:</span>{" "}
-                          {r.userId} {isMe ? "(Bạn)" : ""}
+                          <span className="font-medium">Tên người dùng:</span>{" "}
+                          {r.userName} {isMe ? "(Bạn)" : ""}
                         </div>
                         <div>
                           <span className="font-medium">RTC UID:</span>{" "}
                           {String(r.uid)}
                         </div>
                         <div>
-                          <span className="font-medium">Vai trò:</span>{" "}
-                          {r.role}
-                        </div>
+  <span className="font-medium">Vai trò:</span>{" "}
+  {RoomRole[r.role]}
+</div>
+
                       </div>
 
                       {canAct && (
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setRole(r.userId, "COHOST")}
+                        <button
+  onClick={() => setRole(r.userId, RoomRole.COHOST)}
                             className="px-2 py-1 text-xs rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200"
                             title="Đặt làm Co-host"
                           >
                             Co-host
                           </button>
                           <button
-                            onClick={() => setRole(r.userId, "HOST")}
+                            onClick={() => setRole(r.userId,RoomRole.COHOST)}
                             className="px-2 py-1 text-xs rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200"
                             title="Đặt làm Host"
                           >
