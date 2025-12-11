@@ -296,7 +296,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
           <p className="text-base font-medium text-yellow-300">
             Số lượt mở còn lại:{" "}
             <span className={isOutOfSubscription ? "text-red-600 font-semibold" : "text-yellow-300 font-semibold"}>
-              {tour.subscription.isUnlimited ? "∞/∞" : `${tour.subscription.used}/${tour.subscription.total}`}
+              {tour.subscription.isUnlimited ? "∞ / ∞" : `${tour.subscription.used}/${tour.subscription.total}`}
             </span>
           </p>
         )}

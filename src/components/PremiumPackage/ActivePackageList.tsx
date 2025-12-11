@@ -837,7 +837,7 @@ const renderBenefitsList = (benefits: any[]) => {
                   <strong style={{ color: THEME.primary }}>Đăng ký gói mới:</strong>{" "}
                   Gói sẽ được kích hoạt ngay sau khi thanh toán. Bạn sẽ nhận toàn bộ lượt tương ứng.
                 </>
-              ) : currentPackage?.price < selectedPackage.price ? (
+              ) : (currentPackage?.price * currentPackage?.durationDays) < (selectedPackage.price * selectedPackage.durationDays) ? (
                 <>
                   <strong style={{ color: THEME.primary }}>Nâng cấp gói:</strong>{" "}
                   Gói mới sẽ được kích hoạt ngay lập tức. Tất cả lượt mở sẽ được 
