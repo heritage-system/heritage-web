@@ -146,7 +146,7 @@ const PortalModal: React.FC<PortalModalProps> = ({
     >
       {/* Overlay + fade-in */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-100 transition-opacity duration-150"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-50 transition-opacity duration-150"
         onClick={closeOnOverlay ? onClose : undefined}
       />
 

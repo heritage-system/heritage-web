@@ -29,3 +29,13 @@ export const tradePointToUnlockScene = async (
     { method: "POST", body: data as any }
   );
 };
+
+export const tradePointToUnlockQuiz = async (
+  data: PointToUnlockTokenRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/user_point/trade_point_quiz`,
+    { method: "POST", body: data as any }
+  );
+};
+

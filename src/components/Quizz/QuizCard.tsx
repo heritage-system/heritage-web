@@ -108,16 +108,13 @@ const QuizCard: React.FC<QuizCardProps> = ({ quiz, onPlay }) => {
   </div>
 </div>
         <button
-          onClick={!quiz.isPremium ? onPlay : undefined} 
-          disabled={quiz.isPremium} // 🔥 disable UI
-          className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center transition-all ${
-            quiz.isPremium
-              ? "bg-gray-400 text-gray-100 cursor-not-allowed"
-              : "bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white hover:shadow-lg"
-          }`}
+          //onClick={!quiz.isPremium ? onPlay : undefined} 
+          onClick={onPlay} 
+          //disabled={quiz.isPremium} // 🔥 disable UI
+          className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center transition-all bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 text-white hover:shadow-lg`}
         >
           <Icon className="w-5 h-5 mr-2" />
-          {quiz.isPremium ? "Đăng kí Premium để chơi" : "Chơi ngay"}
+          {quiz.isPremium && !quiz.isUnlock ? "Mở khóa" : "Chơi ngay"}
         </button>
       </div>
     </div>

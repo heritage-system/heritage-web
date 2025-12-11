@@ -259,7 +259,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
 
       {tour.scenes[currentScene].unSubscriptionLock ? (
         <p className="text-sm text-white">
-          Bạn đã mở bài viết bằng lượt từ trước. Muốn mở vĩnh viễn bằng điểm Linh Hội không?      
+          Bạn đã mở bằng lượt từ trước. Muốn mở vĩnh viễn bằng điểm Linh Hội không?      
         </p>
       ) : (
         <>

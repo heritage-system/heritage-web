@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { fetchRepliesByReportId, getReportById, answerReport } from "../../../services/reportService";
-import { Report, ReportReply } from "../../../types/report";
+import { fetchRepliesByContributionReportId, getContributionReportById, answerContributionReport } from "../../../services/contributionReportService";
+import { ContributionReport, ContributionReportReply } from "../../../types/contributionReport";
 import { useParams } from "react-router-dom";
 import HeritageAdminPanel from "../../../pages/AdminPanelPage/AdminPanelPage";
 import { 
@@ -25,12 +25,12 @@ interface Props {
   reportId: number
 }
 
-const ReportDetailManagement: React.FC<Props> = ({onClose, reportId}) => {
+const ContributionReportDetailManagement: React.FC<Props> = ({onClose, reportId}) => {
   // const { id } = useParams<{ id: string }>();
   // const reportId = Number(id);
   const navigate = useNavigate();
-  const [report, setReport] = useState<Report | null>(null);
-  const [replies, setReplies] = useState<ReportReply[]>([]);
+  const [report, setContributionReport] = useState<ContributionReport | null>(null);
+  const [replies, setReplies] = useState<ContributionReportReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
@@ -48,10 +48,10 @@ const ReportDetailManagement: React.FC<Props> = ({onClose, reportId}) => {
       setLoading(true);
       try {
         const [reportRes, replyRes] = await Promise.all([
-          getReportById(reportId),
-          fetchRepliesByReportId(reportId),
+          getContributionReportById(reportId),
+          fetchRepliesByContributionReportId(reportId),
         ]);
-        setReport(reportRes.result || null);
+        setContributionReport(reportRes.result || null);
         setReplies(replyRes.result || []);
       } finally {
         setLoading(false);
@@ -66,10 +66,10 @@ const ReportDetailManagement: React.FC<Props> = ({onClose, reportId}) => {
     try {
       const payload = { reportId, answer: newMessage.trim() };
 
-      const response = await answerReport(payload);
+      const response = await answerContributionReport(payload);
 
       if (response.code === 200) {
-        const replyRes = await fetchRepliesByReportId(reportId);
+        const replyRes = await fetchRepliesByContributionReportId(reportId);
         setReplies(replyRes.result || []);
         setNewMessage("");
       } else {
@@ -119,7 +119,7 @@ const ReportDetailManagement: React.FC<Props> = ({onClose, reportId}) => {
 
         <div className="space-y-8">
           
-          {/* Report Information */}
+          {/* ContributionReport Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="bg-red-50 px-6 py-4 border-b border-red-100">
               <div className="flex items-center gap-3">
@@ -145,13 +145,13 @@ const ReportDetailManagement: React.FC<Props> = ({onClose, reportId}) => {
                     </div>
                   </div>
                   <div
-                    onClick={() => report?.heritageId && navigate(`/admin/heritage/${report.heritageId}`)}
+                    onClick={() => report?.contributionId && navigate(`/admin/heritage/${report.contributionId}`)}
                     className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-100 w-full cursor-pointer hover:bg-green-100 transition"
                   >
                     <Building2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-green-900 mb-1">Di sản được báo cáo</p>
-                      <p className="text-lg font-semibold text-gray-900">{report?.heritageName || "Không xác định"}</p>
+                      <p className="text-sm font-medium text-green-900 mb-1">Bài viết được báo cáo</p>
+                      <p className="text-lg font-semibold text-gray-900">{report?.contributionName || "Không xác định"}</p>
                     </div>
                   </div>
                 </div>
@@ -343,4 +343,4 @@ const ReportDetailManagement: React.FC<Props> = ({onClose, reportId}) => {
   );
 };
 
-export default ReportDetailManagement;
+export default ContributionReportDetailManagement;
