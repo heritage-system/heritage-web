@@ -7,6 +7,7 @@ interface BattleResultProps {
   opponent: { id: string; name: string; avatar: string };
   playerScore: number;
   opponentScore: number;
+  bonus: number
   onFinish: () => void;
 }
 
@@ -15,6 +16,7 @@ const BattleResult: React.FC<BattleResultProps> = ({
   opponent,
   playerScore,
   opponentScore,
+  bonus,
   onFinish,
 }) => {
   const playerWon = playerScore > opponentScore;
@@ -27,10 +29,21 @@ const BattleResult: React.FC<BattleResultProps> = ({
   const isPlayerViewLoser = !isDraw && !playerWon;
 
   const message = isDraw
-    ? "Trận đấu thật ngang tài ngang sức!"
-    : isPlayerViewWinner
-    ? "Chúc mừng! Bạn đã giành chiến thắng ngoạn mục!"
-    : "Tiếc quá! Bạn đã thua, nhưng sẽ trở lại mạnh mẽ hơn!";
+  ? "Trận đấu thật ngang tài ngang sức!"
+  : isPlayerViewWinner && bonus > 0
+  ? (
+      <>
+        Chúc mừng! Bạn đã giành được{" "}
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900">
+          +{bonus}
+        </span>{" "}
+        điểm Linh Hội!
+      </>
+    )
+  : isPlayerViewWinner && bonus === 0
+  ? "Chúc mừng! Bạn đã giành chiến thắng ngoạn mục!"
+  : "Tiếc quá! Bạn đã thua, nhưng sẽ trở lại mạnh mẽ hơn!";
+
 
   const subMessage = isDraw
     ? "Không ai thua cả, chỉ có hai người cùng tiến bộ"
@@ -99,6 +112,7 @@ const BattleResult: React.FC<BattleResultProps> = ({
                   avatar={p.avatar}
                   score={p.id === player.id ? playerScore : opponentScore}                 
                   isOpponent={p.id === opponent.id}
+                  bonus={bonus}
                 />
               </div>
             ))}
@@ -123,6 +137,7 @@ const BattleResult: React.FC<BattleResultProps> = ({
                   isWaitingFriend = {false}
                   isResult = {true}
                 isOpponent={winner.id === opponent.id}
+                bonus={bonus}
               />
             </div>
           )

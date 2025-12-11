@@ -72,8 +72,6 @@ import PayrollManagement from "../../components/Admin/HRManagement/PayrollManage
 import PerformanceReview from "../../components/Admin/HRManagement/PerformanceReview";
 import RolePermissionManagement from "../../components/Admin/HRManagement/RolePermissionManagement";
 import EventList from "../../components/Admin/EventManagement/EventList";
-import LiveRoomManager from "../../components/Admin/EventManagement/LiveRoomManager";
-import EventCreate from "../../components/Admin/EventManagement/EventCreate";
 import ParticipantManager from "../../components/Admin/EventManagement/ParticipantManager";
 import ServerManagement from "../../components/Admin/SystemSecurity/ServerManagement";
 import DatabaseAdministration from "../../components/Admin/SystemSecurity/DatabaseAdministration";
@@ -171,8 +169,8 @@ const moduleStructure = {
   icon: CalendarCheck,
   subModules: [
     { id: "events", name: "Sự kiện & Workshop", icon: CalendarRange, component: EventList },
-    { id: "eventCreate", name: "Tạo sự kiện", icon: PlusCircle, component: EventCreate },
-    { id: "liveRooms", name: "Phòng livestream", icon: Video, component: LiveRoomManager },
+   // { id: "eventCreate", name: "Tạo sự kiện", icon: PlusCircle, component: EventCreate },
+    //{ id: "liveRooms", name: "Phòng livestream", icon: Video, component: LiveRoomManager },
     { id: "participants", name: "Người tham gia", icon: Users, component: ParticipantManager },
   ]
 },

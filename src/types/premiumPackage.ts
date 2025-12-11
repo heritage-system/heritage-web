@@ -15,6 +15,10 @@ export interface PremiumPackage {
     UpdatedAt?: string;
 }
 
+export interface PremiumPackageListResponse { 
+    currentPackageId?: number,
+    premiumPackages : PremiumPackageResponse[]
+}
 export interface PremiumPackageResponse {
     id: number;
     name: string;

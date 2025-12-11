@@ -183,3 +183,9 @@ export interface UserDetailResponse {
   numberOfContributionReports: number;
 }
 
+
+export interface UserPointResponse {
+  userId: number,
+  totalPoints: number,
+  unlockTokens: number
+}

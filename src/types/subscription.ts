@@ -4,7 +4,8 @@ export interface SubscriptionDto {
     userId: number,
     packageId: number,
     total: number,
-    used: number
+    used: number,
+    isUnlimited: boolean
 }
 
 // Subscription Entity

@@ -45,6 +45,8 @@ export interface PanoramaTourDetailResponse {
     premiumType: number,  
     scenes: PanoramaSceneResponse[], 
     subscription: SubscriptionDto;
+    userPoint: number,
+    
 }
 
 export interface PanoramaTourDetailForAdminResponse {
@@ -71,7 +73,8 @@ export interface PanoramaSceneResponse {
     panoramaUrl?: string,
     description: string,
     status: number,
-    premiumType: number    
+    premiumType: number,
+    unSubscriptionLock: boolean
 }
 
 

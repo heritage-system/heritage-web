@@ -5,6 +5,8 @@ import {
   Calendar, 
   FileText, 
   Send, 
+  LucideBookMarked,
+  Users
   LucideBookMarked ,History
 } from 'lucide-react';
 
@@ -37,7 +39,7 @@ const MENU: MenuItem[] = [
   { key: "interaction_history", label: "Lịch sử tương tác", icon: <History className="w-5 h-5" />, contributorOnly: false },
   // Hai mục này chỉ hiển thị khi là contributor
   { key: "contributions", label: "Đóng góp đã gửi", icon: <Send className="w-5 h-5" />, contributorOnly: true },
-  // { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" />, contributorOnly: false },
+  { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" />, contributorOnly: false },
 ];
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ 
@@ -49,7 +51,17 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
     <div className="w-72 bg-gradient-to-b from-yellow-50 via-red-50 to-orange-50 py-8 px-6 flex flex-col border-r border-yellow-200">
       {/* Menu Items */}
       <div className="space-y-2">
-        {MENU.filter(item => !item.contributorOnly || profile.isContributor).map((item) => (
+        {MENU
+  .filter(item => {
+    // Ẩn mục "Yêu cầu cộng tác viên" nếu đã là contributor
+    if (item.key === "collaborator-request" && profile.isContributor) return false;
+
+    // Ẩn mục contributorOnly nếu chưa phải contributor
+    if (item.contributorOnly && !profile.isContributor) return false;
+
+    return true;
+  })
+  .map((item) => (
           <button
             key={item.key}
             onClick={() => onMenuChange(item.key)}
