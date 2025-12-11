@@ -82,7 +82,7 @@ const AdminHomeDashboard = () => {
       description: "Quản lý ngân sách, thanh toán và tài chính",
       modules: [
         { name: "Quản lý Ngân sách", icon: "DollarSign" },
-        { name: "Xử lý Thanh toán", icon: "CreditCard" },
+        { name: "Lịch sử tương tác", icon: "CreditCard" },
         { name: "Báo cáo Tài chính", icon: "PieChart" },
         { name: "Quản lý Hóa đơn", icon: "FileSpreadsheet" },
         { name: "Theo dõi Chi tiêu", icon: "TrendingUp" },

@@ -58,7 +58,7 @@ const Footer = () => {
             <ul className="space-y-2">
               {['Hỏi đáp', 'Điều khoản', 'Chính sách riêng tư', 'Liên hệ'].map((item, index) => (
                 <li key={index}>
-                  <a href="#" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                  <a href="/term" className="text-gray-400 hover:text-yellow-500 transition-colors">
                     {item}
                   </a>
                 </li>

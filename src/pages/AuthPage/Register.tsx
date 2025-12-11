@@ -178,7 +178,7 @@ const Register: React.FC = () => {
               />
               Tôi đồng ý với{" "}
               <a
-                href="#"
+                href="/term"
                 className="ml-1 text-yellow-700 hover:text-yellow-800 hover:underline"
               >
                 điều khoản

@@ -50,7 +50,7 @@ import {
   PlusCircle,
   Video,
   Ticket,
-  Home
+  Home, History
 } from "lucide-react";
 import VTFPLogo from "../../components/Layouts/VTFP_Logo.png";
 
@@ -144,7 +144,7 @@ const moduleStructure = {
     icon: DollarSign,
     subModules: [
       { id: "budget", name: "Quản lý ngân sách", icon: DollarSign, component: BudgetManagement },
-      { id: "payment", name: "Xử lý thanh toán", icon: CreditCard, component: PaymentProcessing },
+      { id: "payment", name: "Lịch sử tương tác", icon: History, component: PaymentProcessing },
       { id: "financialReports", name: "Báo cáo tài chính", icon: PieChart, component: FinancialReports },
       { id: "invoice", name: "Quản lý hóa đơn", icon: FileSpreadsheet, component: InvoiceManagement },
       { id: "expense", name: "Theo dõi chi phí", icon: TrendingUp, component: ExpenseTracking }
