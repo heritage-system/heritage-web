@@ -29,6 +29,7 @@ import LiveRoomPage from './components/Community/LiveRoomPage';
 import ActivePackageList from './components/PremiumPackage/ActivePackageList';
 import PaymentResultPage from './components/PremiumPackage/PaymentResultPage';
 import ConfirmEmailPage from './pages/AuthPage/ConfirmEmailPage';
+import TermsPage from './pages/TermsPage/TermsPage';
 
 const App: React.FC = () => {
   return (
@@ -62,7 +63,7 @@ const App: React.FC = () => {
         <Route path="/payment/success" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/payment/result" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/payment/cancel" element={<MainLayout><PaymentResultPage /></MainLayout>} />
-
+        <Route path="/term" element={<MainLayout><TermsPage /></MainLayout>} />
       
       </Routes>
 

@@ -5,7 +5,7 @@ import {
   Calendar, 
   FileText, 
   Send, 
-  LucideBookMarked 
+  LucideBookMarked ,History
 } from 'lucide-react';
 
 interface MenuItem {
@@ -34,6 +34,7 @@ const MENU: MenuItem[] = [
   { key: "contribution_saves", label: "Bài viết đã lưu", icon: <LucideBookMarked className="w-5 h-5" />,contributorOnly: false},
   { key: "events", label: "Sự kiện đã tham gia", icon: <Calendar className="w-5 h-5" />,contributorOnly: false },
   { key: "quiz", label: "Lịch sử quiz", icon: <FileText className="w-5 h-5" />,contributorOnly: false },
+  { key: "interaction_history", label: "Lịch sử tương tác", icon: <History className="w-5 h-5" />, contributorOnly: false },
   // Hai mục này chỉ hiển thị khi là contributor
   { key: "contributions", label: "Đóng góp đã gửi", icon: <Send className="w-5 h-5" />, contributorOnly: true },
   // { key: "collaborator-request", label: "Yêu cầu cộng tác viên", icon: <Users className="w-5 h-5" />, contributorOnly: false },

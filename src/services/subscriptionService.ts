@@ -7,6 +7,7 @@ import {
   CreateSubscriptionData,
   PaymentStatusData,
   ActiveSubscriptionData,
+  SubscriptionResponse
 } from "../types/subscription";
 
 export const createSubscription = async (
@@ -94,6 +95,19 @@ export const cancelSubscription = async (
     `${API_URL}/api/v1/subscriptions/${subscriptionId}/cancel`,
     {
       method: "POST",
+    }
+  );
+};
+
+export const getSubscriptionByUser = async (): Promise<
+  ApiResponse<SubscriptionResponse[]>  
+> => {
+  console.log("🔎 Fetching subscription for current user...");
+
+  return await fetchInterceptor<SubscriptionResponse[]>( 
+    `${API_URL}/api/v1/subscriptions/SubscriptionByUserId`,
+    { 
+      method: "GET",
     }
   );
 };
