@@ -37,6 +37,7 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
   const [opponentAnswered, setOpponentAnswered] = useState(false);
   const [opponentAnswerTime, setOpponentAnswerTime] = useState<number | null>(null);
   const [showOptions, setShowOptions] = useState(false);
+  const [bonus, setBonus] = useState<number | null>(null);
   // ===== REF =====
   const playerTimerRef = useRef<number  | null>(null);
   const opponentTimerRef = useRef<number | null>(null);
@@ -139,6 +140,13 @@ const BattlePlay: React.FC<BattlePlayProps> = ({
 
     const handleGameFinished = (players: any) => {
       console.log("🏁 GameFinished:", players);
+      const winner = players.find((p: any) => p.bonusPoint && p.bonusPoint > 0);
+
+      if (winner) {
+        setBonus(winner.bonusPoint); 
+      } else {
+        setBonus(0); 
+      }
       stopAllTimers();
       setIsFinished(true);
     };
@@ -279,6 +287,7 @@ const stopOpponentTimer = () => {
     return (
     <BattleResult
       player={player}
+      bonus={bonus!}
       opponent={opponent}
       playerScore={playerScore}
       opponentScore={opponentScore}

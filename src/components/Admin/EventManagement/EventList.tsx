@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEvent } from "./EventContext";
 import {
-  EventStatus,
-  EventCategory,
-  EventTag,
+
   EventResponse,
   EventWithRoomsCreateRequest,
   EventWithRoomsUpdateRequest,
+  EVENT_STATUS_LABEL,
 } from "../../../types/event";
 import {
   StreamingRoomSummaryResponse, // 🆕 thêm dòng này
@@ -24,6 +23,8 @@ import {
 import EventRoomsEditor, {
   TempRoom,
 } from "./EventRoomsEditor";
+import { EventCategory, EventStatus, EventTag } from "../../../types/enum";
+import { isoToLocalInput, toLocalDisplay } from "../../../utils/datetime";
 
 // ===== Helpers =====
 const tagOptions: { label: string; value: EventTag }[] = [
@@ -40,39 +41,6 @@ const statusTabs: { label: string; value: EventStatus }[] = [
   { label: "Đã kết thúc", value: EventStatus.CLOSED },
 ];
 
-// ISO -> value cho input datetime-local
-function isoToLocalInput(iso?: string | null): string {
-  if (!iso) return "";
-
-  let normalized = iso;
-  if (!/Z|[+-]\d{2}:\d{2}$/.test(iso)) {
-    normalized = iso + "Z";
-  }
-
-  const d = new Date(normalized);
-  if (isNaN(d.getTime())) return "";
-
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
-// Hiển thị local cho list / rooms
-function toLocalDisplay(iso: string | null | undefined): string {
-  if (!iso) return "";
-  let normalized = iso;
-  if (!/Z|[+-]\d{2}:\d{2}$/.test(iso)) {
-    normalized = iso + "Z";
-  }
-  const d = new Date(normalized);
-  if (isNaN(d.getTime())) return "";
-  return d.toLocaleString("vi-VN");
-}
 
 const categoryOptions = [
   { label: "Chung", value: EventCategory.GENERAL },
@@ -82,7 +50,7 @@ const categoryOptions = [
   { label: "Tour trực tuyến", value: EventCategory.ONLINE_TOUR },
 ];
 
-type EventFormMode = "create" | "edit";
+type EventFormMode = "create" | "edit" | "detail";
 
 interface EventFormValues {
   title: string;
@@ -107,13 +75,23 @@ const EventList: React.FC = () => {
   } = useEvent();
 
   const [statusFilter, setStatusFilter] = useState<EventStatus>(
-    EventStatus.UPCOMING
-  );
+  EventStatus.UPCOMING
+);
+
+// 🆕 state cho search/filter
+const [keyword, setKeyword] = useState("");
+const [categoryFilter, setCategoryFilter] = useState<EventCategory | "">("");
+const [tagFilter, setTagFilter] = useState<EventTag | "">("");
+const [fromDate, setFromDate] = useState("");
+const [toDate, setToDate] = useState("");
+
   const handleEnterLive = (room: StreamingRoomSummaryResponse) => {
     // Giống LiveRoomManager: join live bằng roomName
     navigate(`/live/${encodeURIComponent(room.roomName)}`);
   };
-  const [viewMode, setViewMode] = useState<"list" | "create" | "edit">("list");
+ const [viewMode, setViewMode] =
+  useState<"list" | "create" | "edit" | "detail">("list");
+
 
   // load list khi mount & khi đổi statusFilter
   useEffect(() => {
@@ -127,9 +105,13 @@ const EventList: React.FC = () => {
     await loadEvents({ status: statusFilter });
   };
 
-  const handleManageStreams = (ev: EventResponse) => {
-    navigate(`/admin/stream?eventId=${ev.id}`);
-  };
+const handleManageDetails = (ev: EventResponse) => {
+  setSelectedEvent(ev);      // chọn sự kiện
+  setViewMode("detail");     // chuyển sang mode chi tiết
+};
+const handleBackFromDetail = () => {
+  setViewMode("list");
+};
 
   const handleNewEvent = () => {
     setSelectedEvent(null);
@@ -150,51 +132,195 @@ const EventList: React.FC = () => {
   const handleBackFromForm = () => {
     setViewMode("list");
   };
+// 🔁 Hàm gọi API list với mọi filter
+const fetchEvents = React.useCallback(() => {
+  void loadEvents({
+    status: statusFilter,
+    keyword: keyword.trim() || undefined,
+    category:
+      categoryFilter === ""
+        ? undefined
+        : (categoryFilter as EventCategory),
+    tag: tagFilter === "" ? undefined : (tagFilter as EventTag),
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+  });
+}, [loadEvents, statusFilter, keyword, categoryFilter, tagFilter, fromDate, toDate]);
 
+// 🟢 gọi khi mount + khi statusFilter đổi
+useEffect(() => {
+  fetchEvents();
+}, [fetchEvents]);
+const handleApplyFilters = () => {
+  fetchEvents();
+};
+
+const handleClearFilters = () => {
+  setKeyword("");
+  setCategoryFilter("");
+  setTagFilter("");
+  setFromDate("");
+  setToDate("");
+  // Sau khi clear thì gọi lại
+  void loadEvents({ status: statusFilter });
+};
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto py-8 px-4">
-        {viewMode === "list" && (
-          <>
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-slate-800">
-                Quản lý sự kiện
-              </h1>
-              <button
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700"
-                onClick={handleNewEvent}
-              >
-                <Plus className="w-4 h-4" />
-                Tạo sự kiện
-              </button>
-            </div>
+      {viewMode === "list" && (
+  <>
+    <div className="flex items-center justify-between mb-6">
+      <h1 className="text-2xl font-bold text-slate-800">
+        Quản lý sự kiện
+      </h1>
+      <button
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700"
+        onClick={handleNewEvent}
+      >
+        <Plus className="w-4 h-4" />
+        Tạo sự kiện
+      </button>
+    </div>
 
-            {/* LIST + FILTER */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-slate-700">
-                  Danh sách sự kiện ({events.length})
-                </h2>
-                <div className="flex items-center gap-1">
-                  {statusTabs.map((tab) => (
-                    <button
-                      key={tab.value}
-                      type="button"
-                      onClick={() => {
-                        setStatusFilter(tab.value);
-                        setSelectedEvent(null);
-                      }}
-                      className={`px-2.5 py-1 rounded-full text-[11px] border ${
-                        statusFilter === tab.value
-                          ? "bg-indigo-600 text-white border-indigo-600"
-                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+    {/* 🆕 KHU VỰC TÌM KIẾM / FILTER */}
+    <div className="mb-4 bg-white rounded-2xl shadow-sm border border-slate-200 px-4 py-3">
+      <div className="grid gap-3 md:grid-cols-5">
+        {/* Title keyword */}
+        <div className="md:col-span-2">
+          <label className="block text-[11px] font-medium text-slate-600 mb-1">
+            Tìm theo tiêu đề
+          </label>
+          <input
+            type="text"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="Nhập một phần tiêu đề sự kiện..."
+            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        {/* Category */}
+        <div>
+          <label className="block text-[11px] font-medium text-slate-600 mb-1">
+            Danh mục
+          </label>
+          <select
+            value={categoryFilter}
+            onChange={(e) =>
+              setCategoryFilter(
+                e.target.value === ""
+                  ? ""
+                  : (Number(e.target.value) as EventCategory)
+              )
+            }
+            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Tất cả</option>
+            {categoryOptions.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Tag */}
+        <div>
+          <label className="block text-[11px] font-medium text-slate-600 mb-1">
+            Nhãn (tag)
+          </label>
+          <select
+            value={tagFilter}
+            onChange={(e) =>
+              setTagFilter(
+                e.target.value === ""
+                  ? ""
+                  : (Number(e.target.value) as EventTag)
+              )
+            }
+            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Tất cả</option>
+            {tagOptions.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* From / To date */}
+        <div className="flex flex-col gap-2">
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1">
+              Từ ngày
+            </label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1">
+              Đến ngày
+            </label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Nút hành động */}
+      <div className="mt-3 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={handleClearFilters}
+          className="px-3 py-1.5 rounded-full border border-slate-200 text-[11px] text-slate-600 hover:bg-slate-50"
+        >
+          Xoá lọc
+        </button>
+        <button
+          type="button"
+          onClick={handleApplyFilters}
+          className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-[11px] font-semibold hover:bg-indigo-700"
+        >
+          Áp dụng lọc
+        </button>
+      </div>
+    </div>
+
+    {/* LIST + FILTER (status tabs giữ nguyên) */}
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-700">
+          Danh sách sự kiện ({events.length})
+        </h2>
+        <div className="flex items-center gap-1">
+          {statusTabs.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => {
+                setStatusFilter(tab.value);
+                setSelectedEvent(null);
+              }}
+              className={`px-2.5 py-1 rounded-full text-[11px] border ${
+                statusFilter === tab.value
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
               <div className="divide-y divide-slate-100 max-h-[70vh] overflow-y-auto">
                 {events.length === 0 && (
@@ -220,9 +346,10 @@ const EventList: React.FC = () => {
                         <p className="text-sm font-semibold text-slate-800 line-clamp-1">
                           {ev.title}
                         </p>
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
-                          {ev.status}
-                        </span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+  {EVENT_STATUS_LABEL[ev.status]}
+</span>
+
                       </div>
 
                       <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
@@ -238,12 +365,12 @@ const EventList: React.FC = () => {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleManageStreams(ev);
+                              handleManageDetails(ev);
                             }}
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] border border-emerald-100"
                           >
                             <Radio className="w-3 h-3" />
-                            Phòng live
+                            Chi tiết
                           </button>
                           <button
                             type="button"
@@ -273,7 +400,7 @@ const EventList: React.FC = () => {
                 ))}
               </div>
             </div>
-
+                  
             {/* Streaming rooms của selectedEvent (view only) */}
             {selectedEvent && selectedEvent.streamingRooms.length > 0 && (
               <div className="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
@@ -332,17 +459,21 @@ const EventList: React.FC = () => {
             {selectedEvent && <ParticipantManager eventId={selectedEvent.id} />}
           </>
         )}
+ 
+
+
 
         {/* ==== FORM MODE: CREATE / EDIT + ROOMS EDITOR ==== */}
-        {(viewMode === "create" || viewMode === "edit") && (
-          <EventFormWithRooms
-            mode={viewMode as EventFormMode}
-            event={viewMode === "edit" ? selectedEvent : null}
-            onBack={handleBackFromForm}
-            onSaved={handleSavedFromForm}
-            loading={loading}
-          />
-        )}
+       {/* FORM / DETAIL MODE: dùng chung EventFormWithRooms */}
+{(viewMode === "create" || viewMode === "edit" || viewMode === "detail") && (
+  <EventFormWithRooms
+    mode={viewMode as EventFormMode}
+    event={viewMode === "create" ? null : selectedEvent}
+    onBack={viewMode === "detail" ? handleBackFromDetail : handleBackFromForm}
+    onSaved={handleSavedFromForm}
+    loading={loading}
+  />
+)}
       </div>
     </div>
   );
@@ -356,6 +487,16 @@ const EventFormWithRooms: React.FC<{
   onSaved: (ev: EventResponse) => void;
   loading?: boolean;
 }> = ({ mode, event, onBack, onSaved, loading }) => {
+  const isClosedEvent = event?.status === EventStatus.CLOSED;
+
+  // 🔒 Tất cả field read-only nếu:
+  // - đang ở mode "detail" HOẶC
+  // - đang edit nhưng event đã CLOSEDEnterLiveButton
+  const readOnlyAll = mode === "detail" || (mode === "edit" && isClosedEvent);
+
+  // ✅ Cho phép sửa closeAt nếu đang edit & event CLOSED
+  const canEditCloseTime = mode === "edit" || isClosedEvent;
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
@@ -370,44 +511,46 @@ const EventFormWithRooms: React.FC<{
   const [saving, setSaving] = useState(false);
 
   // init form khi chuyển mode / event
-  useEffect(() => {
-    if (mode === "edit" && event) {
-      setTitle(event.title ?? "");
-      setDescription(event.description ?? "");
-      setThumbnailUrl(event.thumbnailUrl ?? "");
-      setStartAt(isoToLocalInput(event.startAt));
-      setCloseAt(isoToLocalInput(event.closeAt || undefined));
-      setCategory(event.category ?? EventCategory.GENERAL);
-      setTags(event.tags ?? EventTag.NONE);
+ useEffect(() => {
+  if ((mode === "edit" || mode === "detail") && event) {
+    setTitle(event.title ?? "");
+    setDescription(event.description ?? "");
+    setThumbnailUrl(event.thumbnailUrl ?? "");
+    setStartAt(isoToLocalInput(event.startAt));
+    setCloseAt(isoToLocalInput(event.closeAt || undefined));
+    setCategory(event.category ?? EventCategory.GENERAL);
+    setTags(event.tags ?? EventTag.NONE);
 
-      const mappedRooms: TempRoom[] = (event.streamingRooms || []).map(
-        (r) => ({
-          tempId: crypto.randomUUID(),
-          id: r.id,
-          roomName: r.roomName,
-          title: r.title || "",
-          startAt: r.startAt ? isoToLocalInput(r.startAt) : "",
-          type: r.type as any,
-        })
-      );
+    const mappedRooms: TempRoom[] = (event.streamingRooms || []).map(
+      (r) => ({
+        tempId: crypto.randomUUID(),
+        id: r.id,
+        roomName: r.roomName,
+        title: r.title || "",
+        startAt: r.startAt ? isoToLocalInput(r.startAt) : "",
+        type: r.type as any,
+      })
+    );
 
-      setRooms(mappedRooms);
-    } else {
-      // create mode
-      setTitle("");
-      setDescription("");
-      setThumbnailUrl("");
-      setStartAt("");
-      setCloseAt("");
-      setCategory(EventCategory.GENERAL);
-      setTags(EventTag.NONE);
-      setRooms([]);
-    }
-  }, [mode, event]);
+    setRooms(mappedRooms);
+  } else {
+    // create mode
+    setTitle("");
+    setDescription("");
+    setThumbnailUrl("");
+    setStartAt("");
+    setCloseAt("");
+    setCategory(EventCategory.GENERAL);
+    setTags(EventTag.NONE);
+    setRooms([]);
+  }
+}, [mode, event]);
 
-  const toggleTag = (t: EventTag) => {
-    setTags((prev) => (prev & t ? prev & ~t : prev | t));
-  };
+
+ const toggleTag = (t: EventTag) => {
+  if (readOnlyAll) return;
+  setTags((prev) => (prev & t ? prev & ~t : prev | t));
+};
 
   const handleThumbnailUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -432,16 +575,21 @@ const EventFormWithRooms: React.FC<{
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      toast.error("Vui lòng nhập tiêu đề sự kiện");
-      return;
-    }
-    if (!startAt) {
-      toast.error("Vui lòng chọn thời gian bắt đầu");
-      return;
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // ❌ Chỉ chặn ở mode "detail"
+  if (mode === "detail") return;
+
+  if (!title.trim()) {
+    toast.error("Vui lòng nhập tiêu đề sự kiện");
+    return;
+  }
+  if (!startAt) {
+    toast.error("Vui lòng chọn thời gian bắt đầu");
+    return;
+  }
+
 
     try {
       setSaving(true);
@@ -494,7 +642,7 @@ const EventFormWithRooms: React.FC<{
           tags,
           rooms: mappedRooms,
         };
-
+        console.log(mappedRooms);
         const res = await updateEventWithRooms(event.id, payload);
         if (res.code === 200 && res.result) {
           toast.success("Cập nhật sự kiện và phòng livestream thành công");
@@ -511,7 +659,8 @@ const EventFormWithRooms: React.FC<{
     }
   };
 
-  const disabled = saving || loading;
+ const disabled = saving || loading;
+
 
   return (
     <div className="min-h-screen">
@@ -526,33 +675,42 @@ const EventFormWithRooms: React.FC<{
               <ArrowLeft size={22} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">
-                {mode === "create" ? "Tạo sự kiện" : "Chỉnh sửa sự kiện"}
-              </h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Điền thông tin sự kiện & thiết lập các phòng livestream ngay bên
-                dưới.
-              </p>
+             <h1 className="text-2xl font-bold text-slate-900">
+  {mode === "create"
+    ? "Tạo sự kiện"
+    : mode === "edit"
+    ? "Chỉnh sửa sự kiện"
+    : "Chi tiết sự kiện"}
+</h1>
+<p className="text-sm text-slate-500 mt-1">
+  {mode === "detail"
+    ? "Xem chi tiết thông tin sự kiện & các phòng livestream."
+    : "Điền thông tin sự kiện & thiết lập các phòng livestream ngay bên dưới."}
+</p>
+
             </div>
           </div>
 
-          <button
-            form="event-with-rooms-form"
-            type="submit"
-            disabled={disabled}
-            className={`px-5 py-2.5 rounded-full font-medium text-white text-sm shadow 
-              ${
-                disabled
-                  ? "bg-slate-300 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              }`}
-          >
-            {saving
-              ? "Đang lưu..."
-              : mode === "create"
-              ? "Tạo sự kiện"
-              : "Lưu"}
-          </button>
+         {mode !== "detail" && (
+  <button
+    form="event-with-rooms-form"
+    type="submit"
+    disabled={disabled}
+    className={`px-5 py-2.5 rounded-full font-medium text-white text-sm shadow 
+      ${
+        disabled
+          ? "bg-slate-300 cursor-not-allowed"
+          : "bg-indigo-600 hover:bg-indigo-700"
+      }`}
+  >
+    {saving
+      ? "Đang lưu..."
+      : mode === "create"
+      ? "Tạo sự kiện"
+      : "Lưu"}
+  </button>
+)}
+
         </div>
       </div>
 
@@ -568,9 +726,10 @@ const EventFormWithRooms: React.FC<{
               Tiêu đề
             </label>
             <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+  type="text"
+  value={title}
+  onChange={(e) => setTitle(e.target.value)}
+  disabled={readOnlyAll}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Tiêu đề sự kiện..."
             />
@@ -584,6 +743,7 @@ const EventFormWithRooms: React.FC<{
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              disabled={readOnlyAll}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm h-24 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Mô tả ngắn gọn về sự kiện..."
             />
@@ -606,7 +766,7 @@ const EventFormWithRooms: React.FC<{
                   type="file"
                   accept="image/*"
                   onChange={handleThumbnailUpload}
-                  disabled={uploadingThumb}
+                  disabled={uploadingThumb || readOnlyAll}
                   className="text-xs"
                 />
                 {uploadingThumb && (
@@ -621,6 +781,7 @@ const EventFormWithRooms: React.FC<{
                   type="text"
                   value={thumbnailUrl}
                   onChange={(e) => setThumbnailUrl(e.target.value)}
+                  disabled={readOnlyAll}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Hoặc dán URL thumbnail sẵn có..."
                 />
@@ -650,6 +811,7 @@ const EventFormWithRooms: React.FC<{
                 type="datetime-local"
                 value={startAt}
                 onChange={(e) => setStartAt(e.target.value)}
+                disabled={readOnlyAll}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -661,6 +823,7 @@ const EventFormWithRooms: React.FC<{
                 type="datetime-local"
                 value={closeAt}
                 onChange={(e) => setCloseAt(e.target.value)}
+                 disabled={!canEditCloseTime}  // ✅ chỉ cho sửa khi edit & CLOSED
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -672,19 +835,21 @@ const EventFormWithRooms: React.FC<{
               <label className="block text-xs font-medium text-slate-700 mb-1">
                 Danh mục sự kiện
               </label>
-              <select
-                value={category}
-                onChange={(e) =>
-                  setCategory(e.target.value as unknown as EventCategory)
-                }
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {categoryOptions.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+          <select
+  value={category}
+  onChange={(e) =>
+    setCategory(Number(e.target.value) as EventCategory)
+  }
+   disabled={readOnlyAll}
+  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+>
+  {categoryOptions.map((c) => (
+    <option key={c.value} value={c.value}>
+      {c.label}
+    </option>
+  ))}
+</select>
+
             </div>
 
             <div>
@@ -699,6 +864,7 @@ const EventFormWithRooms: React.FC<{
                       type="button"
                       key={t.value}
                       onClick={() => toggleTag(t.value)}
+                      disabled={readOnlyAll}
                       className={`px-2.5 py-1 rounded-full text-[11px] border ${
                         active
                           ? "bg-indigo-50 text-indigo-700 border-indigo-300"
@@ -714,35 +880,48 @@ const EventFormWithRooms: React.FC<{
           </div>
 
           {/* ====== STREAMING ROOMS EDITOR ====== */}
-          <EventRoomsEditor rooms={rooms} onChange={setRooms} />
+  <EventRoomsEditor
+  eventId={event?.id}
+  rooms={rooms}
+  onChange={setRooms}
+  readOnly={readOnlyAll}    // 🔒 khoá rooms nếu CLOSED hoặc detail
+  onRoomSaved={() => {
+    onBack();
+  }}
+/>
+
+
 
           {/* FOOTER */}
-          <div className="pt-2 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onBack}
-              className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
-            >
-              <X className="w-3 h-3" />
-              Hủy
-            </button>
-            <button
-              type="submit"
-              disabled={disabled}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {mode === "create" ? (
-                <>
-                  <Plus className="w-4 h-4" />
-                  Tạo sự kiện
-                </>
-              ) : (
-                <>
-                  <Edit2 className="w-4 h-4" />
-                  Lưu thay đổi
-                </>
-              )}
-            </button>
+        <div className="pt-2 flex items-center justify-between">
+  <button
+    type="button"
+    onClick={onBack}
+    className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
+  >
+    <X className="w-3 h-3" />
+    {mode === "detail" ? "Quay lại" : "Hủy"}
+  </button>
+
+  {mode !== "detail" && (
+    <button
+      type="submit"
+      disabled={disabled}
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 disabled:opacity-50"
+    >
+      {mode === "create" ? (
+        <>
+          <Plus className="w-4 h-4" />
+          Tạo sự kiện
+        </>
+      ) : (
+        <>
+          <Edit2 className="w-4 h-4" />
+          Lưu thay đổi
+        </>
+      )}
+    </button>
+  )}
           </div>
         </form>
       </div>

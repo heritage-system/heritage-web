@@ -65,7 +65,7 @@ export const HeritageRelated: React.FC<Props> = ({ relatedHeritages, onClickItem
                   key={h.id}
                   onClick={() => onClickItem?.(h)}
                   className="flex-shrink-0 w-72 border rounded-xl hover:shadow-md transition bg-white text-left overflow-hidden"
-                  title={h.name}
+                  title={h.description}
                 >
                   {/* Cover cố định 180px */}
                   <div className="h-44 bg-gray-100 overflow-hidden">

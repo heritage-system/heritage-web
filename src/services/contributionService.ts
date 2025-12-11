@@ -14,7 +14,8 @@ import {
   ContributionOverviewSearchRequest,
   ContributionDetailUpdatedResponse,
   ContributionUpdateRequest,
-  ContributionSaveResponse
+  ContributionSaveResponse,
+  ContributionAccessLogCreationRequest
 } from "../types/contribution";
 import {
   ContributionReviewCreateRequest,
@@ -31,6 +32,9 @@ import {
 import {
   ContributionReportCreationRequest
 } from "../types/contributionReport";
+import {
+  ContributionStatus
+} from "../types/enum";
 import { LikeReviewResponse, LikeReviewRequest} from "../types/review";
 
 export const searchContribution = async (
@@ -300,4 +304,30 @@ export const getContributionSaves = async (
     );
 
   return response;
+};
+
+export const sendContributionAccessLog = async (
+  data: ContributionAccessLogCreationRequest
+): Promise<ApiResponse<boolean>> => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/register_access_log`,
+    {
+      method: "POST",
+      body: data as any,
+    }
+  );
+};
+
+export const disableContributionStatus = async (id: number) => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/${id}/disable_contribution`,
+    { method: "PUT" }
+  );
+};
+
+export const reactiveContributionStatus = async (id: number) => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/${id}/reactive_contribution`,
+    { method: "PUT" }
+  );
 };

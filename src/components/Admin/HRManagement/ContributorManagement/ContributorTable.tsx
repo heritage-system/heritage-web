@@ -162,7 +162,7 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
       )}
 
       {/* APPLIED → Admin có thể Accept hoặc Reject */}
-      {/* {status === ContributorStatus.APPLIED && (
+      {status === ContributorStatus.APPLIED && (
         <>
           <button
             onClick={() => onAction(contributor, "approve")}
@@ -179,7 +179,7 @@ const ContributorTable: React.FC<ContributorTableProps> = ({
             <X size={16} />
           </button>
         </>
-      )} */}
+      )}
 
       {/* REJECTED → chỉ xem, không có nút action khác */}
 

@@ -13,9 +13,11 @@ import {
   Upload,
   BookmarkPlus,
   Search,
+  CircleSlash,
+  RotateCcw 
 } from "lucide-react";
 
-import { getListContributionOverview } from "../../../services/contributionService";
+import { getListContributionOverview, disableContributionStatus, reactiveContributionStatus } from "../../../services/contributionService";
 import {
   ContributionOverviewItemListResponse,
   ContributionOverviewSearchRequest,
@@ -37,6 +39,7 @@ const TABS: { key: ContributionStatus | "ALL"; label: string; icon: any }[] = [
   { key: ContributionStatus.PENDING, label: "Chờ duyệt", icon: Clock },
   { key: ContributionStatus.APPROVED, label: "Đã duyệt", icon: CheckCircle },
   { key: ContributionStatus.REJECTED, label: "Từ chối", icon: XCircle },
+  { key: ContributionStatus.DISABLE, label: "Vô hiệu hóa", icon: CircleSlash },
 ];
 
 const ContributionsSection: React.FC<ContributionsSectionProps> = ({
@@ -138,6 +141,13 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
             icon: XCircle,
             label: "Từ chối",
           };
+        case "DISABLE":
+          return {
+            bg: "bg-red-100",
+            text: "text-red-900",
+            icon: CircleSlash,
+            label: "Vô hiệu hóa",
+          };
         default:
           return {
             bg: "bg-gray-100",
@@ -145,6 +155,65 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
             icon: FileText,
             label: item.status,
           };
+      }
+    };
+
+    const canDisable = (approvedAt?: string) => {
+      if (!approvedAt) return false;
+      const approvedDate = new Date(approvedAt);
+      const now = new Date();
+
+      const diff = now.getTime() - approvedDate.getTime();
+      const diffDays = diff / (1000 * 60 * 60 * 24);
+
+      return diffDays <= 3; // còn trong 3 ngày
+    };  
+
+    const onDisableContribution = async (item: ContributionOverviewItemListResponse) => {
+      if (item.status !== "APPROVED") {
+        toast.error("Chỉ có thể vô hiệu hóa nội dung đã duyệt");
+        return;
+      }
+
+      // if (!canDisable(item.approvedAt)) {
+      //   toast.error("Đã quá hạn 3 ngày vô hiệu hóa nội dung");
+      //   return;
+      // }
+
+      try {      
+        var result =  await disableContributionStatus(item.id);
+
+        if(result.code === 200 || result.code === 201) {
+          toast.success("Đã vô hiệu hóa nội dung");
+        }
+        else {
+          toast.error("Không thể vô hiệu hóa nội dung");
+        }
+        fetchContributions(keyword, false, currentPage, activeTab);
+      } catch (err) {
+        toast.error("Không thể vô hiệu hóa nội dung");
+        console.error(err);
+      }
+    };
+
+    const onReactiveContribution = async (item: ContributionOverviewItemListResponse) => {
+      if (item.status !== "DISABLE") {
+        toast.error("Chỉ có thể vô hiệu hóa nội dung đã duyệt");
+        return;
+      }
+      try {      
+        var result =  await reactiveContributionStatus(item.id);
+
+        if(result.code === 200 || result.code === 201) {
+          toast.success("Tái kích hoạt thành công nội dung");
+        }
+        else {
+          toast.error("Không thể tái kích hoạt nội dung");
+        }
+        fetchContributions(keyword, false, currentPage, activeTab);
+      } catch (err) {
+        toast.error("Không thể tái kích hoạt nội dung");
+        console.error(err);
       }
     };
 
@@ -217,6 +286,24 @@ const ContributionsSection: React.FC<ContributionsSectionProps> = ({
               <Edit className="w-4 h-4 mr-2" />
               Chỉnh sửa
             </button>)}
+            {item.status === "APPROVED"  && (
+              <button
+                className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center"
+                onClick={() => onDisableContribution(item)}
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Vô hiệu hóa               
+              </button>
+            )}
+            {item.status === "DISABLE" && (
+              <button
+                className="px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center"
+                onClick={() => onReactiveContribution(item)}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Kích hoạt lại
+              </button>
+            )}
             <button
               onClick={() => onSelectContribution(item.id)}
               className="px-4 py-2 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 

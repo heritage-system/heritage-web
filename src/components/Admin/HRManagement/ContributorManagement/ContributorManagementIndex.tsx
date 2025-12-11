@@ -10,8 +10,7 @@ import {
 import { toast } from "react-hot-toast";
 import { ContributorStatus } from "../../../../types/enum";
 import ContributorTable from "./ContributorTable";
-import CreateContributor from "./CreateContributor";
-import UpdateContributor from "./UpdateContributor";
+import ContributorForm from "./ContributorForm";
 import ContributorView from "./ContributorView";
 import ConfirmDialog from "./ConfirmDialog";
 import {
@@ -19,61 +18,54 @@ import {
   disableContributor,
   approveContributor,
   rejectContributor,
-  reactivateContributor,
-  updateContributor,
-  getContributorDetail
+  reactivateContributor
 } from "../../../../services/contributorService";
 import {
   ContributorSearchResponse,
   ContributorResponse,
-  ContributorUpdateRequest
 } from "../../../../types/contributor";
-import { UserCreationByAdminRequest } from "../../../../types/user";
-import { createUserByAdmin } from "../../../../services/userService";
+
 // Tab definitions with proper status mapping
 const TABS = [
   {
-    key: "all",
-    label: "Tất cả",
-    icon: Users,
-    status: undefined,
+    key: "applied",
+    label: "Chờ duyệt",
+    icon: Clock,
+    status: ContributorStatus.APPLIED,
   },
   {
+    key: "rejected",
+    label: "Đã từ chối",
+    icon: XCircle,
+    status: ContributorStatus.REJECTED,
+  },
+   {
     key: "active",
     label: "Đang hoạt động",
     icon: UserCheck,
     status: ContributorStatus.ACTIVE,
   },
   {
-    key: "applied",
-    label: "Chờ xác nhận",
-    icon: Clock,
-    status: ContributorStatus.APPLIED,
-  },
-  // {
-  //   key: "rejected",
-  //   label: "Đã từ chối",
-  //   icon: XCircle,
-  //   status: ContributorStatus.REJECTED,
-  // },
-   
-  {
     key: "suspended",
     label: "Đã đình chỉ",
     icon: Ban,
     status: ContributorStatus.SUSPENDED,
   },
-  
+  {
+    key: "all",
+    label: "Tất cả",
+    icon: Users,
+    status: undefined,
+  },
 ];
 
 const ContributorManagement: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("all"); // Start with pending applications
+  const [activeTab, setActiveTab] = useState("applied"); // Start with pending applications
   const [tabCounts, setTabCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
-  
+
   // Modal states
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [showView, setShowView] = useState(false);
   const [showConfirmAction, setShowConfirmAction] = useState(false);
 
@@ -102,32 +94,6 @@ const ContributorManagement: React.FC = () => {
     return status;
   };
 
-   const handleCreate = async (data: UserCreationByAdminRequest) => {
-      try {
-        const payload = { ...data, roleName: "CONTRIBUTOR" };
-        const res = await createUserByAdmin(payload);
-        if (res.code === 201 || res.result) {
-          toast.success("Tạo cộng tác viên thành công!");
-          setShowCreateForm(false)
-          handleRefresh()
-        }
-      } catch (err: any) {
-        toast.error(err?.message || "Tạo cộng tác viên thất bại");
-      }
-    };
-
-    const handleUpdate = async (staffId: number, data: ContributorUpdateRequest) => {
-      try {
-        const res = await updateContributor(staffId, data);
-        if (res.code === 200 || res.code === 201) {
-          toast.success("Cập nhật thành công!");
-          setShowEditForm(false);
-          handleRefresh()
-        }
-      } catch {
-        toast.error("Cập nhật thất bại");
-      }
-    };
   // Load counts for each tab
   const loadTabCounts = async () => {
     try {
@@ -178,30 +144,15 @@ const ContributorManagement: React.FC = () => {
 
   const handleAdd = () => {
     setSelectedContributor(null);
-    setShowCreateForm(true);
+    setShowForm(true);
   };
 
-  const closeEditModal = useCallback(() => {  
-      setSelectedContributor(null);
-    }, []);
-
-  const openEditModal = useCallback(async (contributor: ContributorSearchResponse) => {   
-    setSelectedContributor(null); // reset
-  
-    try {
-      const res = await getContributorDetail(contributor.id);
-      if (res.result) {
-        setSelectedContributor(res.result);
-        setShowEditForm(true)
-      } else {
-        toast.error("Không tải được thông tin");
-        closeEditModal();
-      }
-    } catch {
-      toast.error("Lỗi tải dữ liệu");
-      closeEditModal();
-    }
-  }, []);
+  const handleEdit = (contributor: ContributorSearchResponse) => {
+    setSelectedContributor(
+      contributor as unknown as ContributorResponse
+    );
+    setShowForm(true);
+  };
 
   const handleView = (contributor: ContributorSearchResponse) => {
     setSelectedContributor(
@@ -356,35 +307,20 @@ const ContributorManagement: React.FC = () => {
       {/* Table */}
       <ContributorTable
         filterStatus={currentTabStatus}
-        onEdit={openEditModal}
+        onEdit={handleEdit}
         onView={handleView}
         onAction={handleAction}
         refreshTrigger={refreshTrigger}
         onDataChange={loadTabCounts}
       />
 
-        <UpdateContributor
-          isOpen={showEditForm}
-          contributor={selectedContributor}
-          onClose={() => setShowEditForm(false)}
-          onSave={(data) => handleUpdate(selectedContributor!.id, data)}
-        />
-
-          
-      <CreateContributor
-        isOpen={showCreateForm}
-        onClose={() => setShowCreateForm(false)}
-        onSave={handleCreate}
-      />
       {/* Modals */}
-      {/* <ContributorForm
+      <ContributorForm
         open={showForm}
         onClose={() => setShowForm(false)}
         contributor={selectedContributor}
         onSuccess={handleRefresh}
-      /> */}
-
-
+      />
 
       <ContributorView
         open={showView}

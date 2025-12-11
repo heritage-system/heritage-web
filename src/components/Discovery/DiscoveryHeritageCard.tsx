@@ -124,26 +124,16 @@ const displayedDateLabel =
           onClick={(e) => {
             e.stopPropagation();
           }}
-        >
-          {typeof heritage.score === "number" ? (
-            <ScoreRing
-              score={Math.round(heritage.score * 100)}
-              size={40}
-              thickness={5}
-              className="shadow-sm bg-white rounded-full "
-              ariaLabel={`Điểm nhận diện ${Math.round(heritage.score)}%`}
-            />
-          ) : (
-            isLoggedIn &&
+        >      
+            {isLoggedIn &&
             heritage.score == null && (
               <FavoriteButton
                 heritageId={heritage.id}
                 isFavorite={heritage.isSave}
                 size="md"
               />
-            )
-          )}
-
+            )}
+        
         </div>
       </div>
 

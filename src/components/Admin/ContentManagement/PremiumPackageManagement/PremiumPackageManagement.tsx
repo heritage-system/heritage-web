@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { Button, Spin, Input, Select } from "antd";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import React, { useState, useEffect, useCallback } from "react";
+import { Search } from "lucide-react";
 import PremiumPackageList from "./PremiumPackageList";
 import PremiumPackageModal from "./PremiumPackageModal";
 import PremiumPackageDetailManagement from "./PremiumPackageDetailManagement";
@@ -10,17 +9,15 @@ import { SortBy } from "../../../../types/enum";
 import {
   PremiumPackageResponse,
   PremiumPackageCreateRequest,
-  PremiumPackageUpdateRequest
+  PremiumPackageUpdateRequest,
 } from "../../../../types/premiumPackage";
 
 import {
   searchPremiumPackagesAsync,
   createPremiumPackage,
   updatePremiumPackage,
-  deletePremiumPackage
+  deletePremiumPackage,
 } from "../../../../services/PremiumPackageService";
-
-import { TablePaginationConfig } from "antd/es/table";
 
 type ViewMode = "list" | "detail";
 
@@ -31,54 +28,44 @@ const PremiumPackageManagement = () => {
   const [editingPackage, setEditingPackage] = useState<PremiumPackageResponse | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
- const [sortBy, setSortBy] = useState<SortBy | undefined>(undefined);
-  const [pagination, setPagination] = useState<TablePaginationConfig>({
-    current: 1,
-    pageSize: 5,
-    total: 0,
-  });
 
-  const loadPackages = useCallback(async (
-    page?: number,
-    term?: string,
-  ) => {
-    const currentPage = page ?? 1;
-    const searchTermValue = term ?? searchTerm;
-    
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<SortBy | undefined>(SortBy.DateDesc);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+
+  const loadPackages = useCallback(async () => {
     setLoading(true);
     try {
       const res = await searchPremiumPackagesAsync({
-        name: searchTermValue || undefined,
+        name: searchTerm || undefined,
+        sortBy,
         page: currentPage,
-        sortBy: sortBy,
+        pageSize,
       });
 
       if (res.code === 200 && res.result) {
         setPackages(res.result.items || []);
-        setPagination({
-          current: res.result.currentPages,
-          pageSize: res.result.pageSizes,
-          total: res.result.totalElements,
-        });
-      } else {
-        toast.error(res.message || "Lỗi khi tải dữ liệu");
+        setTotalElements(res.result.totalElements || 0);
+        // Nếu backend trả về totalPages thì dùng, không thì tính
+        // setTotalPages(res.result.totalPages || Math.ceil(res.result.totalElements / pageSize));
       }
     } catch {
-      toast.error("Lỗi khi tải dữ liệu");
+      toast.error("Không thể tải danh sách gói premium");
+    setPackages([]);
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, sortBy]);
+  }, [searchTerm, sortBy, currentPage, pageSize]);
 
   useEffect(() => {
     loadPackages();
   }, [loadPackages]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setPagination((prev) => ({ ...prev, current: 1 }));
-  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortBy]);
 
   const handleCreate = async (data: PremiumPackageCreateRequest) => {
     try {
@@ -88,13 +75,12 @@ const PremiumPackageManagement = () => {
         toast.success("Tạo gói premium thành công");
         setIsModalVisible(false);
         setEditingPackage(null);
-        await loadPackages(1);
+        loadPackages();
       } else {
-        toast.error(res.message || "Tạo gói premium thất bại");
+        toast.error(res.message || "Tạo thất bại");
       }
-    } catch (error: any) {
-      console.error("Error creating package:", error);
-      toast.error(error?.message || "Có lỗi xảy ra khi tạo gói premium");
+    } catch {
+      toast.error("Lỗi khi tạo gói premium");
     } finally {
       setLoading(false);
     }
@@ -108,23 +94,12 @@ const PremiumPackageManagement = () => {
         toast.success("Cập nhật gói premium thành công");
         setIsModalVisible(false);
         setEditingPackage(null);
-        
-        // Refresh based on current view mode
-        if (viewMode === "detail" && selectedPackageId) {
-          // If in detail view, refresh detail view will be handled by PremiumPackageDetailManagement
-          // Just refresh the list in background - use current pagination state
-          const currentPage = pagination.current || 1;
-          await loadPackages(currentPage);
-        } else {
-          const currentPage = pagination.current || 1;
-          await loadPackages(currentPage);
-        }
+        loadPackages();
       } else {
-        toast.error(res.message || "Cập nhật gói premium thất bại");
+        toast.error(res.message || "Cập nhật thất bại");
       }
-    } catch (error: any) {
-      console.error("Error updating package:", error);
-      toast.error(error?.message || "Có lỗi xảy ra khi cập nhật gói premium");
+    } catch {
+      toast.error("Lỗi khi cập nhật gói premium");
     } finally {
       setLoading(false);
     }
@@ -136,14 +111,12 @@ const PremiumPackageManagement = () => {
       const res = await deletePremiumPackage(id);
       if (res.code === 200) {
         toast.success("Xóa gói premium thành công");
-        const currentPage = pagination.current || 1;
-        await loadPackages(currentPage);
+        loadPackages();
       } else {
-        toast.error(res.message || "Xóa gói premium thất bại");
+        toast.error(res.message || "Xóa thất bại");
       }
-    } catch (error: any) {
-      console.error("Error deleting package:", error);
-      toast.error(error?.message || "Có lỗi xảy ra khi xóa gói premium");
+    } catch {
+      toast.error("Lỗi khi xóa gói premium");
     } finally {
       setLoading(false);
     }
@@ -157,8 +130,7 @@ const PremiumPackageManagement = () => {
   const handleBackFromDetail = () => {
     setViewMode("list");
     setSelectedPackageId(null);
-    const currentPage = pagination.current || 1;
-    loadPackages(currentPage);
+    loadPackages();
   };
 
   const handleOpenEditModal = (pkg: PremiumPackageResponse) => {
@@ -176,72 +148,102 @@ const PremiumPackageManagement = () => {
     );
   }
 
-  const PremiumListAny = PremiumPackageList as any;
-
   return (
-    <Spin spinning={loading}>
-      <h2 className="text-2xl font-bold mb-4">Quản lý Gói Premium</h2>
-      <div className="flex items-center justify-between mb-4 gap-4">
-      <div className="flex items-center gap-4">
-        <Input
-          placeholder="Tìm kiếm theo tên..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          prefix={<SearchOutlined className="text-gray-500 text-lg" />}
-          className="border rounded-lg px-3 py-2.5 w-64 text-base"
-          style={{ height: 44 }}
-        />
-
-        <Select
-          placeholder={
-            <span style={{ color: "black", fontWeight: 500, fontSize: 16 }}>
-              Sắp xếp
-            </span>
-          }
-          value={sortBy}
-          onChange={(value: SortBy) => setSortBy(value)}
-          className="w-64"
-          style={{ height: 44, fontSize: 16 }}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Quản Lý Gói Premium</h2>
+        <button
+          onClick={() => {
+            setEditingPackage(null);
+            setIsModalVisible(true);
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm"
         >
-          <Select.Option value={SortBy.NameAsc}>Tên A → Z</Select.Option>
-          <Select.Option value={SortBy.NameDesc}>Tên Z → A</Select.Option>
-          <Select.Option value={SortBy.DateAsc}>Ngày cũ → mới</Select.Option>
-          <Select.Option value={SortBy.DateDesc}>Ngày mới → cũ</Select.Option>
-        </Select>
+          + Thêm gói mới
+        </button>
       </div>
 
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={() => {
-          setEditingPackage(null);
-          setIsModalVisible(true);
-        }}
-        className="bg-blue-600 text-white px-5 py-2.5 rounded-lg h-11"
-      >
-        Thêm gói
-      </Button>
-    </div>
+      {/* SEARCH + SORT + PAGE SIZE - ĐẸP CHUẨN NHƯ CÁC TRANG KHÁC */}
+      <div className="flex flex-col lg:flex-row gap-4 items-end">
+        {/* Tìm kiếm */}
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input
+            type="text"
+            placeholder="Tìm kiếm tên gói, mô tả..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 
+                       transition-all shadow-sm text-base"
+          />
+        </div>
 
+        {/* Sắp xếp */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
+          <select
+            value={sortBy || ""}
+            onChange={(e) => setSortBy((e.target.value as SortBy) || undefined)}
+            className="px-4 py-2.5 border border-gray-300 rounded-lg 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 
+                       text-sm font-medium bg-white shadow-sm"
+          >
+            <option value="">Mặc định</option>
+            <option value={SortBy.DateDesc}>Mới nhất</option>
+            <option value={SortBy.DateAsc}>Cũ nhất</option>
+            <option value={SortBy.NameAsc}>Tên: A to Z</option>
+            <option value={SortBy.NameDesc}>Tên: Z to A</option>
+          </select>
+        </div>
 
-      <PremiumListAny
-        packages={packages}
-        onDelete={handleDelete}
-        onView={handleViewDetail}
-        onEdit={handleOpenEditModal}
-        onPageChange={(page: number) => loadPackages(page)}
-        loading={loading}
-      />
+        {/* Hiển thị số mục */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Hiển thị:</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2.5 border border-gray-300 rounded-lg 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 
+                       text-sm font-medium bg-white shadow-sm"
+          >
+            {[10, 20, 50, 100].map((n) => (
+              <option key={n} value={n}>{n} / trang</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
+      {/* Danh sách gói */}
+      <PremiumPackageList
+    packages={packages}
+    loading={loading}
+    onView={handleViewDetail}
+    onEdit={handleOpenEditModal}
+    onDelete={handleDelete}
+    currentPage={currentPage}
+    pageSize={pageSize}
+    total={totalElements}
+    onPageChange={setCurrentPage}
+  />
+
+      {/* Modal tạo/sửa */}
       <PremiumPackageModal
         visible={isModalVisible}
         editingPackage={editingPackage}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
-        onClose={() => setIsModalVisible(false)}
+        onClose={() => {
+          setIsModalVisible(false);
+          setEditingPackage(null);
+        }}
         loading={loading}
       />
-    </Spin>
+    </div>
   );
 };
 

@@ -6,10 +6,12 @@ import {
   Bell,
   LogIn,
   User,
-  HelpCircle
+  HelpCircle,
+  Award
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { getUserPoint } from '../../services/userService'; // Import hàm getUserPoint
 import VTFPLogo from "./VTFP_Logo.png";
 import HeaderTour from './HeaderTour'; 
 
@@ -22,6 +24,8 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
+  const [userPoints, setUserPoints] = useState<number | null>(null);
+  const [isLoadingPoints, setIsLoadingPoints] = useState(false);
   const navigate = useNavigate();
 
   const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
@@ -52,12 +56,6 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       description: 'Tham quan các di tích lịch sử bằng công nghệ thực tế ảo hiện đại, như thể bạn đang có mặt tại đó!',
       position: 'bottom' as const,
     },
-    // {
-    //   target: '[data-tour="nav-ai"]',
-    //   title: 'Trải nghiệm AI nhận diện ảnh',
-    //   description: 'Khám phá các di sản văn hóa Việt Nam bằng những bức ảnh mà bạn muốn thông qua nhận diện AI',
-    //   position: 'bottom' as const,
-    // },
     {
       target: '[data-tour="nav-quiz"]',
       title: 'Học tập qua trò chơi',
@@ -82,18 +80,6 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       description: 'Nâng cấp lên gói thành viên để được sử dụng các tính năng thú vị hơn',
       position: 'bottom' as const,
     },
-    // {
-    //   target: '[data-tour="search"]',
-    //   title: 'Tìm kiếm nhanh',
-    //   description: 'Tìm kiếm bất kỳ di sản, bài viết hay thông tin nào bạn muốn khám phá một cách nhanh chóng.',
-    //   position: 'bottom' as const,
-    // },
-    // {
-    //   target: '[data-tour="notifications"]',
-    //   title: 'Thông báo',
-    //   description: 'Nhận thông báo về các hoạt động mới, bình luận và cập nhật quan trọng từ cộng đồng.',
-    //   position: 'bottom' as const,
-    // },
     {
       target: '[data-tour="login"]',
       title: 'Đăng nhập ngay!',
@@ -102,25 +88,48 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     },
   ];
 
-  const handleProfileClick = () => {
+  // Hàm lấy điểm người dùng
+  const fetchUserPoints = async () => {
+    if (!isLoggedIn) return;
+    
+    setIsLoadingPoints(true);
+    try {
+      const response = await getUserPoint();
+      if (response.code === 200 && response.result) {
+        setUserPoints(response.result.totalPoints || 0);
+      }
+    } catch (error) {
+      console.error('Lỗi khi lấy điểm người dùng:', error);
+      setUserPoints(null);
+    } finally {
+      setIsLoadingPoints(false);
+    }
+  };
+
+  const handleProfileClick = async () => {
     setIsDropdownOpen(!isDropdownOpen);
+    
+    // Nếu đang mở dropdown và chưa có điểm, gọi API lấy điểm
+    if (!isDropdownOpen && isLoggedIn) {
+      await fetchUserPoints();
+    }
   };
 
   const handleLogout = () => {
     authLogout();
     setIsDropdownOpen(false);
+    setUserPoints(null); // Reset điểm khi đăng xuất
     navigate('/');
   };
 
   const handleStartTour = () => {
-    setIsDropdownOpen(false); // Đóng dropdown nếu đang mở
-    setIsMenuOpen(false); // Đóng mobile menu nếu đang mở
+    setIsDropdownOpen(false);
+    setIsMenuOpen(false);
     setIsTourOpen(true);
   };
 
   const handleCloseTour = () => {
     setIsTourOpen(false);
-    // Lưu vào localStorage để không hiện lại tự động
     localStorage.setItem('vtfp-tour-seen', 'true');
   };
 
@@ -131,11 +140,10 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Auto-start tour lần đầu (optional - có thể bỏ nếu không muốn)
+  // Auto-start tour lần đầu
   useEffect(() => {
     const tourSeen = localStorage.getItem('vtfp-tour-seen');
     if (!tourSeen) {
-      // Delay 1.5s để user có thời gian nhìn trang
       const timer = setTimeout(() => {
         setIsTourOpen(true);
       }, 1500);
@@ -169,7 +177,6 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                 { label: 'Trang chủ', path: '/', tourId: 'nav-home' },
                 { label: 'Khám phá', path: '/DiscoveryPage', tourId: 'nav-discovery' },
                 { label: 'VR Tours', path: '/VRToursPage', tourId: 'nav-vr' },
-                // { label: 'Quét Ảnh', path: '/AIPredictLensPage', tourId: 'nav-ai' },
                 { label: 'Trò chơi', path: '/QuizzPage', tourId: 'nav-quiz' },
                 { label: 'Cộng đồng', path: '/CommunityPage', tourId: 'nav-community' },     
                 { label: 'Bài viết', path: '/contributions', tourId: 'nav-contributions' }, 
@@ -190,24 +197,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
 
             {/* Actions */}
             <div className="flex items-center space-x-3 mr-12">
-              {/* <button 
-                className="p-2 text-gray-600 hover:text-purple-600 transition-colors relative"
-                data-tour="search"
-                aria-label="Tìm kiếm"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-               */}
-              {/* <button 
-                className="p-2 text-gray-600 hover:text-purple-600 transition-colors relative"
-                data-tour="notifications"
-                aria-label="Thông báo"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </button> */}
-
-              {/* Help button - Mở tour */}
+              {/* Help button */}
               <button 
                 onClick={handleStartTour}
                 className="p-2 text-gray-600 hover:text-yellow-600 transition-colors relative"
@@ -248,52 +238,92 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
 
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute right-0 mt-2 w-56 bg-white shadow-xl rounded-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2">
                       {/* Header mini info */}
-                      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-                        {avatarUrl && avatarUrl !== "undefined" ? (
-                          <img
-                            src={avatarUrl}
-                            alt={userName || "User"}
-                            className="w-9 h-9 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
-                            <User className="w-5 h-5 text-gray-600" />
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          {avatarUrl && avatarUrl !== "undefined" ? (
+                            <img
+                              src={avatarUrl}
+                              alt={userName || "User"}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                              <User className="w-5 h-5 text-gray-600" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate max-w-[120px]">
+                              {userName || "Người dùng"}
+                            </p>
                           </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {userName || "Người dùng"}
-                          </p>
                         </div>
+                        
+                        {/* Hiển thị điểm */}
+<div className="mt-3 flex items-center justify-between bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg px-2 py-2">
+
+  <div className="flex items-center gap-2">
+    {/* <Award className="w-4 h-4 text-yellow-600" /> */}
+    {/* Icon dấu hỏi + tooltip */}
+      <div className="relative group">
+        <HelpCircle className="w-4 h-4 text-yellow-600 cursor-pointer" />
+
+        {/* Tooltip */}
+        <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white shadow-lg px-3 py-2
+                          text-xs text-gray-700 border border-gray-200 opacity-0 group-hover:opacity-100
+                          pointer-events-none transition-opacity duration-150 z-20">
+            <p className="font-semibold text-gray-900">Điểm linh hội</p>
+            <ul className="list-disc ml-4 mt-1">
+              <li>Nhận khi đăng bài hoặc thắng người khác trong trò chơi.</li>
+              <li>Dùng để mở khóa quyền lợi cao hơn.</li>        
+            </ul>
+          </div>
+        </div>
+        {/* Chữ gradient từ vàng đến đỏ */}
+    
+        <span className="text-xs font-bold text-yellow-700 ">
+          Điểm Linh Hội:
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-bold bg-gradient-to-r from-yellow-700 to-red-700 bg-clip-text text-transparent">
+          {isLoadingPoints ? (
+            <span className="inline-block w-8 h-4 bg-gray-200 rounded animate-pulse"></span>
+          ) : (
+            userPoints !== null ? userPoints.toLocaleString() : '---'
+          )}
+        </span>
+      </div>
+</div>
+
                       </div>
 
                       {/* Menu */}
-                      <Link
-                        to="/view-profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        Hồ sơ
-                      </Link>
-                      
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
-                      >
-                        Đăng xuất
-                      </button>
+                      <div className="py-1">
+                        <Link
+                          to="/view-profile"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          Hồ sơ
+                        </Link>                                            
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100 mt-1"
+                        >
+                          Đăng xuất
+                        </button>
+                         <button
+                          onClick={handleStartTour}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                          Hướng dẫn sử dụng
+                        </button>
 
-                      {/* Nút hướng dẫn trong dropdown */}
-                      <button
-                        onClick={handleStartTour}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
-                      >
-                        <HelpCircle className="w-4 h-4" />
-                        Hướng dẫn sử dụng
-                      </button>
-
+                      </div>
                     </div>
                   )}
                 </div>
@@ -315,6 +345,19 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
         {isMenuOpen && (
           <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200 animate-in slide-in-from-top duration-300">
             <div className="px-4 py-6 space-y-4">
+              {/* Hiển thị điểm trong mobile menu nếu đã login */}
+              {isLoggedIn && (
+                <div className="mb-4 flex items-center justify-between bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-5 h-5 text-yellow-600" />
+                    <span className="text-sm font-medium text-gray-700">Điểm của bạn</span>
+                  </div>
+                  <span className="text-base font-bold text-yellow-600">
+                    {userPoints !== null ? userPoints.toLocaleString() : '---'}
+                  </span>
+                </div>
+              )}
+
               <Link 
                 to="/" 
                 className="block text-black hover:text-purple-600"
@@ -336,13 +379,6 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               >
                 VR Tours
               </Link>
-              {/* <Link 
-                to="/AIPredictLensPage" 
-                className="block text-black hover:text-purple-600"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Quét ảnh
-              </Link> */}
               <Link 
                 to="/QuizzPage" 
                 className="block text-black hover:text-purple-600"
@@ -371,7 +407,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               >
                 Gói Premium
               </Link>
-              {/* Nút hướng dẫn trong mobile menu */}
+              
               <button 
                 onClick={handleStartTour}
                 className="w-full text-left text-black hover:text-purple-600 flex items-center gap-2"

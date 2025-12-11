@@ -181,46 +181,43 @@ const ContributionSearchUI: React.FC = () => {
         <div className="grid grid-cols-12 gap-8">
           {/* List */}
           <div className="col-span-12 lg:col-span-8">
-            {loading
-  ? Array.from({ length: 5 }).map((_, i) => <ArticleCardSkeleton key={i} />)
-  : contributions.map((c, i) => (
-      <ArticleCard
-        key={c.id}
-        contribution={c}
-        isLast={i === contributions.length - 1}
-        onToggleSave={handleToggleSave}
-      />
-    ))}
+           {loading ? (
+  Array.from({ length: 5 }).map((_, i) => <ArticleCardSkeleton key={i} />)
+) : (
+  <>
+    {error && <p className="text-center text-red-500">{error}</p>}
 
+    {contributions.length === 0 && !error && (
+      <p className="text-center text-gray-500">Không có kết quả</p>
+    )}
 
-            {error && <p className="text-center text-red-500">{error}</p>}
+    {contributions.length > 0 && (
+      <div className="space-y-8">
+        {contributions.map((c, i) => (
+          <ArticleCard
+            key={c.id}
+            contribution={c}
+            isLast={i === contributions.length - 1}
+            onToggleSave={handleToggleSave}
+          />
+        ))}
+      </div>
+    )}
 
-            {contributions.length === 0 && !loading && !error && (
-              <p className="text-center text-gray-500">Không có kết quả</p>
-            )}
+    {totalPages > 1 && (
+      <div className="mt-8">
+        <Pagination
+          currentPage={searchRequest.page ?? 1}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          itemsPerPage={searchRequest.pageSize ?? 5}
+          totalItems={totalItems}
+        />
+      </div>
+    )}
+  </>
+)}
 
-            {!loading && <div className="space-y-8">
-              {contributions.map((c, i) => (
-                <ArticleCard
-                  key={c.id}
-                  contribution={c}
-                  isLast={i === contributions.length - 1}
-                  onToggleSave={handleToggleSave}
-                />
-              ))}
-            </div>}
-
-            {totalPages > 1 && !loading && (
-              <div className="mt-8">
-                <Pagination
-                  currentPage={searchRequest.page ?? 1}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  itemsPerPage={searchRequest.pageSize ?? 5}
-                  totalItems={totalItems}
-                />
-              </div>
-            )}
           </div>
 
           {/* Sidebar */}

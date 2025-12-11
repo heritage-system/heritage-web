@@ -9,6 +9,7 @@ interface BattleCardProps {
   isResult?: boolean;
   score?: number;
   isOpponent?: boolean;
+  bonus?: number;
 }
 
 const BattleCard: React.FC<BattleCardProps> = ({
@@ -18,7 +19,8 @@ const BattleCard: React.FC<BattleCardProps> = ({
   name,
   isResult,
   score,
-  isOpponent
+  isOpponent,
+  bonus
 }) => {
   let statusText = isSearching
     ? "Đang tìm trận"
@@ -65,6 +67,35 @@ const BattleCard: React.FC<BattleCardProps> = ({
           {/* Avatar */}
           <div className="flex justify-center mb-8">
             <div className="relative w-40 h-40">
+              {/* BONUS BADGE */}
+{isResult && bonus! > 0 && !isOpponent && (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.25 }}
+    className="
+      absolute -top-3 -right-3 
+      w-14 h-14 
+      rounded-full 
+      bg-gradient-to-br from-[#f3d9a6] to-[#d4ab6a]
+      border-2 border-white/70
+      shadow-xl 
+      flex items-center justify-center
+      z-40
+    "
+  >
+    <span
+      className="text-[#8b5e2e] font-bold text-[18px] drop-shadow-sm"
+      style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+    >
+      +{bonus}
+    </span>
+
+    {/* Glow */}
+    <div className="absolute inset-0 rounded-full bg-[#cfa86a]/40 blur-xl -z-10"></div>
+  </motion.div>
+)}
+
               {/* Outer gold ring */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d8b981] via-[#cfa86a] to-[#b68e5e] p-1 shadow-lg">
                 {/* Inner blur ring */}

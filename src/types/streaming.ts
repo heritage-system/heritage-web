@@ -1,10 +1,7 @@
 // src/types/streaming.ts
-export type RoomRole = "HOST" | "COHOST" | "SPEAKER" | "AUDIENCE";
 
-export type ParticipantStatus = "ADMITTED" |"LEFT" |"KICKED";
+import { ParticipantStatus, RoomRole, StreamingRoomType } from "./enum";
 
-// 🔥 NEW
-export type StreamingRoomType = "UPCOMING" | "LIVE" | "CLOSED";
 
 export interface StreamingRoomResponse {
   id: number;
@@ -24,7 +21,7 @@ export interface StreamingRoomResponse {
 export interface StreamingJoinGrantResponse {
   channel: string;
   rtcUid: string;
-  role: string; // "Host"/"CoHost"/"Speaker"/"Audience"
+  role: RoomRole; // "Host"/"CoHost"/"Speaker"/"Audience"
   rtcToken: string;
   rtmToken: string;
   rtmUid: string;
@@ -36,8 +33,9 @@ export interface StreamingParticipantResponse {
   id: number;
   roomId: number;
   userId: number;
-  role: RoomRole;
-  status: ParticipantStatus;
+  userName: string;
+  role: RoomRole;              // số
+  status: ParticipantStatus;   // số
   rtcUid: string;
   createdAt: string;
 }
