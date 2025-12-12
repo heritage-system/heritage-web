@@ -33,8 +33,8 @@ const MENU: MenuItem[] = [
   { key: "profile", label: "Thông tin cá nhân", icon: <User className="w-5 h-5" />,contributorOnly: false },
   { key: "favorites", label: "Di sản yêu thích", icon: <Heart className="w-5 h-5" />,contributorOnly: false},
   { key: "contribution_saves", label: "Bài viết đã lưu", icon: <LucideBookMarked className="w-5 h-5" />,contributorOnly: false},
-  { key: "events", label: "Sự kiện đã tham gia", icon: <Calendar className="w-5 h-5" />,contributorOnly: false },
-  { key: "quiz", label: "Lịch sử quiz", icon: <FileText className="w-5 h-5" />,contributorOnly: false },
+  // { key: "events", label: "Sự kiện đã tham gia", icon: <Calendar className="w-5 h-5" />,contributorOnly: false },
+  { key: "quiz", label: "Lịch sử đấu", icon: <FileText className="w-5 h-5" />,contributorOnly: false },
   { key: "interaction_history", label: "Lịch sử tương tác", icon: <History className="w-5 h-5" />, contributorOnly: false },
   // Hai mục này chỉ hiển thị khi là contributor
   { key: "contributions", label: "Đóng góp đã gửi", icon: <Send className="w-5 h-5" />, contributorOnly: true },
@@ -82,7 +82,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
       </div>
 
       {/* Footer Stats */}
-      <div className="mt-auto pt-3 border-t border-yellow-200">
+      {/* <div className="mt-auto pt-3 border-t border-yellow-200">
         <div className="bg-white/50 backdrop-blur-sm rounded-xl p-2">
           <div className="text-xs text-black text-center mb-1">
             Hoạt động tháng này
@@ -98,7 +98,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

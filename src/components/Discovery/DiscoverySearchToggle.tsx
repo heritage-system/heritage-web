@@ -2,11 +2,12 @@ import { Sparkles, Filter } from "lucide-react";
 import React from "react";
 
 interface DiscoverySearchToggleProps {
+  loading: boolean
   view: "filter" | "ai";
   onFilterChange: (mode: "filter" | "ai") => void;
 }
 
-const DiscoverySearchToggle: React.FC<DiscoverySearchToggleProps> = ({ view, onFilterChange }) => {
+const DiscoverySearchToggle: React.FC<DiscoverySearchToggleProps> = ({ view, onFilterChange, loading }) => {
   // Khi nhấn nút, chuyển view sang cái còn lại
   const handleToggle = () => {
     onFilterChange(view === "filter" ? "ai" : "filter");
@@ -19,6 +20,7 @@ const DiscoverySearchToggle: React.FC<DiscoverySearchToggleProps> = ({ view, onF
       </span>
       <button
         onClick={() => onFilterChange(view === "filter" ? "ai" : "filter")}
+        disabled={loading}
         className="ml-3 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-yellow-500 to-red-500 text-white hover:scale-105 transition-transform"
       >
         {view === "filter" ? <Sparkles className="w-5 h-5" /> : <Filter className="w-5 h-5" />}

@@ -5,15 +5,18 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userType, setUserType] = useState<string | null>(null);
 
   const checkAuthStatus = () => {
     const token = localStorage.getItem('accessToken');
     const storedName = localStorage.getItem('userName');
     const storedAvatar = localStorage.getItem('avatarUrl');
+    const storeType = localStorage.getItem('userType');
 
     setIsLoggedIn(!!token);
     setUserName(storedName);
     setAvatarUrl(storedAvatar);
+    setUserType(storeType)
     setLoading(false);
   };
 
@@ -21,7 +24,7 @@ export const useAuth = () => {
     checkAuthStatus();
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (['accessToken', 'userName', 'avatarUrl'].includes(e.key ?? '')) {
+      if (['accessToken', 'userName', 'avatarUrl', 'userType'].includes(e.key ?? '')) {
         checkAuthStatus();
       }
     };
@@ -45,10 +48,12 @@ export const useAuth = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userName');
+    localStorage.removeItem('userType');
     localStorage.removeItem('avatarUrl');
     setIsLoggedIn(false);
     setUserName(null);
     setAvatarUrl(null);
+    setUserType(null);
     window.dispatchEvent(new CustomEvent('authChange'));
   };
 
@@ -57,6 +62,7 @@ export const useAuth = () => {
     loading,
     userName,
     avatarUrl,
+    userType,
     login,
     logout,
     checkAuthStatus,

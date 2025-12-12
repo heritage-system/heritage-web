@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { BookmarkPlus, Share2, Flag } from "lucide-react";
 import ReportModal from "../Contribution/ReportModal";
 import toast from "react-hot-toast";
+import { useAuth } from "../../hooks/useAuth";
+import PortalModal from "../Layouts/ModalLayouts/PortalModal";
+import { useNavigate } from "react-router-dom";
 interface Author {
   avatarUrl: string;
   contributorName: string;
@@ -22,7 +25,9 @@ const ContributionDetailSidebar: React.FC<SidebarProps> = ({
 }) => {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-
+  const { isLoggedIn } = useAuth();
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const navigate = useNavigate();
   const handleShare = (platform: string) => {
     const url = window.location.href;
     const text = document.title;
@@ -42,6 +47,21 @@ const ContributionDetailSidebar: React.FC<SidebarProps> = ({
     setShowShareMenu(false);
   };
 
+  const handleSaveClick = () => {    
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    onSave();
+  };
+
+  const handleReportClick = () => {    
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    setReportOpen(true);
+  };
   return (
     <div className="sticky top-8 space-y-6">
       {/* Author Info */}
@@ -65,7 +85,7 @@ const ContributionDetailSidebar: React.FC<SidebarProps> = ({
         <div className="space-y-3">
           {/* Lưu bài viết */}
           <button 
-            onClick={onSave}
+            onClick={handleSaveClick}
             className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               isSaved 
                 ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' 
@@ -124,10 +144,7 @@ const ContributionDetailSidebar: React.FC<SidebarProps> = ({
 
           {/* Báo cáo */}
           <button 
-            onClick={(e) => {
-                e.preventDefault();
-                setReportOpen(true);
-              }}
+            onClick={handleReportClick}
             className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-50 text-gray-700 border border-gray-200 hover:bg-red-50 hover:text-red-700 transition-all"
           >
             <Flag className="w-4 h-4" />
@@ -140,6 +157,29 @@ const ContributionDetailSidebar: React.FC<SidebarProps> = ({
             onClose={() => setReportOpen(false)}
             contributionId={contributionId}
           />
+
+          <PortalModal
+            open={openLoginModal}
+            onClose={() => setOpenLoginModal(false)}
+          >
+            <div className="p-6 text-center border-2 border-red-400 rounded-xl shadow-lg bg-white">
+              <h2 className="text-lg font-semibold mb-3">Bạn cần đăng nhập</h2>
+              <p className="text-gray-600 mb-4">
+                Vui lòng đăng nhập để thực hiện hành động!
+              </p>
+
+              {/* Wrap button trong div flex justify-center */}
+              <div className="flex justify-center">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="bg-gradient-to-r from-yellow-800 to-yellow-600 text-white px-6 py-2 rounded-xl
+                            hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+                >
+                  Đăng nhập ngay
+                </button>
+              </div>
+            </div>
+          </PortalModal>
         </div>
       </div>
     </div>

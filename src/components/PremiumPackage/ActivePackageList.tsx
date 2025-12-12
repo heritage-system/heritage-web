@@ -13,7 +13,7 @@ import { createSubscription, getActiveSubscription } from "../../services/subscr
 import Spinner from "../Layouts/LoadingLayouts/Spinner";
 import PortalModal from "../Layouts/ModalLayouts/PortalModal";
 import {BenefitName } from "../../types/enum";
-
+import {useAuth} from "../../hooks/useAuth";
 const { Title, Text } = Typography;
 
 const THEME = {
@@ -34,6 +34,7 @@ const UpgradePackagePage = () => {
   const [processingPackageId, setProcessingPackageId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<PremiumPackageResponse | null>(null);
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
 
   const loadPackages = useCallback(async () => {
     setLoading(true);
@@ -105,6 +106,10 @@ const UpgradePackagePage = () => {
   };
 
   const confirmSubscription = async () => {
+    if(!isLoggedIn) {
+      toast.error("Bạn cần đăng nhập để mua gói");
+      return;
+    }
     if (!selectedPackage) return;
 
     setProcessingPackageId(selectedPackage.id);
