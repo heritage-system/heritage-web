@@ -54,6 +54,8 @@ export interface StaffDetailResponse {
   updatedAt: string;
 
   // Thống kê
-  numberOfContributionAcceptances: number;
-  numberOfReportReplies: number;
+  numberOfContributionAcceptances?: number;
+  numberOfAcceptedContributions?: number;
+  numberOfDeniedContributions?: number;
+  numberOfReportReplies?: number;
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Users, UserCheck, Briefcase, HeartHandshake, Landmark, FolderTree, Brain, MessageSquare, TrendingUp } from "lucide-react";
+import { ExecutiveDashboardStats, fetchExecutiveDashboard } from "../../../services/dashboardService";
 
 // Component StatCard
 const StatCard = ({ icon: Icon, label, value, color }: {
@@ -40,30 +41,48 @@ const StatSection = ({ title, children }: {
 };
 
 const ExecutiveDashboard = () => {
-  // Dữ liệu mẫu - thay thế bằng API call thực tế
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<ExecutiveDashboardStats>({
     users: {
-      total: 1250,
-      employees: 45,
-      contributors: 380
+      total: 0,
+      employees: 0,
+      contributors: 0,
     },
     heritage: {
-      totalHeritage: 856,
-      categories: 24,
-      quizzes: 156
+      totalHeritage: 0,
+      categories: 0,
+      quizzes: 0,
     },
     contributions: {
-      total: 2340,
-      pending: 89,
-      approved: 2180,
-      rejected: 71
-    }
+      total: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+    },
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Simulate loading data
   useEffect(() => {
-    // Có thể gọi API ở đây để lấy dữ liệu thực
-    // fetchDashboardStats().then(data => setStats(data));
+    let active = true;
+
+    const loadStats = async () => {
+      setLoading(true);
+      const res = await fetchExecutiveDashboard();
+
+      if (!active) return;
+      if (res.result) {
+        setStats(res.result);
+        setError(null);
+      } else {
+        setError(res.message ?? "Không thể tải dữ liệu dashboard.");
+      }
+      setLoading(false);
+    };
+
+    loadStats();
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -73,6 +92,8 @@ const ExecutiveDashboard = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard Điều hành</h1>
           <p className="text-gray-500 mt-1">Tổng quan hệ thống VTFP Admin</p>
+          {loading && <p className="text-sm text-gray-400 mt-2">Đang tải dữ liệu...</p>}
+          {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
         </div>
 
         {/* Section 1: Người dùng */}
