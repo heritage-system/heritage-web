@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Plus, Users, UserCheck, Ban, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Users, UserCheck, Ban, Loader2, AlertCircle, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 
 import UserTable from "./UserTable";
@@ -36,6 +36,7 @@ const statusConfig: Partial<Record<UserStatus, { label: string; color: string; i
 // Tabs chỉ hiển thị 4 trạng thái
 const tabs = [
   { key: "all" as const, label: "Tất cả", icon: Users },
+  { key: UserStatus.PENDING_APPROVE, label: "Chờ xác nhận", icon: Clock },
   { key: UserStatus.ACTIVE, label: "Hoạt động", icon: UserCheck },
   { key: UserStatus.INACTIVE, label: "Không hoạt động", icon: Ban },
   { key: UserStatus.BANNED, label: "Bị cấm", icon: Ban },
@@ -57,6 +58,7 @@ export default function UserManagement() {
 
   const [tabCounts, setTabCounts] = useState({
     all: 0,
+    [UserStatus.PENDING_APPROVE]: 0,
     [UserStatus.ACTIVE]: 0,
     [UserStatus.INACTIVE]: 0,
     [UserStatus.BANNED]: 0,
@@ -96,12 +98,13 @@ export default function UserManagement() {
       const filtered = list.filter(
         (u) =>
           (u.roleName === "MEMBER" || u.roleName === "USER") &&
-          u.userStatus !== UserStatus.PENDING_VERIFICATION &&
+           u.userStatus !== UserStatus.PENDING_VERIFICATION &&
           u.userStatus !== UserStatus.DELETED
       );
 
       const counts = {
         all: filtered.length,
+        [UserStatus.PENDING_APPROVE]: filtered.filter((u) => u.userStatus === UserStatus.PENDING_APPROVE).length,
         [UserStatus.ACTIVE]: filtered.filter((u) => u.userStatus === UserStatus.ACTIVE).length,
         [UserStatus.INACTIVE]: filtered.filter((u) => u.userStatus === UserStatus.INACTIVE).length,
         [UserStatus.BANNED]: filtered.filter((u) => u.userStatus === UserStatus.BANNED).length,
@@ -137,7 +140,7 @@ export default function UserManagement() {
         const filteredItems = rawItems.filter(
           (u) =>
             (u.roleName === "MEMBER" || u.roleName === "USER") &&
-            u.userStatus !== UserStatus.PENDING_VERIFICATION &&
+             u.userStatus !== UserStatus.PENDING_VERIFICATION &&
             u.userStatus !== UserStatus.DELETED
         );
 
@@ -149,13 +152,13 @@ export default function UserManagement() {
         setUsers([]);
         setTotalItemsFromBackend(0);
         setTotalPagesFromBackend(1);
-        setTabCounts({ all: 0, [UserStatus.ACTIVE]: 0, [UserStatus.INACTIVE]: 0, [UserStatus.BANNED]: 0 });
+        setTabCounts({ all: 0,[UserStatus.PENDING_APPROVE]: 0, [UserStatus.ACTIVE]: 0, [UserStatus.INACTIVE]: 0, [UserStatus.BANNED]: 0 });
         if (response.message) setError(response.message);
       }
     } catch (err: any) {
       setError("Không thể tải dữ liệu người dùng");
       setUsers([]);
-      setTabCounts({ all: 0, [UserStatus.ACTIVE]: 0, [UserStatus.INACTIVE]: 0, [UserStatus.BANNED]: 0 });
+      setTabCounts({ all: 0, [UserStatus.PENDING_APPROVE]: 0, [UserStatus.ACTIVE]: 0, [UserStatus.INACTIVE]: 0, [UserStatus.BANNED]: 0 });
     } finally {
       setLoading(false);
     }

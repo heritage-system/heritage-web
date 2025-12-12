@@ -19,7 +19,7 @@ import {
   createEventWithRooms,
   updateEventWithRooms,
 } from "../../../services/eventService";
-
+import PortalModal from "../../Layouts/ModalLayouts/PortalModal";
 import EventRoomsEditor, {
   TempRoom,
 } from "./EventRoomsEditor";
@@ -84,7 +84,7 @@ const [categoryFilter, setCategoryFilter] = useState<EventCategory | "">("");
 const [tagFilter, setTagFilter] = useState<EventTag | "">("");
 const [fromDate, setFromDate] = useState("");
 const [toDate, setToDate] = useState("");
-
+const [showDeleteModal, setShowDeleteModal] = useState(false);
   const handleEnterLive = (room: StreamingRoomSummaryResponse) => {
     // Giống LiveRoomManager: join live bằng roomName
     navigate(`/live/${encodeURIComponent(room.roomName)}`);
@@ -98,11 +98,22 @@ const [toDate, setToDate] = useState("");
     void loadEvents({ status: statusFilter });
   }, [loadEvents, statusFilter]);
 
-  const handleDelete = async (ev: EventResponse) => {
-    const ok = window.confirm(`Xoá sự kiện "${ev.title}"?`);
-    if (!ok) return;
-    await deleteEvent(ev.id);
-    await loadEvents({ status: statusFilter });
+   const handleShowDeleteModal = async (ev: EventResponse) => {
+    setSelectedEvent(ev);
+    setShowDeleteModal(true);
+  }
+  const handleDelete = async (id: number) => {   
+    if(!selectedEvent) return
+
+    try {
+      await deleteEvent(selectedEvent.id);
+      setShowDeleteModal(false);     
+      await loadEvents({ status: statusFilter });
+    }
+    catch {
+
+    }    
+      
   };
 
 const handleManageDetails = (ev: EventResponse) => {
@@ -414,7 +425,7 @@ const handleClearFilters = () => {
   type="button"
   onClick={(e) => {
     e.stopPropagation();
-    handleDelete(ev);
+    handleShowDeleteModal(ev);
   }}
   className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
   title="Xóa"
@@ -489,7 +500,36 @@ const handleClearFilters = () => {
         )}
  
 
+<PortalModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        centered
+        size="sm"
+      >
+        <div className="p-6 bg-white rounded-lg w-[380px]">
+          <h2 className="text-xl font-bold mb-4 text-center">Xác nhận xóa</h2>
 
+          <p className="text-gray-600 mb-6 text-center">
+            Bạn có chắc muốn xóa sự kiện này không? Hành động này không thể hoàn tác.
+          </p>
+
+          <div className="flex justify-end gap-3">
+            <button
+              className="px-4 py-2 rounded bg-gray-300"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Hủy
+            </button>
+
+            <button
+              className="px-4 py-2 rounded bg-red-600 text-white"
+              onClick={() => handleDelete(1)}
+            >
+              Xóa
+            </button>
+          </div>
+        </div>
+      </PortalModal>
 
         {/* ==== FORM MODE: CREATE / EDIT + ROOMS EDITOR ==== */}
        {/* FORM / DETAIL MODE: dùng chung EventFormWithRooms */}
@@ -692,8 +732,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   return (
     <div className="min-h-screen">
-      <div className="bg-white border-b border-slate-200 shadow-sm mb-6">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div className=" bg-white border-b border-slate-200 shadow-sm mb-6 rounded-2xl">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between ro">
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
