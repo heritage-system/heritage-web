@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Mail, Phone, MapPin, Calendar, Shield, UserCheck, Ban, Clock, Check, X as CrossIcon, Loader2 } from "lucide-react";
+import { X, Mail, Phone, MapPin, Calendar, Shield, UserCheck, Ban, Clock, Check, X as CrossIcon, Loader2, CheckCircle, XCircle, MessageSquare } from "lucide-react";
 import PortalModal from "../../../Layouts/ModalLayouts/PortalModal";
 import { StaffDetailResponse } from "../../../../types/staff";
 import { StaffRole, StaffStatus } from "../../../../types/enum";
@@ -60,6 +60,14 @@ export default function ViewStaff({ staff, onClose, isOpen }: ViewStaffProps) {
 
   const formatDateTime = (date?: string | null) =>
     date ? new Date(date).toLocaleString("vi-VN") : "Chưa có";
+
+  // The API response includes these fields in camelCase
+  // Accept: prefer numberOfAcceptedContributions, fall back to numberOfContributionAcceptances
+  const acceptedContributions =
+    staff.numberOfAcceptedContributions ??
+    0;
+  const deniedContributions = staff.numberOfDeniedContributions ?? 0;
+  const reportReplies = staff.numberOfReportReplies ?? 0;
 
   return (
     <PortalModal open={isOpen} onClose={onClose} size="lg" maxWidth="720px" centered contentClassName="bg-white rounded-2xl shadow-2xl">
@@ -164,6 +172,47 @@ export default function ViewStaff({ staff, onClose, isOpen }: ViewStaffProps) {
                   {perm.label}
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="space-y-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
+            <h4 className="font-semibold text-gray-800 mb-3">Thống kê hoạt động</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-green-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <CheckCircle size={20} className="text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Số bài viết đã duyệt</p>
+                    <p className="text-2xl font-bold text-gray-900">{acceptedContributions.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-red-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <XCircle size={20} className="text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Số bài viết đã từ chối</p>
+                    <p className="text-2xl font-bold text-gray-900">{deniedContributions.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <MessageSquare size={20} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Số bình luận đã trả lời</p>
+                    <p className="text-2xl font-bold text-gray-900">{reportReplies.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
