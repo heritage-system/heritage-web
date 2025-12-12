@@ -12,37 +12,37 @@ const FeaturesSection = () => {
   const features = [
     {
       icon: Eye,
-      title: "VR 360° Immersive",
-      description: "Trải nghiệm không gian văn hóa với công nghệ thực tế ảo tiên tiến",
+      title: "Trải nghiệm VR 360°",
+      description: "Trải nghiệm không gian lễ hội với công nghệ panorama 360°",
       color: "from-amber-600 to-amber-800"
     },
     {
       icon: Camera,
-      title: "AI Recognition",
-      description: "Nhận diện tự động các yếu tố văn hóa bằng trí tuệ nhân tạo",
+      title: "Nhận diện ảnh AI",
+      description: "Nhận diện tự động các yếu tố lễ hội bằng trí tuệ nhân tạo",
       color: "from-yellow-600 to-amber-700"
     },
     {
       icon: BookOpen,
-      title: "Interactive Learning",
-      description: "Học tập tương tác với game và quiz về văn hóa dân gian",
+      title: "Học tập tương tác",
+      description: "Học tập tương tác với chế độ PvP và câu đố về lễ hội dân gian",
       color: "from-orange-700 to-red-800"
     },
     {
       icon: Users,
-      title: "Community Hub",
+      title: "Kết nối cộng đồng",
       description: "Kết nối cộng đồng yêu thích văn hóa truyền thống",
       color: "from-amber-700 to-orange-900"
     },
     {
       icon: MapPin,
-      title: "Smart Map",
+      title: "Tích hợp bản đồ",
       description: "Bản đồ thông minh hiển thị các địa điểm di sản",
       color: "from-yellow-700 to-amber-900"
     },
     {
       icon: Download,
-      title: "Data Export",
+      title: "Tải xuống dữ liệu lễ hội",
       description: "Xuất dữ liệu di sản dưới nhiều định dạng khác nhau",
       color: "from-red-700 to-amber-800"
     }
