@@ -142,7 +142,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onToggleRegister }) => {
             onClick={handleRegisterClick}
             className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm text-white transition-colors ${
               event.registeredByMe
-                ? "bg-green-600 hover:bg-green-700"
+                ? "bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:opacity-90"
                 : "bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:opacity-90"
             }`}
           >
