@@ -230,7 +230,7 @@ const PanoramaTourManagement: React.FC = () => {
           <h2 className="text-xl font-bold mb-4 text-center">Xác nhận xóa</h2>
 
           <p className="text-gray-600 mb-6 text-center">
-            Bạn có chắc muốn xóa panoramaTour này? Hành động này không thể hoàn tác.
+            Bạn có chắc muốn xóa tour này? Hành động này không thể hoàn tác.
           </p>
 
           <div className="flex justify-end gap-3">

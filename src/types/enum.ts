@@ -77,6 +77,7 @@ export enum UserStatus {
   DELETED = 2,
   BANNED = 3,
   PENDING_VERIFICATION = 4,
+  PENDING_APPROVE = 5,
 }
 
 export enum StaffRole {

@@ -7,6 +7,7 @@ import { UserStatus } from "../../../../types/enum";
 // Helper icon theo số
 const StatusIconMap: Record<UserStatus, React.FC<{ size?: number }>> = {
   [UserStatus.PENDING_VERIFICATION]: Clock,
+  [UserStatus.PENDING_APPROVE]: Clock,
   [UserStatus.ACTIVE]: UserCheck,
   [UserStatus.INACTIVE]: Ban,
   [UserStatus.BANNED]: Ban,
@@ -16,8 +17,10 @@ const StatusIconMap: Record<UserStatus, React.FC<{ size?: number }>> = {
 // Helper label + color
 const getStatusDisplay = (status: UserStatus) => {
   switch (status) {
+    case UserStatus.PENDING_APPROVE:
+      return { label: "Chờ xác nhận", color: "bg-yellow-100 text-yellow-800" };
     case UserStatus.PENDING_VERIFICATION:
-      return { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800" };
+      return { label: "Chờ xác nhận", color: "bg-yellow-100 text-yellow-800" };
     case UserStatus.ACTIVE:
       return { label: "Hoạt động", color: "bg-green-100 text-green-800" };
     case UserStatus.INACTIVE:

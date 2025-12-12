@@ -15,9 +15,10 @@ interface ConfirmStatusChangeProps {
 }
 
 const statusConfig: Record<UserStatus, { label: string; color: string }> = {
+  [UserStatus.PENDING_VERIFICATION]: { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800" },
   [UserStatus.ACTIVE]: { label: "Hoạt động", color: "bg-green-100 text-green-800" },
   [UserStatus.INACTIVE]: { label: "Không hoạt động", color: "bg-gray-100 text-gray-800" },
-  [UserStatus.PENDING_VERIFICATION]: { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800" },
+  [UserStatus.PENDING_APPROVE]: { label: "Chờ xác nhận", color: "bg-yellow-100 text-yellow-800" },
   [UserStatus.BANNED]: { label: "Bị cấm", color: "bg-red-100 text-red-800" },
   [UserStatus.DELETED]: { label: "Đã xóa", color: "bg-red-100 text-red-800" },
 };
