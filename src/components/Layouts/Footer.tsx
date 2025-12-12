@@ -42,13 +42,36 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Liên kết nhanh</h4>
             <ul className="space-y-2">
-              {['Trang chủ', 'Khám phá', 'VR Tours', 'Học tập', 'Cộng đồng'].map((link, index) => (
-                <li key={index}>
-                  <a href="#" className="text-gray-400 hover:text-yellow-500 transition-colors">
-                    {link}
-                  </a>
-                </li>
-              ))}
+              <li>
+                <a href="/" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                  Trang chủ
+                </a>
+              </li>
+              <li>
+                <a href="/Discovery" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                  Khám phá
+                </a>
+              </li>
+              <li>
+                <a href="/VRToursPage" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                  VR Tours
+                </a>
+              </li>
+              <li>
+                <a href="/QuizzPage" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                  Trò chơi
+                </a>
+              </li>
+              <li>
+                <a href="/CommunityPage" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                  Cộng đồng
+                </a>
+              </li>
+              <li>
+                <a href="/contributions" className="text-gray-400 hover:text-yellow-500 transition-colors">
+                  Bài viết
+                </a>
+              </li>            
             </ul>
           </div>
 
@@ -72,15 +95,15 @@ const Footer = () => {
             <ul className="space-y-4 text-gray-400">
               <li className="flex items-center space-x-2">
                 <MapPin className="w-5 h-5" />
-                <span>Hà Nội, Việt Nam</span>
+                <span>Đà Nẵng, Việt Nam</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-5 h-5" />
-                <span>+84 123 456 789</span>
+                <span>+84 077 546 7093</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Mail className="w-5 h-5" />
-                <span>support@vtfp.vn</span>
+                <span>vtfp.portal@gmail.com</span>
               </li>
             </ul>
           </div>
