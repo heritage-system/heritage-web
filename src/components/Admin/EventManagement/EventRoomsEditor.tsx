@@ -1,7 +1,15 @@
 // src/components/Admin/Event/EventRoomsEditor.tsx
 import { useEvent } from "./EventContext";
 import React, { useState, useEffect, FormEvent } from "react";
-import { Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  Clock,
+  Users,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import {
   StreamingRoomType,
@@ -18,9 +26,7 @@ import {
   StreamingRoomResponse,
   StreamingRoomUpdateRequest,
 } from "../../../types/streaming";
-import { EventResponse } from "../../../types/event";
 import { isoToLocalInput, toLocalDisplay } from "../../../utils/datetime";
-
 
 export interface TempRoom {
   tempId: string;
@@ -45,23 +51,22 @@ interface ExistingRoomPanelProps {
   onClose: () => void;
   onUpdated: (patch: { startAt?: string; type?: StreamingRoomType }) => void;
   readOnly?: boolean;
-  onRoomSaved?: () => void; // 🆕 thêm
+  onRoomSaved?: () => void;
 }
 
-
-
-const roomTypeOptions: { label: string; value: StreamingRoomType }[] = [
-  { label: "Sắp diễn ra", value: StreamingRoomType.UPCOMING },
-  { label: "Đang diễn ra", value: StreamingRoomType.LIVE },
-  { label: "Đã đóng", value: StreamingRoomType.CLOSED },
-];
-
+// Constants
 const ROOM_TYPE_LABEL: Record<StreamingRoomType, string> = {
   [StreamingRoomType.UPCOMING]: "Sắp diễn ra",
   [StreamingRoomType.LIVE]: "Đang live",
   [StreamingRoomType.CLOSED]: "Đã đóng",
 };
-// ✅ Label cho role trong phòng
+
+const ROOM_TYPE_COLOR: Record<StreamingRoomType, string> = {
+  [StreamingRoomType.UPCOMING]: "bg-blue-100 text-blue-700 border-blue-200",
+  [StreamingRoomType.LIVE]: "bg-green-100 text-green-700 border-green-200",
+  [StreamingRoomType.CLOSED]: "bg-gray-100 text-gray-700 border-gray-200",
+};
+
 const ROOM_ROLE_LABEL: Record<RoomRole, string> = {
   [RoomRole.HOST]: "Chủ phòng",
   [RoomRole.COHOST]: "Đồng chủ trì",
@@ -69,61 +74,53 @@ const ROOM_ROLE_LABEL: Record<RoomRole, string> = {
   [RoomRole.AUDIENCE]: "Khán giả",
 };
 
-// ✅ Label cho status participant
 const PARTICIPANT_STATUS_LABEL: Record<ParticipantStatus, string> = {
-  [ParticipantStatus.WAITING]: "Chờ vào ",
+  [ParticipantStatus.WAITING]: "Chờ vào",
   [ParticipantStatus.ADMITTED]: "Đã vào phòng",
   [ParticipantStatus.KICKED]: "Bị kick",
   [ParticipantStatus.BANNED]: "Bị cấm",
   [ParticipantStatus.LEFT]: "Đã rời phòng",
 };
-// Label type phòng
 
+const PARTICIPANT_STATUS_COLOR: Record<ParticipantStatus, string> = {
+  [ParticipantStatus.WAITING]: "bg-yellow-50 text-yellow-700",
+  [ParticipantStatus.ADMITTED]: "bg-green-50 text-green-700",
+  [ParticipantStatus.KICKED]: "bg-red-50 text-red-700",
+  [ParticipantStatus.BANNED]: "bg-red-100 text-red-800",
+  [ParticipantStatus.LEFT]: "bg-gray-50 text-gray-600",
+};
 
-
-
-// ===== Panel cho room ĐÃ TỒN TẠI (giống bên EventDetail) =====
+// ===== ExistingRoomPanel (chỉ đổi UI, giữ nguyên logic) =====
 function ExistingRoomPanel({
   eventId,
   room,
   onClose,
   onUpdated,
   readOnly,
-  onRoomSaved, // 🆕
+  onRoomSaved,
 }: ExistingRoomPanelProps) {
   const { loadEvent } = useEvent();
-
   const isReadOnly = !!readOnly;
 
-  const [detail, setDetail] = useState<StreamingRoomDetailResponse | null>(
-    null
-  );
+  const [detail, setDetail] = useState<StreamingRoomDetailResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
-  const [type, setType] = useState<StreamingRoomType>(
-    typeof room.type === "number" ? room.type : StreamingRoomType.UPCOMING
-  );
- const [startAtLocal, setStartAtLocal] = useState(
-  isoToLocalInput(room.startAt || undefined)
-);
+  const [type, setType] = useState<StreamingRoomType>(StreamingRoomType.UPCOMING);
+  const [startAtLocal, setStartAtLocal] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Load chi tiết phòng (participants, startAt, type, ...)
   useEffect(() => {
     if (!room.roomName) return;
+
     const loadDetail = async () => {
       setLoading(true);
       try {
         const res = await getRoomDetailAdmin(room.roomName!);
         if (res.code === 200 && res.result) {
           setDetail(res.result);
-
-          if (typeof res.result.type === "number") {
-            setType(res.result.type);
+          if (typeof res.result.type === "number") setType(res.result.type);
+          if (res.result.startAt) {
+            setStartAtLocal(isoToLocalInput(res.result.startAt));
           }
-       if (res.result.startAt) {
-  setStartAtLocal(isoToLocalInput(res.result.startAt));
-}
         } else {
           toast.error(res.message || "Không lấy được chi tiết phòng.");
         }
@@ -138,85 +135,70 @@ function ExistingRoomPanel({
     loadDetail();
   }, [room.roomName]);
 
- const handleSubmit = async (e: FormEvent) => {
-  e.preventDefault();
-  if (!room.roomName) return;
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!room.roomName) return;
 
-  const update: StreamingRoomUpdateRequest = { type };
-
-  if (startAtLocal) {
-    const d = new Date(startAtLocal);
-    if (!Number.isNaN(d.getTime())) {
-      update.startAt = d.toISOString();
+    const update: StreamingRoomUpdateRequest = { type };
+    if (startAtLocal) {
+      const d = new Date(startAtLocal);
+      if (!isNaN(d.getTime())) {
+        update.startAt = d.toISOString();
+      }
     }
-  }
 
-  try {
-    setSaving(true);
-    const res = await updateRoomAdmin(room.roomName, update);
-    if (res.code === 200 && res.result) {
-      const srv = res.result as StreamingRoomResponse;
+    try {
+      setSaving(true);
+      const res = await updateRoomAdmin(room.roomName, update);
+      if (res.code === 200 && res.result) {
+        const srv = res.result as StreamingRoomResponse;
 
-      // cập nhật detail local
-      setDetail((prev) => (prev ? { ...prev, ...srv } : (srv as any)));
+        setDetail((prev) => (prev ? { ...prev, ...srv } : (srv as any)));
 
-      // sync lại form event (dùng startAt dạng datetime-local)
-      const newPatch: { startAt?: string; type?: StreamingRoomType } = {};
+        const newPatch: { startAt?: string; type?: StreamingRoomType } = {};
+        if (srv.startAt) {
+          const local = isoToLocalInput(srv.startAt);
+          setStartAtLocal(local);
+          newPatch.startAt = local;
+        }
+        if (typeof srv.type === "number") {
+          const t = srv.type as StreamingRoomType;
+          setType(t);
+          newPatch.type = t;
+        } else {
+          newPatch.type = type;
+        }
 
-    if (srv.startAt) {
-  const local = isoToLocalInput(srv.startAt);
-  setStartAtLocal(local);
-  newPatch.startAt = local;
-}
+        onUpdated(newPatch);
+        if (eventId) await loadEvent(eventId);
+        if (onRoomSaved) onRoomSaved();
 
-
-      if (typeof srv.type === "number") {
-        const t = srv.type as StreamingRoomType;
-        setType(t);
-        newPatch.type = t;
+        toast.success("Đã cập nhật phòng livestream");
       } else {
-        newPatch.type = type;
+        toast.error(res.message || "Cập nhật phòng thất bại");
       }
-
-      onUpdated(newPatch);
-
-      // reload event trong context để selectedEvent & list được sync
-      if (eventId) {
-        await loadEvent(eventId);
-      }
-
-      // báo cho parent biết đã save xong → quay về list
-      if (onRoomSaved) {
-        onRoomSaved();
-      }
-
-      toast.success("Đã cập nhật phòng livestream");
-    } else {
-      toast.error(res.message || "Cập nhật phòng thất bại");
+    } catch (err) {
+      console.error(err);
+      toast.error("Lỗi khi cập nhật phòng");
+    } finally {
+      setSaving(false);
     }
-  } catch (err) {
-    console.error(err);
-    toast.error("Lỗi khi cập nhật phòng");
-  } finally {
-    setSaving(false);
-  }
-};
-
+  };
 
   const current = detail;
 
   if (loading && !current) {
     return (
-      <div className="py-4 text-sm text-slate-500">
-        Đang tải chi tiết phòng...
+      <div className="flex items-center justify-center py-12">
+        <div className="text-sm text-slate-500">Đang tải chi tiết phòng...</div>
       </div>
     );
   }
 
   if (!current) {
     return (
-      <div className="py-4 text-sm text-red-500">
-        Không có dữ liệu chi tiết phòng.
+      <div className="flex items-center justify-center py-12">
+        <div className="text-sm text-red-500">Không có dữ liệu chi tiết phòng.</div>
       </div>
     );
   }
@@ -228,126 +210,172 @@ function ExistingRoomPanel({
       ? "Đang live"
       : "—";
 
-return (
-  <div className="space-y-4 text-sm text-slate-800">
-      {/* Thông tin chi tiết y chang ViewRoomModal/EventDetail */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <div className="text-sm text-gray-500">RoomName</div>
-          <div className="font-mono text-sm">{current.roomName}</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-500">Trạng thái</div>
-          <div className="text-sm">{typeLabel}</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-500">Bắt đầu</div>
-         <div className="text-sm">{toLocalDisplay(current.startAt)}</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-500">Tạo lúc</div>
-       <div className="text-sm">{toLocalDisplay(current.createdAt)}</div>
-        </div>
-        {current.closedAt && (
-          <div>
-            <div className="text-sm text-gray-500">Đóng lúc</div>
-       <div className="text-sm">{toLocalDisplay(current.closedAt)}</div>
+  return (
+    <div className="space-y-6">
+      {/* Thông tin cơ bản */}
+      <div className="bg-gradient-to-br to-white rounded-xl p-5 border border-indigo-100">
+        <h4 className="text-sm font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+          <div className="w-1 h-5 rounded-full"></div>
+          Thông tin cơ bản
+        </h4>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <div className="text-xs text-slate-500 font-medium">Room Name</div>
+            <div className="font-mono text-sm text-slate-800 bg-white px-3 py-2 rounded-lg border border-slate-200">
+              {current.roomName}
+            </div>
           </div>
-        )}
-        <div>
-          <div className="text-sm text-gray-500">Người tạo (ID)</div>
-          <div className="text-sm">{current.createdByUserId}</div>
+          <div className="space-y-1">
+            <div className="text-xs text-slate-500 font-medium">Trạng thái</div>
+            <div
+              className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium border ${
+                ROOM_TYPE_COLOR[current.type as StreamingRoomType] || "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {typeLabel}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs text-slate-500 font-medium flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              Bắt đầu
+            </div>
+            <div className="text-sm text-slate-800 bg-white px-3 py-2 rounded-lg border border-slate-200">
+              {toLocalDisplay(current.startAt)}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs text-slate-500 font-medium flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              Tạo lúc
+            </div>
+            <div className="text-sm text-slate-800 bg-white px-3 py-2 rounded-lg border border-slate-200">
+              {toLocalDisplay(current.createdAt)}
+            </div>
+          </div>
+          {current.closedAt && (
+            <div className="space-y-1">
+              <div className="text-xs text-slate-500 font-medium">Đóng lúc</div>
+              <div className="text-sm text-slate-800 bg-white px-3 py-2 rounded-lg border border-slate-200">
+                {toLocalDisplay(current.closedAt)}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Bảng người tham gia */}
-      <div className="border-t pt-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">
-          Người tham gia ({current.participants.length})
-        </h4>
-        {current.participants.length === 0 ? (
-          <div className="text-sm text-gray-500">
-            Chưa có người tham gia.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-            <thead>
-  <tr className="bg-gray-50">
-    <th className="px-3 py-2 text-left font-medium text-gray-500">
-      Người dùng
-    </th>
-    <th className="px-3 py-2 text-left font-medium text-gray-500">
-      RTC UID
-    </th>
-    <th className="px-3 py-2 text-left font-medium text-gray-500">
-      Role
-    </th>
-    <th className="px-3 py-2 text-left font-medium text-gray-500">
-      Trạng thái
-    </th>
-    <th className="px-3 py-2 text-left font-medium text-gray-500">
-      Tham gia lúc
-    </th>
-  </tr>
-</thead>
-<tbody>
-  {current.participants.map((p) => (
-    <tr key={p.id} className="border-t">
-      <td className="px-3 py-2">
-        {p.userName || p.userId}
-      </td>
-      <td className="px-3 py-2 font-mono">{p.rtcUid}</td>
-      <td className="px-3 py-2">
-        {ROOM_ROLE_LABEL[p.role] ?? p.role}
-      </td>
-      <td className="px-3 py-2">
-        {PARTICIPANT_STATUS_LABEL[p.status] ?? p.status}
-      </td>
-      <td className="px-3 py-2">
-      {toLocalDisplay(p.createdAt)}
-      </td>
-    </tr>
-  ))}
-</tbody>
-
-            </table>
-          </div>
-        )}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-4 bg-slate-50 border-b border-slate-200">
+          <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+            <Users className="w-4 h-4 text-slate-600" />
+            Người tham gia
+            <span className="ml-auto text-xs font-normal text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-200">
+              {current.participants.length} người
+            </span>
+          </h4>
+        </div>
+        <div className="p-5">
+          {current.participants.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <div className="text-sm text-slate-500">Chưa có người tham gia</div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Người dùng
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      RTC UID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Vai trò
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Trạng thái
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Tham gia lúc
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {current.participants.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="text-sm font-medium text-slate-800">
+                          {p.userName || p.userId}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                          {p.rtcUid}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-slate-700">
+                          {ROOM_ROLE_LABEL[p.role] ?? p.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            PARTICIPANT_STATUS_COLOR[p.status] || "bg-gray-50 text-gray-600"
+                          }`}
+                        >
+                          {PARTICIPANT_STATUS_LABEL[p.status] ?? p.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {toLocalDisplay(p.createdAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Khu CHỈNH SỬA: startAt + type */}
-      <div className="border-t pt-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-3">
-          Chỉnh sửa thời gian & trạng thái
+      {/* Form chỉnh sửa */}
+      <div className="bg-gradient-to-br to-white rounded-xl p-5 border border-indigo-100">
+        <h4 className="text-sm font-semibold text-amber-900 mb-4 flex items-center gap-2">
+          <div className="w-1 h-5 rounded-full"></div>
+          Chỉnh sửa thông tin
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-slate-700">
               Thời gian bắt đầu
             </label>
-        <input
-  type="datetime-local"
-  value={startAtLocal}
-  onChange={(e) => setStartAtLocal(e.target.value)}
-  disabled={isReadOnly}
-  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm 
-             focus:outline-none focus:ring-2 focus:ring-indigo-500 
-             disabled:bg-slate-50 disabled:text-slate-500"
-/>
+            <input
+              type="datetime-local"
+              value={startAtLocal}
+              onChange={(e) => setStartAtLocal(e.target.value)}
+              disabled={isReadOnly}
+              className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                         disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed
+                         transition-all"
+            />
           </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-slate-700">
               Trạng thái phòng
             </label>
-         <select
-  value={type}
-  onChange={(e) =>
-    setType(Number(e.target.value) as StreamingRoomType)
-  }
-  disabled={isReadOnly}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            <select
+              value={type}
+              onChange={(e) => setType(Number(e.target.value) as StreamingRoomType)}
+              disabled={isReadOnly}
+              className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                         disabled:bg-slate-100 disabled:cursor-not-allowed
+                         transition-all"
             >
               <option value={StreamingRoomType.UPCOMING}>Sắp diễn ra</option>
               <option value={StreamingRoomType.LIVE}>Đang live</option>
@@ -356,34 +384,37 @@ return (
           </div>
         </div>
       </div>
- {/* Buttons */}
-    <div className="flex justify-end gap-2 pt-3">
-      <button
-        type="button"
-        onClick={onClose}
-        className="px-3 py-1.5 text-xs rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50"
-      >
-        Đóng panel
-      </button>
 
-      {!isReadOnly && (
+      {/* Buttons */}
+      <div className="flex items-center justify-end gap-3 pt-2">
         <button
-          type="button"          // ⬅️ quan trọng: KHÔNG phải submit nữa
-          disabled={saving}
-          onClick={handleSubmit} // ⬅️ gọi trực tiếp handleSubmit
-          className={`px-4 py-1.5 text-xs rounded-full text-white font-medium ${
-            saving
-              ? "bg-slate-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
+          type="button"
+          onClick={onClose}
+          className="px-5 py-2.5 text-sm font-medium rounded-lg
+                     border border-slate-300 text-slate-700 bg-white
+                     hover:bg-slate-50 transition-colors"
         >
-          {saving ? "Đang lưu..." : "Lưu thay đổi"}
+          Đóng
         </button>
-      )}
+        {!isReadOnly && (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={handleSubmit}
+            className={`px-6 py-2.5 text-sm font-semibold rounded-lg text-white
+                       transition-all transform hover:scale-105 active:scale-95
+                       ${
+                         saving
+                           ? "bg-slate-400 cursor-not-allowed"
+                           : "bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30"
+                       }`}
+          >
+            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+          </button>
+        )}
+      </div>
     </div>
-  </div>
-);
-
+  );
 }
 
 // ======================= MAIN EDITOR =======================
@@ -392,14 +423,12 @@ const EventRoomsEditor: React.FC<Props> = ({
   rooms,
   onChange,
   readOnly = false,
-  onRoomSaved, // 🆕 nhận thêm
+  onRoomSaved,
 }) => {
-
-  // id (tempId) của phòng đang mở dropdown
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const addRoom = () => {
-  if (readOnly) return;
+    if (readOnly) return;
     const newRoom: TempRoom = {
       tempId: crypto.randomUUID(),
       title: "",
@@ -411,48 +440,44 @@ const EventRoomsEditor: React.FC<Props> = ({
   };
 
   const updateRoom = (
-
     tempId: string,
     field: keyof Omit<TempRoom, "tempId">,
     value: any
   ) => {
-    
-  if (readOnly) return;
-
+    if (readOnly) return;
     onChange(
       rooms.map((r) => (r.tempId === tempId ? { ...r, [field]: value } : r))
     );
   };
 
-const removeRoom = async (tempId: string) => {
-  if (readOnly) return;
+  const removeRoom = async (tempId: string) => {
+    if (readOnly) return;
     const room = rooms.find((r) => r.tempId === tempId);
     if (!room) return;
 
-    // 🟢 Room mới tạo trong form (chưa lưu DB) -> chỉ cần xoá local
+    // Phòng mới → xóa local
     if (!room.id) {
       onChange(rooms.filter((r) => r.tempId !== tempId));
       if (expandedId === tempId) setExpandedId(null);
       return;
     }
 
-    // 🟡 Có id nhưng không có roomName (fallback): xoá local, nhắc user bấm Lưu
+    // Có id nhưng chưa có roomName → xóa local + nhắc lưu
     if (!room.roomName) {
       onChange(rooms.filter((r) => r.tempId !== tempId));
       if (expandedId === tempId) setExpandedId(null);
-      toast("Đã xoá phòng khỏi form, bấm 'Lưu' để cập nhật sự kiện.", {
-        duration: 2000,
-      });
+      toast("Đã xoá phòng khỏi form, bấm 'Lưu' để cập nhật sự kiện.", { duration: 3000 });
       return;
     }
 
+    // Phòng đã tồn tại thật sự → confirm xóa server
     const ok = window.confirm(
       `Xoá luôn phòng livestream trên server?\n(${room.title || room.roomName})`
     );
     if (!ok) return;
 
     try {
-      const res = await deleteRoomAdmin(room.roomName);
+      const res = await deleteRoomAdmin(room.roomName); // sửa lỗi typo roomNameBlur → roomName
       if (res.code === 200) {
         toast.success("Đã xoá phòng livestream.");
         onChange(rooms.filter((r) => r.tempId !== tempId));
@@ -467,171 +492,187 @@ const removeRoom = async (tempId: string) => {
   };
 
   return (
-    <div className="mt-6 border-t border-slate-200 pt-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-800">
-          Phòng livestream của sự kiện
-        </h3>
-    {!readOnly && (
-  <button
-    type="button"
-    onClick={addRoom}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full 
-                     bg-emerald-50 text-emerald-700 text-xs font-semibold 
-                     border border-emerald-200 hover:bg-emerald-100"
-        >
-             <Plus className="w-3 h-3" />
-    Thêm phòng
-  </button>
-)}
+    <div className="mt-8 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between p-5 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100">
+        <div>
+          <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+            Phòng livestream của sự kiện
+          </h3>
+          <p className="text-xs text-slate-600 mt-1 ml-4">
+            Quản lý các phòng livestream trong sự kiện này
+          </p>
+        </div>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={addRoom}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg
+                       bg-indigo-600 text-white text-sm font-semibold
+                       hover:bg-indigo-700 transition-all transform hover:scale-105 active:scale-95
+                       shadow-lg shadow-indigo-500/30"
+          >
+            <Plus className="w-4 h-4" />
+            Thêm phòng
+          </button>
+        )}
       </div>
 
+      {/* Empty state */}
       {rooms.length === 0 ? (
-        <p className="text-xs text-slate-500">
-          Chưa có phòng nào. Nhấn <b>Thêm phòng</b> để tạo.
-        </p>
+        <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-8 h-8 text-slate-400" />
+          </div>
+          <p className="text-sm text-slate-600 font-medium">Chưa có phòng nào</p>
+          <p className="text-xs text-slate-500 mt-1">
+            Nhấn <span className="font-semibold text-indigo-600">Thêm phòng</span> để tạo phòng livestream mới
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {rooms.map((room, idx) => {
             const isExpanded = expandedId === room.tempId;
             const headerTitle =
-              room.title?.trim() ||
-              (room.roomName ? room.roomName : "Chưa đặt tiêu đề");
-
+              room.title?.trim() || (room.roomName ? room.roomName : "Chưa đặt tiêu đề");
             const isExisting = !!room.id && !!room.roomName;
 
             return (
               <div
                 key={room.tempId}
-                className="border border-slate-200 rounded-xl bg-slate-50/60"
+                className={`border-2 rounded-xl transition-all ${
+                  isExpanded
+                    ? "border-indigo-300 shadow-lg shadow-indigo-500/10 bg-white"
+                    : "border-slate-200 bg-slate-50/50 hover:border-slate-300"
+                }`}
               >
-                {/* HEADER: Phòng X + Title + chevron + nút xoá */}
-                <div className="flex items-center justify-between px-3 py-2">
+                {/* HEADER */}
+                <div className="flex items-center gap-3 px-4 py-3.5">
                   <button
                     type="button"
-                    onClick={() =>
-                      setExpandedId(isExpanded ? null : room.tempId)
-                    }
-                    className="flex-1 flex items-center justify-between gap-3 text-left hover:bg-slate-100 rounded-lg px-1 py-1"
+                    onClick={() => setExpandedId(isExpanded ? null : room.tempId)}
+                    className="flex-1 flex items-center gap-4 text-left group"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-[11px] font-semibold text-slate-500">
-                        Phòng {idx + 1}
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors ${
+                          isExpanded
+                            ? "bg-indigo-600 text-white"
+                            : "bg-slate-200 text-slate-600 group-hover:bg-indigo-100 group-hover:text-indigo-700"
+                        }`}
+                      >
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-800 line-clamp-1">
+                          {headerTitle}
+                        </div>
                         {room.id && (
-                          <span className="ml-1 text-[10px] text-slate-400">
-                            (ID: {room.id})
-                          </span>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            ID: {room.id} • {isExisting ? "Đã lưu" : "Mới tạo"}
+                          </div>
                         )}
-                      </span>
-                      <span className="text-sm font-medium text-slate-800 line-clamp-1">
-                        {headerTitle}
-                      </span>
+                      </div>
                     </div>
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-slate-500" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-slate-500" />
-                    )}
+                    <div className="ml-auto">
+                      {isExpanded ? (
+                        <ChevronUp className="w-5 h-5 text-indigo-600" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-slate-600" />
+                      )}
+                    </div>
                   </button>
 
-                 {!readOnly && (
-  <button
-    type="button"
-    onClick={() => removeRoom(room.tempId)}
-    className="ml-2 text-red-500 hover:text-red-600 p-1 rounded-lg hover:bg-red-50"
-  >
-    <Trash2 className="w-4 h-4" />
-  </button>
-)}
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => removeRoom(room.tempId)}
+                      className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
-                {/* BODY: 
-                    - Room mới: form đơn giản (title + startAt + type)
-                    - Room đã tồn tại: panel như trong EventDetail (gọi API chi tiết) 
-                 */}
+                {/* BODY */}
                 {isExpanded && (
-                  <div className="border-t border-slate-200 px-3 py-3 bg-white rounded-b-xl">
-                   {isExisting ? (
-  <ExistingRoomPanel
-    eventId={eventId}
-    room={room}
-    onClose={() => setExpandedId(null)}
-    onUpdated={(patch) => {
-      if (patch.startAt !== undefined) {
-        updateRoom(room.tempId, "startAt", patch.startAt);
-      }
-      if (patch.type !== undefined) {
-        updateRoom(room.tempId, "type", patch.type);
-      }
-    }}
-    readOnly={readOnly}
-    onRoomSaved={onRoomSaved} // 🆕 pass callback
+                  <div className="border-t-2 border-slate-100 px-5 py-5 bg-white">
+                    {isExisting ? (
+                      <ExistingRoomPanel
+                        eventId={eventId}
+                        room={room}
+                        onClose={() => setExpandedId(null)}
+                        onUpdated={(patch) => {
+                          if (patch.startAt !== undefined) {
+                            updateRoom(room.tempId, "startAt", patch.startAt);
+                          }
+                          if (patch.type !== undefined) {
+                            updateRoom(room.tempId, "type", patch.type);
+                          }
+                        }}
+                        readOnly={readOnly}
+                        onRoomSaved={onRoomSaved}
                       />
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                            Tiêu đề phòng
-                          </label>
-                          <input
-                            type="text"
-                            value={room.title}
-                            onChange={(e) =>
-                              updateRoom(
-                                room.tempId,
-                                "title",
-                                e.target.value
-                              )
-                            }
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            placeholder="VD: Phiên sáng, Q&A, Phòng phụ trợ..."
-                          />
+                      <div className="space-y-4">
+                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                          Thông tin phòng mới
                         </div>
-
-                        <div>
-                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                            Bắt đầu lúc
-                          </label>
-                          <input
-                            type="datetime-local"
-                            value={room.startAt}
-                            onChange={(e) =>
-                              updateRoom(
-                                room.tempId,
-                                "startAt",
-                                e.target.value
-                              )
-                            }
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                            Trạng thái phòng
-                          </label>
-                          <select
-                            value={room.type}
-                            onChange={(e) =>
-                              updateRoom(
-                                room.tempId,
-                                "type",
-                                Number(
-                                  e.target.value
-                                ) as StreamingRoomType
-                              )
-                            }
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          >
-                            {roomTypeOptions.map((opt) => (
-                              <option
-                                key={opt.value}
-                                value={opt.value}
-                              >
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <label className="block text-xs font-semibold text-slate-700">
+                              Tiêu đề phòng
+                            </label>
+                            <input
+                              type="text"
+                              value={room.title}
+                              onChange={(e) =>
+                                updateRoom(room.tempId, "title", e.target.value)
+                              }
+                              className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
+                                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                                         transition-all"
+                              placeholder="VD: Phiên sáng, Q&A, Phòng phụ trợ..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-xs font-semibold text-slate-700">
+                              Bắt đầu lúc
+                            </label>
+                            <input
+                              type="datetime-local"
+                              value={room.startAt}
+                              onChange={(e) =>
+                                updateRoom(room.tempId, "startAt", e.target.value)
+                              }
+                              className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
+                                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                                         transition-all"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-xs font-semibold text-slate-700">
+                              Trạng thái phòng
+                            </label>
+                            <select
+                              value={room.type}
+                              onChange={(e) =>
+                                updateRoom(
+                                  room.tempId,
+                                  "type",
+                                  Number(e.target.value) as StreamingRoomType
+                                )
+                              }
+                              className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
+                                         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                                         transition-all"
+                            >
+                              <option value={StreamingRoomType.UPCOMING}>Sắp diễn ra</option>
+                              <option value={StreamingRoomType.LIVE}>Đang live</option>
+                              <option value={StreamingRoomType.CLOSED}>Đã đóng</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
                     )}

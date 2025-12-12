@@ -359,7 +359,7 @@ const LiveRoomPage: React.FC = () => {
               Phòng: {effectiveRoom}
             </h1>
             <p className="text-xs text-gray-500">
-              {isHost ? "Bạn là Host/Co-host" : "Bạn là khán giả/diễn giả"}
+              {isHost ? "Bạn là Người dẫn chương trình/Đồng dẫn chương trình" : "Bạn là khán giả/diễn giả"}
             </p>
           </div>
         </div>
@@ -370,103 +370,61 @@ const LiveRoomPage: React.FC = () => {
 
 
       {/* VIDEO AREA */}
+<div
+  className={`relative transition-all duration-300 ${
+    showUI ? "h-[calc(100vh-10rem)]" : "h-screen"
+  }`}
+  onMouseEnter={resetTimer}
+>
+  {/* Background gradient nhẹ, không che video */}
+  <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 opacity-30 pointer-events-none" />
+
+  {/* Nội dung video - relative để nằm trên background */}
+  <div className="relative w-full h-full flex items-center justify-center">
+    {/* Pinned slot */}
+    {pinnedUid && (
       <div
-        className={`relative transition-all duration-300 ${
-          showUI ? "h-[calc(100vh-10rem)]" : "h-screen"
-        }`}
-        onMouseEnter={resetTimer}
-      >
-        <div
-          className={`absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center ${
-            activePanel ? "pr-96" : ""
-          }`}
-        >
-          {/* 🔹 Slot lớn cho remote được pin */}
-          {pinnedUid && (
-            <div
-              id="pinned-slot"
-              ref={pinnedSlotRef}
-              className="absolute inset-0 m-4 rounded-xl overflow-hidden bg-black"
-              style={{ zIndex: 20 }}
-            />
-          )}
+        id="pinned-slot"
+        ref={pinnedSlotRef}
+        className="absolute inset-0 m-4 rounded-xl overflow-hidden bg-black"
+        style={{ zIndex: 20 }}
+      />
+    )}
 
-          {/* Local video: full nếu không pin, PIP nếu đang pin remote */}
-          <div
-            id="local-player"
-            className={
-              pinnedUid
-                ? "absolute bottom-6 right-6 w-56 h-40 rounded-xl overflow-hidden bg-black shadow-2xl border-4 border-blue-300"
-                : `absolute inset-0 m-4 rounded-xl overflow-hidden bg-black transition-opacity ${
-                    showPlaceholder
-                      ? "opacity-0 pointer-events-none"
-                      : "opacity-100"
-                  }`
-            }
-            style={{ zIndex: pinnedUid ? 25 : 20 }}
-          />
+    {/* Local video */}
+    <div
+      id="local-player"
+      className={pinnedUid
+        ? "absolute bottom-6 right-6 w-56 h-40 rounded-xl overflow-hidden bg-black shadow-2xl border-4 border-blue-300"
+        : "absolute inset-0 m-4 rounded-xl overflow-hidden bg-black"
+      }
+      style={{ zIndex: pinnedUid ? 25 : 20 }}
+    />
 
-          {/* Remote container (Agora sẽ append remote-* ở đây) */}
-          <div
-            id="remote-container"
-            className="absolute left-4 bottom-4 grid grid-cols-2 gap-2 w-[480px] max-w-[48vw]"
-            style={{ zIndex: 25 }}
-          />
+    {/* Remote container */}
+    <div
+      id="remote-container"
+      className="absolute left-4 bottom-4 grid grid-cols-2 gap-2 w-[480px] max-w-[48vw]"
+      style={{ zIndex: 25 }}
+    />
 
-          {/* Placeholder khi chưa có local video & chưa pin remote */}
-          {showPlaceholder && !pinnedUid && (
-            <>
-              {!joined || isCameraOff ? (
-                <div
-                  className="text-center select-none"
-                  style={{ zIndex: 4 }}
-                >
-                  <div className="w-32 h-32 bg-white shadow-2xl rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <VideoOff className="w-16 h-16 text-gray-400" />
-                  </div>
-                  <p className="text-gray-600 font-medium text-lg">
-                    {!joined ? "Bạn chưa vào phòng" : "Camera đã tắt"}
-                  </p>
-                </div>
-              ) : (
-                <div
-                  className="text-center select-none"
-                  style={{ zIndex: 4 }}
-                >
-                  <div className="w-40 h-40 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 shadow-2xl rounded-full mx-auto mb-6 flex items-center justify-center animate-pulse">
-                    <Video className="w-20 h-20 text-white" />
-                  </div>
-                  <p className="text-xl font-semibold text-gray-700">
-                    Đang kết nối video...
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Avatar PIP khi chưa có local video thật */}
-          {showUI && !hasLocalVideo && (
-            <div
-              className="absolute bottom-6 right-6 w-56 h-40 bg-white rounded-2xl shadow-xl border-4 border-blue-200 overflow-hidden"
-              style={{ zIndex: 7 }}
-            >
-              <div className="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                    <span className="text-white font-bold text-xl">B</span>
-                  </div>
-                  <span className="text-sm text-gray-600 font-medium">
-                    Bạn
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Reactions float */}
-        <ReactionFloat reactions={reactions} onRemove={removeReaction} />
+    {/* Placeholder chỉ hiện khi cần */}
+    {showPlaceholder && !pinnedUid && (
+      <div className="text-center select-none z-10">
+        {/* nội dung placeholder */}
       </div>
+    )}
+
+    {/* Avatar PIP khi tắt cam */}
+    {showUI && !hasLocalVideo && (
+      <div className="absolute bottom-6 right-6 ...">
+        {/* avatar */}
+      </div>
+    )}
+  </div>
+
+  <ReactionFloat reactions={reactions} onRemove={removeReaction} />
+</div>
 
       {/* SIDE PANEL (Roster / Chat) */}
       {activePanel && (
@@ -479,38 +437,35 @@ const LiveRoomPage: React.FC = () => {
                 : "Trò chuyện trong phòng"}
             </h3>
             <div className="flex items-center gap-2">
-              {/* Đồng bộ cục bộ */}
+              {/* Đồng bộ cục bộ*/}
               <button
                 onClick={() => resyncParticipants()}
                 disabled={isResyncing}
-                className="px-2 py-1 text-xs rounded border bg-white hover:bg-gray-50 text-gray-700"
+                className="px-2 py-1 text-xs rounded border bg-white text-gray-700 invisible pointer-events-none"
                 title="Đồng bộ số người (chỉ trên máy bạn)"
               >
                 <RefreshCcw
-                  className={`w-4 h-4 inline mr-1 ${
-                    isResyncing ? "animate-spin" : ""
-                  }`}
+                  className={`w-4 h-4 inline mr-1 ${isResyncing ? "animate-spin" : ""}`}
                 />
                 Đồng bộ
               </button>
 
-              {/* Đồng bộ toàn phòng (chỉ host/cohost) */}
+              {/* Đồng bộ toàn phòng (ẩn nhưng không xoá chức năng) */}
               {isHost && (
                 <button
                   onClick={() => resyncParticipantsAll()}
                   disabled={isResyncing}
-                  className="px-2 py-1 text-xs rounded border bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200"
+                  className="px-2 py-1 text-xs rounded border bg-indigo-50 text-indigo-700 border-indigo-200 invisible pointer-events-none"
                   title="Gửi lệnh đồng bộ cho toàn phòng"
                 >
                   <RefreshCcw
-                    className={`w-4 h-4 inline mr-1 ${
-                      isResyncing ? "animate-spin" : ""
-                    }`}
+                    className={`w-4 h-4 inline mr-1 ${isResyncing ? "animate-spin" : ""}`}
                   />
                   Đồng bộ toàn phòng
                 </button>
               )}
 
+              {/* Close panel vẫn hiện */}
               <button
                 onClick={() => setActivePanel(null)}
                 className="p-1 hover:bg-gray-100 rounded-full"
@@ -533,56 +488,59 @@ const LiveRoomPage: React.FC = () => {
                   const canAct = isHost && !isMe;
                   return (
                     <div
-                      key={`${r.uid}-${r.userId}`}
-                      className="flex items-center justify-between rounded border p-2"
-                    >
-                      <div className="text-sm">
-                        <div>
-                          <span className="font-medium">Tên người dùng:</span>{" "}
-                          {r.userName} {isMe ? "(Bạn)" : ""}
-                        </div>
-                        <div>
-                          <span className="font-medium">RTC UID:</span>{" "}
-                          {String(r.uid)}
-                        </div>
-                        <div>
-  <span className="font-medium">Vai trò:</span>{" "}
-  {RoomRole[r.role]}
+  key={`${r.uid}-${r.userId}`}
+  className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 p-3 shadow-sm"
+>
+  {/* LEFT INFO */}
+  <div className="text-sm space-y-1">
+    <div className="flex items-center gap-1">
+      <span className="font-medium text-gray-800">Tên người dùng:</span>
+      <span className="text-gray-700">{r.userName}</span>
+      {isMe && <span className="text-xs text-gray-500">(Bạn)</span>}
+    </div>
+
+    <div className="flex items-center gap-1">
+      <span className="font-medium text-gray-800">Vai trò:</span>
+      <span className="text-gray-700">{RoomRole[r.role]}</span>
+    </div>
+  </div>
+
+  {/* ACTION BUTTONS */}
+  {canAct && (
+    <div className="flex items-center gap-2">
+
+      <button
+        onClick={() => setRole(r.userId, RoomRole.COHOST)}
+        className="px-3 py-1 text-xs rounded-md border border-gray-300 bg-white hover:bg-gray-100 text-gray-700"
+        title="Đặt làm Co-host"
+      >
+        Đồng dẫn chương trình
+      </button>
+
+      <button
+        onClick={() => setRole(r.userId, RoomRole.HOST)}
+        className="px-3 py-1 text-xs rounded-md border border-gray-300 bg-white hover:bg-gray-100 text-gray-700"
+        title="Đặt làm Host"
+      >
+        Người dẫn chương trình
+      </button>
+
+      <button
+        onClick={async () => {
+          const ok = window.confirm(
+            `Bạn có chắc muốn kick người dùng ${r.userId} khỏi phòng?`
+          );
+          if (ok) await kick(r.userId);
+        }}
+        className="px-3 py-1 text-xs rounded-md border border-red-300 bg-red-50 hover:bg-red-100 text-red-700"
+        title="Đuổi khỏi phòng"
+      >
+        Đuổi
+      </button>
+
+    </div>
+  )}
 </div>
-
-                      </div>
-
-                      {canAct && (
-                        <div className="flex items-center gap-2">
-                        <button
-  onClick={() => setRole(r.userId, RoomRole.COHOST)}
-                            className="px-2 py-1 text-xs rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200"
-                            title="Đặt làm Co-host"
-                          >
-                            Co-host
-                          </button>
-                          <button
-                            onClick={() => setRole(r.userId,RoomRole.COHOST)}
-                            className="px-2 py-1 text-xs rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200"
-                            title="Đặt làm Host"
-                          >
-                            Host
-                          </button>
-                          <button
-                            onClick={async () => {
-                              const ok = window.confirm(
-                                `Bạn có chắc muốn kick người dùng ${r.userId} khỏi phòng?`
-                              );
-                              if (ok) await kick(r.userId);
-                            }}
-                            className="px-2 py-1 text-xs rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
-                            title="Đuổi khỏi phòng"
-                          >
-                            Đuổi
-                          </button>
-                        </div>
-                      )}
-                    </div>
                   );
                 })
               )}
@@ -722,131 +680,114 @@ const LiveRoomPage: React.FC = () => {
         </div>
       )}
 
-      {/* CONTROL BAR */}
-      {showUI && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 p-4 z-50 transition-all duration-300">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
-              <span className="bg-blue-50 px-3 py-1 rounded-full text-blue-700 font-bold">
-                {formatTime(elapsedTime)}
-              </span>
-              <span>•</span>
-              <span className="bg-purple-50 px-3 py-1 rounded-full text-purple-700">
-                Phòng: {effectiveRoom}
-              </span>
-            </div>
+     {/* CONTROL BAR */}
+{showUI && (
+  <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 p-4 z-50">
+    <div className="max-w-7xl mx-auto flex items-center">
 
-            <div className="flex items-center gap-3">
-              {joined ? (
-                <button
-                  onClick={handleLeaveAll}
-                  className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-8 py-4 rounded-full flex items-center gap-2 font-bold shadow-xl"
-                >
-                  <Phone className="w-5 h-5" />
-                  <span>Rời phòng</span>
-                </button>
-              ) : (
-                <button
-                  disabled
-                  className="bg-gradient-to-r from-gray-300 to-gray-400 text-white px-6 py-3 rounded-full flex items-center gap-2 font-bold shadow-xl cursor-default"
-                >
-                  <PhoneCall className="w-5 h-5" />
-                  <span>Đang kết nối...</span>
-                </button>
-              )}
+      {/* LEFT: Time */}
+      <div className="w-1/5 flex items-center gap-2 text-sm text-gray-600 font-medium">
+        <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700 font-bold">
+          {formatTime(elapsedTime)}
+        </span>
+      </div>
 
-              <button
-                onClick={() => toggleMic()}
-                disabled={!joined}
-                className={`p-4 rounded-full shadow-lg ${
-                  !micOn
-                    ? "bg-gradient-to-br from-red-500 to-red-600"
-                    : "bg-gradient-to-br from-blue-500 to-purple-500"
-                } text-white disabled:opacity-50`}
-              >
-                {micOn ? (
-                  <Mic className="w-5 h-5" />
-                ) : (
-                  <MicOff className="w-5 h-5" />
-                )}
-              </button>
+      {/* CENTER BUTTON GROUP */}
+      <div className="flex-1 flex items-center justify-center gap-4">
 
-              <button
-                onClick={() => toggleCam()}
-                disabled={!joined}
-                className={`p-4 rounded-full shadow-lg ${
-                  !camOn
-                    ? "bg-gradient-to-br from-red-500 to-red-600"
-                    : "bg-gradient-to-br from-green-500 to-teal-500"
-                } text-white disabled:opacity-50`}
-              >
-                {camOn ? (
-                  <Video className="w-5 h-5" />
-                ) : (
-                  <VideoOff className="w-5 h-5" />
-                )}
-              </button>
+        {/* Leave / Connecting */}
+        {joined ? (
+          <button
+            onClick={handleLeaveAll}
+            className="w-48 bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:bg-red-700 text-white 
+                       px-6 py-3 rounded-full flex items-center justify-center 
+                       gap-2 font-bold shadow"
+          >
+            <Phone className="w-5 h-5" />
+            <span>Rời phòng</span>
+          </button>
+        ) : (
+          <button
+            disabled
+            className="w-48 bg-gray-300 text-white 
+                       px-6 py-3 rounded-full flex items-center 
+                       justify-center gap-2 font-bold shadow"
+          >
+            <PhoneCall className="w-5 h-5" />
+            <span>Đang kết nối...</span>
+          </button>
+        )}
 
-              <button
-                onClick={() => togglePanel("chat")}
-                className={`p-4 rounded-full shadow-lg ${
-                  activePanel === "chat"
-                    ? "bg-gradient-to-br from-purple-600 to-pink-600 ring-4 ring-purple-200"
-                    : "bg-gradient-to-br from-yellow-400 to-orange-500"
-                } text-white`}
-              >
-                <MessageCircle className="w-5 h-5" />
-              </button>
+        {/* ICON BUTTON BASE STYLE */}
+        {/* Mic */}
+        <button
+          onClick={toggleMic}
+          disabled={!joined}
+          className={`p-3 rounded-full shadow transition ${
+            micOn ? "bg-gray-200 hover:bg-gray-300" : "bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:bg-red-600"
+          } text-white disabled:opacity-50`}
+        >
+          {micOn ? <Mic className="w-5 h-5 text-gray-800" /> : <MicOff className="w-5 h-5" />}
+        </button>
 
-              <button
-                onClick={() => togglePanel("participants")}
-                className={`p-4 rounded-full shadow-lg ${
-                  activePanel === "participants"
-                    ? "bg-gradient-to-br from-indigo-600 to-blue-600 ring-4 ring-indigo-200"
-                    : "bg-gradient-to-br from-gray-400 to-gray-500"
-                } text-white`}
-              >
-                <Users className="w-5 h-5" />
-              </button>
+        {/* Cam */}
+        <button
+          onClick={toggleCam}
+          disabled={!joined}
+          className={`p-3 rounded-full shadow transition ${
+            camOn ? "bg-gray-200 hover:bg-gray-300" : "bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 hover:bg-red-600"
+          } text-white disabled:opacity-50`}
+        >
+          {camOn ? <Video className="w-5 h-5 text-gray-800" /> : <VideoOff className="w-5 h-5" />}
+        </button>
 
-              <button
-                onClick={() => (sharing ? stopShare() : startShare(true))}
-                disabled={!joined || !isHost}
-                className={`p-4 rounded-full shadow-lg ${
-                  sharing
-                    ? "bg-gradient-to-br from-yellow-500 to-amber-600"
-                    : "bg-gradient-to-br from-amber-400 to-yellow-500"
-                } text-white disabled:opacity-50`}
-                title={
-                  !isHost
-                    ? "Chỉ Host/Co-host được chia sẻ màn hình"
-                    : sharing
-                    ? "Dừng chia sẻ màn hình"
-                    : "Chia sẻ màn hình (kèm âm thanh hệ thống)"
-                }
-              >
-                <Zap className="w-5 h-5" />
-              </button>
-            </div>
+        {/* Chat */}
+        <button
+          onClick={() => togglePanel("chat")}
+          className={`p-3 rounded-full shadow transition ${
+            activePanel === "chat"
+              ? "bg-gray-300 ring-2 ring-gray-400"
+              : "bg-gray-200 hover:bg-gray-300"
+          }`}
+        >
+          <MessageCircle className="w-5 h-5 text-gray-800" />
+        </button>
 
-            <div className="text-sm text-gray-600 font-medium">
-              Nhấn{" "}
-              <kbd className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-bold">
-                M
-              </kbd>{" "}
-              để bật/tắt mic •{" "}
-              <kbd className="px-2 py-1 bg-green-100 text-green-700 rounded font-bold">
-                V
-              </kbd>{" "}
-              để bật/tắt cam •{" "}
-              <kbd className="px-2 py-1 bg-gray-200 rounded font-bold">
-                Esc
-              </kbd>{" "}
-              ẩn panel
-            </div>
-          </div>
-        </div>
-      )}
+        {/* Participants */}
+        <button
+          onClick={() => togglePanel("participants")}
+          className={`p-3 rounded-full shadow transition ${
+            activePanel === "participants"
+              ? "bg-gray-300 ring-2 ring-gray-400"
+              : "bg-gray-200 hover:bg-gray-300"
+          }`}
+        >
+          <Users className="w-5 h-5 text-gray-800" />
+        </button>
+
+        {/* Share */}
+        <button
+          onClick={() => (sharing ? stopShare() : startShare(true))}
+          disabled={!joined || !isHost}
+          className={`p-3 rounded-full shadow transition ${
+            sharing ? "bg-yellow-500 hover:bg-yellow-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+          } disabled:opacity-50`}
+        >
+          <Zap className="w-5 h-5 text-gray-800" />
+        </button>
+      </div>
+
+      {/* RIGHT: Hotkeys */}
+      <div className="w-1/5 text-sm text-gray-600 font-medium text-right">
+        Nhấn{" "}
+        <kbd className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-bold">M</kbd> bật/tắt mic •{" "}
+        <kbd className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-bold">V</kbd> bật/tắt cam •{" "}
+        <kbd className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-bold">Esc</kbd> ẩn panel
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

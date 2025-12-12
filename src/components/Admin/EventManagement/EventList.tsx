@@ -11,7 +11,7 @@ import {
 import {
   StreamingRoomSummaryResponse, // 🆕 thêm dòng này
 } from "../../../types/event";
-import { Plus, Edit2, Trash2, Radio, X, ArrowLeft, Play } from "lucide-react";
+import { Plus, Edit, Trash2, X, ArrowLeft, Play, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { uploadImage } from "../../../services/fileService";
 import ParticipantManager from "./ParticipantManager";
@@ -182,118 +182,143 @@ const handleClearFilters = () => {
       </button>
     </div>
 
-    {/* 🆕 KHU VỰC TÌM KIẾM / FILTER */}
-    <div className="mb-4 bg-white rounded-2xl shadow-sm border border-slate-200 px-4 py-3">
-      <div className="grid gap-3 md:grid-cols-5">
-        {/* Title keyword */}
-        <div className="md:col-span-2">
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
-            Tìm theo tiêu đề
-          </label>
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Nhập một phần tiêu đề sự kiện..."
-            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
+ {/* 🆕 KHU VỰC TÌM KIẾM / FILTER - ĐÃ FIX UI */}
+<div className="mb-6 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+  {/* Header với tiêu đề + nút nhỏ gọn */}
+  <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+    <h3 className="text-sm font-semibold text-slate-700">Bộ lọc tìm kiếm</h3>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={handleClearFilters}
+        className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+      >
+        Xoá lọc
+      </button>
+      <button
+        type="button"
+        onClick={handleApplyFilters}
+        className="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm"
+      >
+        Áp dụng
+      </button>
+    </div>
+  </div>
 
-        {/* Category */}
-        <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
-            Danh mục
-          </label>
-          <select
-            value={categoryFilter}
-            onChange={(e) =>
-              setCategoryFilter(
-                e.target.value === ""
-                  ? ""
-                  : (Number(e.target.value) as EventCategory)
-              )
-            }
-            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">Tất cả</option>
-            {categoryOptions.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </div>
+  {/* Nội dung filter */}
+  <div className="p-5 space-y-5">
+    {/* Hàng 1: Thanh tìm kiếm full width */}
+    <div>
+      <label className="block text-xs font-medium text-slate-700 mb-1.5">
+        Tìm kiếm
+      </label>
+      <input
+        type="text"
+        value={keyword}
+        onChange={(e) => setKeyword(e.target.value)}
+        placeholder="Tìm theo tiêu đề sự kiện..."
+        className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+      />
+    </div>
 
-        {/* Tag */}
-        <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">
-            Nhãn (tag)
-          </label>
-          <select
-            value={tagFilter}
-            onChange={(e) =>
-              setTagFilter(
-                e.target.value === ""
-                  ? ""
-                  : (Number(e.target.value) as EventTag)
-              )
-            }
-            className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">Tất cả</option>
-            {tagOptions.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* From / To date */}
-        <div className="flex flex-col gap-2">
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1">
-              Từ ngày
-            </label>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 mb-1">
-              Đến ngày
-            </label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="w-full rounded-full border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-        </div>
+    {/* Hàng 2: 4 filter - responsive 1/2/4 cột */}
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Danh mục */}
+      <div>
+        <label className="block text-xs font-medium text-slate-700 mb-1.5">
+          Danh mục
+        </label>
+        <select
+          value={categoryFilter}
+          onChange={(e) =>
+            setCategoryFilter(
+              e.target.value === ""
+                ? ""
+                : (Number(e.target.value) as EventCategory)
+            )
+          }
+          className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+        >
+          <option value="">Tất cả danh mục</option>
+          {categoryOptions.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Nút hành động */}
-      <div className="mt-3 flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={handleClearFilters}
-          className="px-3 py-1.5 rounded-full border border-slate-200 text-[11px] text-slate-600 hover:bg-slate-50"
+      {/* Nhãn */}
+      <div>
+        <label className="block text-xs font-medium text-slate-700 mb-1.5">
+          Nhãn
+        </label>
+        <select
+          value={tagFilter}
+          onChange={(e) =>
+            setTagFilter(
+              e.target.value === ""
+                ? ""
+                : (Number(e.target.value) as EventTag)
+            )
+          }
+          className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
         >
-          Xoá lọc
-        </button>
-        <button
-          type="button"
-          onClick={handleApplyFilters}
-          className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-[11px] font-semibold hover:bg-indigo-700"
-        >
-          Áp dụng lọc
-        </button>
+          <option value="">Tất cả nhãn</option>
+          {tagOptions.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Từ ngày */}
+      <div>
+        <label className="block text-xs font-medium text-slate-700 mb-1.5">
+          Từ ngày
+        </label>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+        />
+      </div>
+
+      {/* Đến ngày */}
+      <div>
+        <label className="block text-xs font-medium text-slate-700 mb-1.5">
+          Đến ngày
+        </label>
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+        />
       </div>
     </div>
+
+    {/* Hàng 3: Nút hành động lớn, căn phải
+    <div className="flex justify-end gap-3 pt-2">
+      <button
+        type="button"
+        onClick={handleClearFilters}
+        className="px-5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+      >
+        Xoá lọc
+      </button>
+      <button
+        type="button"
+        onClick={handleApplyFilters}
+        className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-all"
+      >
+        Áp dụng lọc
+      </button>
+    </div> */}
+  </div>
+</div>
 
     {/* LIST + FILTER (status tabs giữ nguyên) */}
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -362,37 +387,40 @@ const handleClearFilters = () => {
                         </span>
                         <div className="flex items-center gap-2">
                           <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleManageDetails(ev);
-                            }}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] border border-emerald-100"
-                          >
-                            <Radio className="w-3 h-3" />
-                            Chi tiết
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditEvent(ev);
-                            }}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] border border-indigo-100"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                            Sửa
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(ev);
-                            }}
-                            className="text-red-500 hover:text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleManageDetails(ev);
+  }}
+  className="text-emerald-600 hover:text-emerald-800 p-1 rounded hover:bg-emerald-50 transition-colors"
+  title="Xem chi tiết"
+>
+  <Eye size={16} />
+</button>
+
+<button
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleEditEvent(ev);
+  }}
+  className="text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50 transition-colors"
+  title="Chỉnh sửa"
+>
+  <Edit size={16} />
+</button>
+
+<button
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleDelete(ev);
+  }}
+  className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+  title="Xóa"
+>
+  <Trash2 size={16} />
+</button>
                         </div>
                       </div>
                     </div>
@@ -749,57 +777,100 @@ const handleSubmit = async (e: React.FormEvent) => {
             />
           </div>
 
-          {/* Thumbnail */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-medium text-slate-700">
-                Ảnh đại diện
-              </label>
-              <span className="text-[11px] text-slate-400">
-                Ảnh sẽ được upload lên Cloudinary
-              </span>
-            </div>
+         {/* Thumbnail – Ảnh đại diện sự kiện (CHỈ FIX UI, RÕ CHỌN TỆP HOẶC DÁN URL) */}
+<div className="space-y-6">
 
-            <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
-              <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleThumbnailUpload}
-                  disabled={uploadingThumb || readOnlyAll}
-                  className="text-xs"
-                />
-                {uploadingThumb && (
-                  <span className="text-xs text-slate-500">
-                    Đang upload...
-                  </span>
-                )}
-              </div>
+  {/* Tiêu đề */}
+  <div className="flex items-center justify-between">
+    <label className="text-sm font-semibold text-slate-800">
+      Ảnh đại diện sự kiện
+    </label>
+    <span className="text-xs text-slate-500">
+      Khuyến nghị 16:9 • Tối đa 5MB
+    </span>
+  </div>
 
-              <div className="flex-1 w-full">
-                <input
-                  type="text"
-                  value={thumbnailUrl}
-                  onChange={(e) => setThumbnailUrl(e.target.value)}
-                  disabled={readOnlyAll}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Hoặc dán URL thumbnail sẵn có..."
-                />
-                {thumbnailUrl && (
-                  <div className="mt-2">
-                    <p className="text-[11px] text-slate-500 mb-1">
-                      Xem trước:
-                    </p>
-                    <img
-                      src={thumbnailUrl}
-                      alt="thumbnail preview"
-                      className="w-40 h-24 object-cover rounded-lg border border-slate-200"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+  {/* Preview ảnh – đẹp như cũ nhưng mượt hơn */}
+  <div className="relative -mx-6 md:mx-0">
+    {thumbnailUrl ? (
+      <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200">
+        <img
+          src={thumbnailUrl}
+          alt="Ảnh đại diện sự kiện"
+          className="w-full h-96 object-cover object-center"
+          onError={(e) => {
+            e.currentTarget.src = "https://via.placeholder.com/1200x675/f1f5f9/64748b?text=Ảnh+không+tải+được";
+          }}
+        />
+      </div>
+    ) : (
+      <div className="h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl border-2 border-dashed border-slate-300 
+                      flex flex-col items-center justify-center gap-4 text-slate-500">
+        <div className="w-24 h-24 bg-slate-200 border-2 border-dashed rounded-3xl" />
+        <p className="text-lg font-medium text-slate-600">Chưa có ảnh đại diện</p>
+        <p className="text-sm">Chọn tệp hoặc dán link bên dưới</p>
+      </div>
+    )}
+  </div>
+
+  {/* PHẦN CHỌN ẢNH – RÕ RÀNG, ĐẸP, DỄ HIỂU NHẤT */}
+  <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {/* 1. Chọn tệp từ máy – card đẹp, nổi bật */}
+      {/* Chọn tệp từ máy – gọn, đẹp, đơn giản */}
+<label className="flex items-center justify-center gap-3 px-6 py-4 
+                  bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-300 
+                  hover:border-indigo-500 rounded-xl cursor-pointer transition-all">
+  
+  <svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+  </svg>
+
+  <div className="text-left">
+    <div className="font-medium text-slate-800">Chọn tệp</div>
+    <div className="text-xs text-slate-600">Click để tải lên</div>
+  </div>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={handleThumbnailUpload}
+    disabled={uploadingThumb || readOnlyAll}
+    className="hidden"
+  />
+</label>
+
+      {/* 2. Dán link ảnh – input rõ ràng, đẹp */}
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium text-slate-700 text-center md:text-left">
+          Hoặc gán URL
+        </span>
+        <input
+          type="text"
+          value={thumbnailUrl}
+          onChange={(e) => setThumbnailUrl(e.target.value)}
+          disabled={readOnlyAll}
+          placeholder="https://example.com/image.jpg"
+          className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                     placeholder:text-slate-400 transition-all"
+        />
+      </div>
+
+    </div>
+
+    {/* Loading khi upload */}
+    {uploadingThumb && (
+      <div className="flex items-center justify-center gap-2 text-indigo-600">
+        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm font-medium">Đang tải ảnh lên...</span>
+      </div>
+    )}
+  </div>
+
+</div>
 
           {/* Times */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -854,7 +925,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                Nhãn (tags)
+                Nhãn (thẻ)
               </label>
               <div className="flex flex-wrap gap-2">
                 {tagOptions.map((t) => {
@@ -890,24 +961,13 @@ const handleSubmit = async (e: React.FormEvent) => {
   }}
 />
 
-
-
           {/* FOOTER */}
-        <div className="pt-2 flex items-center justify-between">
-  <button
-    type="button"
-    onClick={onBack}
-    className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
-  >
-    <X className="w-3 h-3" />
-    {mode === "detail" ? "Quay lại" : "Hủy"}
-  </button>
-
+        <div className="pt-2 flex items-center justify-end gap-3">
   {mode !== "detail" && (
     <button
       type="submit"
       disabled={disabled}
-      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 disabled:opacity-50"
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 disabled:opacity-50 mr-3"
     >
       {mode === "create" ? (
         <>
@@ -916,13 +976,23 @@ const handleSubmit = async (e: React.FormEvent) => {
         </>
       ) : (
         <>
-          <Edit2 className="w-4 h-4" />
+          <Edit className="w-4 h-4" />
           Lưu thay đổi
         </>
       )}
     </button>
   )}
-          </div>
+
+  <button
+    type="button"
+    onClick={onBack}
+    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 disabled:opacity-50"
+  >
+    <X className="w-3 h-3" />
+    {mode === "detail" ? "Quay lại" : "Hủy"}
+  </button>
+</div>
+
         </form>
       </div>
     </div>

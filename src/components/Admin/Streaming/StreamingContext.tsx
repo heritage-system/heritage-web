@@ -13,9 +13,6 @@ import {
   StreamingRoomResponse,
   StreamingJoinGrantResponse,
 } from "../../../types/streaming";
-
-
-
 import {
   joinChannel,
   leaveChannel,
