@@ -49,7 +49,7 @@ import {
   CalendarRange,
   PlusCircle,
   Video,
-  Ticket,
+  LockKeyhole,
   Home, History,
   FileBadge
 } from "lucide-react";
@@ -130,13 +130,13 @@ const moduleStructure = {
     title: "Quản lý Nội dung",
     icon: Building,
     subModules: [
-      { id: "heritage", name: "Quản lý di sản", icon: MapPin, component: HeritageManagement },
-      { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement },
-      { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement },
-      { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement },
-      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement },
-      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement },
-      { id: "premiumPackages", name: "Gói Premium", icon: Globe, component: PremiumPackageManagement } 
+      { id: "heritage", name: "Quản lý di sản", icon: MapPin, component: HeritageManagement,onlyAdmin: false },
+      { id: "categories", name: "Quản lý danh mục", icon: List, component: CategoryManagement,onlyAdmin: false },
+      { id: "tags", name: "Quản lý thể loại", icon: Tags, component: TagManagement,onlyAdmin: false },
+      { id: "contributions", name: "Quản lí đóng góp", icon: Archive , component: ContributionPostManagement,onlyAdmin: false },
+      { id: "quizz", name: "Quản lý trò chơi", icon: Gamepad2, component: QuizzManagement,onlyAdmin: false },
+      { id: "panorama", name: "Quản lý VR 360°", icon: Camera, component: PanoramaTourManagement,onlyAdmin: false },
+      { id: "premiumPackages", name: "Gói Premium", icon: Globe, component: PremiumPackageManagement,onlyAdmin: false } 
     ]
   },
   financialManagement: {
@@ -145,8 +145,8 @@ const moduleStructure = {
     icon: DollarSign,
     subModules: [
       // { id: "budget", name: "Quản lý ngân sách", icon: DollarSign, component: BudgetManagement },
-      { id: "payment", name: "Lịch sử tương tác", icon: History, component: PaymentProcessing },
-      { id: "financialReports", name: "Báo cáo tài chính", icon: PieChart, component: FinancialReports },
+      { id: "payment", name: "Lịch sử tương tác", icon: History, component: PaymentProcessing,onlyAdmin: false },
+      { id: "financialReports", name: "Báo cáo tài chính", icon: PieChart, component: FinancialReports,onlyAdmin: true },
       // { id: "invoice", name: "Quản lý hóa đơn", icon: FileSpreadsheet, component: InvoiceManagement },
       // { id: "expense", name: "Theo dõi chi phí", icon: TrendingUp, component: ExpenseTracking }
     ]
@@ -156,8 +156,9 @@ const moduleStructure = {
     title: "Quản lý Nhân sự",
     icon: Users,
     subModules: [ 
-      { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement },     
-      { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement },   
+      { id: "contributors", name: "Quản lý cộng tác viên", icon: Users, component: ContributorManagement,onlyAdmin: false }, 
+      { id: "employees", name: "Quản lý nhân viên", icon: Users, component: EmployeeManagement,onlyAdmin: true },     
+        
       // { id: "attendance", name: "Theo dõi chấm công", icon: Clock, component: AttendanceTracking },
       // { id: "payroll", name: "Quản lý bảng lương", icon: CreditCard, component: PayrollManagement },
       // { id: "performance", name: "Đánh giá hiệu suất", icon: BarChart3, component: PerformanceReview },
@@ -169,10 +170,10 @@ const moduleStructure = {
   title: "Quản lý Sự kiện",
   icon: CalendarCheck,
   subModules: [
-    { id: "events", name: "Sự kiện & Workshop", icon: CalendarRange, component: EventList },
+    { id: "events", name: "Sự kiện & Workshop", icon: CalendarRange, component: EventList,onlyAdmin: false },
    // { id: "eventCreate", name: "Tạo sự kiện", icon: PlusCircle, component: EventCreate },
     //{ id: "liveRooms", name: "Phòng livestream", icon: Video, component: LiveRoomManager },
-    { id: "participants", name: "Người tham gia", icon: Users, component: ParticipantManager },
+    { id: "participants", name: "Người tham gia", icon: Users, component: ParticipantManager,onlyAdmin: false },
   ]
 },
   systemSecurity: {
@@ -180,13 +181,13 @@ const moduleStructure = {
     title: "Hệ thống & Bảo mật",
     icon: Server,
     subModules: [
-      { id: "server", name: "Quản lý máy chủ", icon: Server, component: ServerManagement },
-      { id: "database", name: "Quản trị cơ sở dữ liệu", icon: Database, component: DatabaseAdministration },
-      { id: "security", name: "Trung tâm bảo mật", icon: Lock, component: SecurityCenter },
-      { id: "backup", name: "Sao lưu & Khôi phục", icon: HardDrive, component: BackupRecovery },
-      { id: "network", name: "Giám sát mạng", icon: Wifi, component: NetworkMonitoring },
-      { id: "cloud", name: "Hạ tầng đám mây", icon: Cloud, component: CloudInfrastructure },
-      { id: "performance", name: "Hiệu suất hệ thống", icon: Zap, component: SystemPerformance }
+      { id: "server", name: "Quản lý máy chủ", icon: Server, component: ServerManagement,onlyAdmin: false  },
+      { id: "database", name: "Quản trị cơ sở dữ liệu", icon: Database, component: DatabaseAdministration,onlyAdmin: false  },
+      { id: "security", name: "Trung tâm bảo mật", icon: Lock, component: SecurityCenter,onlyAdmin: false  },
+      { id: "backup", name: "Sao lưu & Khôi phục", icon: HardDrive, component: BackupRecovery,onlyAdmin: false  },
+      { id: "network", name: "Giám sát mạng", icon: Wifi, component: NetworkMonitoring,onlyAdmin: false  },
+      { id: "cloud", name: "Hạ tầng đám mây", icon: Cloud, component: CloudInfrastructure,onlyAdmin: false  },
+      { id: "performance", name: "Hiệu suất hệ thống", icon: Zap, component: SystemPerformance,onlyAdmin: false  }
     ]
   },
   customerManagement: {
@@ -194,11 +195,11 @@ const moduleStructure = {
     title: "Quản lý Khách hàng",
     icon: UserCog,
     subModules: [
-      { id: "users", name: "Quản lý người dùng", icon: Users, component: UserManagement },
-      { id: "support", name: "Vé hỗ trợ", icon: MessageSquare, component: SupportTickets },
-      { id: "communication", name: "Trung tâm liên lạc", icon: Mail, component: CommunicationHub },
-      { id: "reports", name: "Báo cáo khách hàng", icon: FileText, component: ReportManagement },
-      { id: "contribution_reports", name: "Báo cáo bài viết", icon: FileBadge, component: ContributionReportManagement },
+      { id: "users", name: "Quản lý người dùng", icon: Users, component: UserManagement,onlyAdmin: false },
+      // { id: "support", name: "Vé hỗ trợ", icon: MessageSquare, component: SupportTickets },
+      // { id: "communication", name: "Trung tâm liên lạc", icon: Mail, component: CommunicationHub },
+      { id: "reports", name: "Báo cáo khách hàng", icon: FileText, component: ReportManagement,onlyAdmin: false  },
+      { id: "contribution_reports", name: "Báo cáo bài viết", icon: FileBadge, component: ContributionReportManagement,onlyAdmin: false  },
       // { id: "feedback", name: "Quản lý phản hồi", icon: MessageSquare, component: FeedbackManagement },
       // { id: "analytics", name: "Phân tích khách hàng", icon: BarChart3, component: CustomerAnalytics }
     ]
@@ -208,9 +209,9 @@ const moduleStructure = {
     title: "Báo cáo & Phân tích",
     icon: PieChart,
     subModules: [
-      { id: "executive", name: "Dashboard điều hành", icon: PieChart, component: ExecutiveDashboard },
-      { id: "advanced", name: "Phân tích nâng cao", icon: BarChart3, component: AdvancedAnalytics },
-      { id: "visualization", name: "Trực quan hóa dữ liệu", icon: TrendingUp, component: DataVisualization },
+      { id: "executive", name: "Dashboard điều hành", icon: PieChart, component: ExecutiveDashboard,onlyAdmin: true },
+      { id: "advanced", name: "Phân tích nâng cao", icon: BarChart3, component: AdvancedAnalytics,onlyAdmin: true },
+      { id: "visualization", name: "Trực quan hóa dữ liệu", icon: TrendingUp, component: DataVisualization,onlyAdmin: true },
       // { id: "custom", name: "Báo cáo tùy chỉnh", icon: FileSpreadsheet, component: CustomReports },
       // { id: "kpi", name: "Giám sát KPI", icon: Eye, component: KPIMonitoring }
     ]
@@ -242,9 +243,9 @@ const moduleStructure = {
     title: "Hệ thống Cũ",
     icon: Archive,
     subModules: [
-      { id: "files", name: "Quản lý tệp tin", icon: FileText, component: FileManagement },
-      { id: "approvals", name: "Quản lý phê duyệt", icon: CheckSquare, component: ApprovalManagement },
-      { id: "contributors", name: "Quản lý người đóng góp", icon: Users, component: ContributorManagement }
+      { id: "files", name: "Quản lý tệp tin", icon: FileText, component: FileManagement,onlyAdmin: false  },
+      { id: "approvals", name: "Quản lý phê duyệt", icon: CheckSquare, component: ApprovalManagement,onlyAdmin: false  },
+      { id: "contributors", name: "Quản lý người đóng góp", icon: Users, component: ContributorManagement,onlyAdmin: false  }
     ]
   }
 };
@@ -272,7 +273,7 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
   const [activeSubModule, setActiveSubModule] = useState<string>("");
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+  const { isLoggedIn, logout: authLogout, userType } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = () => {
@@ -394,22 +395,54 @@ const AdminPanelPage: React.FC<HeritageAdminPanelProps> = ({
           )}
         </div>
 
-       {currentModule.subModules.map((subModule) => (
+       {currentModule.subModules.map((subModule) => {
+        const isAdminOnly = subModule.onlyAdmin === true;
+        const isNotAllowed = isAdminOnly && userType?.toLowerCase() !== "admin";
+
+        return (
           <button
             key={subModule.id}
-            onClick={() => setActiveSubModule(subModule.id)}
-            className={`flex items-center rounded-lg text-sm font-medium transition
+            disabled={isNotAllowed}
+            onClick={() => {
+              if (!isNotAllowed) setActiveSubModule(subModule.id);
+            }}
+            className={`
+              flex items-center rounded-lg text-sm font-medium transition relative
               ${activeSubModule === subModule.id
                 ? "bg-blue-600 text-white shadow"
-                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"}
+                : isNotAllowed
+                  ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-60"
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              }
               ${sidebarCollapsed ? "justify-center p-2" : "w-full gap-3 px-4 py-2"}
+              ${isAdminOnly && "border border-yellow-500/50"}   /* highlight admin-only */
             `}
             title={sidebarCollapsed ? subModule.name : ""}
           >
+            {/* Icon */}
             <subModule.icon size={18} />
-            {!sidebarCollapsed && subModule.name}
+
+            {/* Text */}
+            {!sidebarCollapsed && (
+              <span className="flex items-center gap-1">
+                {subModule.name}
+
+                {/* Lock symbol */}
+                {isAdminOnly && isNotAllowed && (
+                  <LockKeyhole
+                    size={15}
+                    className={`
+                      ml-1 
+                      ${isNotAllowed ? "text-gray-400" : "text-yellow-600"}
+                    `}
+                  />
+                )}
+              </span>
+            )}
           </button>
-        ))}
+        );
+      })}
+
       </div>
     );
   };

@@ -14,7 +14,8 @@ import EventCard from "../../components/Community/EventCard";
 import UpcomingEventsSidebar from "../../components/Community/UpcomingEventsSidebar";
 import { toast } from "react-hot-toast";
 import { EventCategory, EventStatus } from "../../types/enum";
-
+import {useAuth} from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 type CategoryFilter = "all" | EventCategory;
 
 const CATEGORY_FILTERS: { id: CategoryFilter; name: string }[] = [
@@ -32,6 +33,8 @@ const JoinRoomPage: React.FC = () => {
   const [err, setErr] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>("all");
+  const navigate = useNavigate();
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
 
   const load = async () => {
     setLoading(true);
@@ -154,28 +157,59 @@ const JoinRoomPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white bg-gradient-to-br from-yellow-50 via-red-50 to-orange-50">
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 ">
           <h1 className="text-3xl font-bold mb-2">
             <span className="bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 bg-clip-text text-transparent">
               Sự kiện & Livestream
             </span>{" "}
-            Di sản Văn hóa
+            Di sản Văn hóa Lễ hội
           </h1>
-          <p className="text-gray-600 text-lg">
-            Khám phá, đăng ký và tham gia các sự kiện trực tuyến về di sản văn
-            hóa. Bạn sẽ vào phòng livestream từ trang chi tiết sự kiện.
+
+          <p className="text-gray-600 text-lg my-4">
+            Hòa mình vào không gian lễ hội Việt Nam qua những sự kiện và buổi phát sóng trực tuyến — khám phá, kết nối và trải nghiệm.
           </p>
+
         </div>
 
         {/* Error / loading */}
-        {err && (
+        {/* {err && (
           <p className="mb-4 text-sm text-center text-rose-600">{err}</p>
-        )}
+        )} */}
 
-        <div className="flex flex-col xl:flex-row gap-6">
+         {/* ======== GIAO DIỆN KHI CHƯA ĐĂNG NHẬP ======== */}
+      {!isLoggedIn && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/6596/6596121.png"
+            alt="Login Required"
+            className="w-36 h-36 opacity-80 mb-6"
+          />
+
+          <h2 className="text-2xl font-semibold text-gray-800 mb-3">
+            Bạn cần đăng nhập để tham gia sự kiện
+          </h2>
+
+          <p className="text-gray-600 text-center max-w-md mb-6">
+            Tính năng sự kiện & livestream chỉ dành cho thành viên.  
+            Đăng nhập để đăng ký sự kiện, theo dõi livestream và nhận thông báo mới nhất nhé!
+          </p>
+
+          <button
+            onClick={() => navigate("/login")}
+            className="px-8 py-3 rounded-full text-white font-medium shadow-md
+                       bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 
+                       hover:scale-105 transition-all"
+          >
+            Đăng nhập ngay
+          </button>
+        </div>
+      )}
+
+        {isLoggedIn && ( 
+          <div className="flex flex-col xl:flex-row gap-6">
           {/* Cột trái: Live + list */}
           <div className="xl:flex-1 space-y-8">
             <div className="bg-white rounded-xl shadow-md p-6">
@@ -237,7 +271,7 @@ const JoinRoomPage: React.FC = () => {
               onToggleRegister={toggleRegister}
             />
           </div>
-        </div>
+        </div> )}
       </main>
     </div>
   );

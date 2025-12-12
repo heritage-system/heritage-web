@@ -49,7 +49,7 @@ const CommunityPage = () => {
           <h1 className="text-3xl font-bold mb-2">
             <span className="bg-gradient-to-r from-yellow-600 via-red-700 to-amber-900 bg-clip-text text-transparent">
               Cộng đồng
-            </span> Di sản Văn hóa  
+            </span> Di sản Văn hóa Lễ hội
           </h1>
           <p className="text-gray-600 text-lg">Kết nối, học hỏi và chia sẻ cùng cộng đồng yêu văn hóa truyền thống</p>
         </div>

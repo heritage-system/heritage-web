@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition, useMemo } from "react";
 import DiscoveryGoogleMapsView from "../../components/Discovery/DiscoveryGoogleMapsView";
 import DiscoveryHeritageGrid from "../../components/Discovery/DiscoveryHeritageGrid";
 import DiscoveryQuickFilters from "../../components/Discovery/DiscoveryQuickFilters";
@@ -10,12 +10,21 @@ import { HeritageSearchRequest } from "../../types/heritage";
 import { useDiscoveryFilters } from "../../hooks/useDiscoveryFilters";
 import { Province } from "../../types/location";
 import { Category } from "../../types/category";
+import { EventResponse } from "../../types/event";
 import { Tag } from "../../types/tag";
 import { fetchProvinces } from "../../services/locationSerivce";
 import { fetchCategories } from "../../services/categoryService";
 import { fetchTags } from "../../services/tagService";
 import AIpredictLensPage from './AIpredictLensPageCopy';
+import UpcomingEventsSidebar from "../../components/Community/UpcomingEventsSidebar";
+import { EventStatus } from "../../types/enum";
+import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
+import {
+  getEvents,
+  registerForEvent,
+  unregisterFromEvent,
+} from "../../services/eventService";
 const DiscoveryPage: React.FC = () => {
   const {
     heritages,
@@ -47,6 +56,7 @@ const DiscoveryPage: React.FC = () => {
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [events, setEvents] = useState<EventResponse[]>([]);
 
   const northProvinces = [
     "Hà Nội", "Hải Phòng", "Quảng Ninh", "Hà Nam", "Nam Định", "Thái Bình", "Ninh Bình",
@@ -200,6 +210,86 @@ const DiscoveryPage: React.FC = () => {
     sessionStorage.removeItem("ai-lens-payload");
   }, []);
 
+  
+  
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const today = new Date().toISOString(); // yyyy-MM-ddTHH:mm:ss
+
+        const res = await getEvents({ from: today });
+        if (res.code === 200 && res.result) {
+          setEvents(res.result);
+        }
+      } catch (e) {}
+    };
+
+    load();
+  }, []);
+  const upcomingEvents = useMemo(
+    () => events.filter((e) => e.status === EventStatus.UPCOMING),
+    [events]
+  );
+
+    const upcomingForSidebar = useMemo(
+    () =>
+      upcomingEvents
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.startAt as any).getTime() -
+            new Date(b.startAt as any).getTime()
+        )
+        .slice(0, 3),
+    [upcomingEvents]
+  );
+
+  const toggleRegister = async (ev: EventResponse) => {
+    try {
+      if (!ev.registeredByMe) {
+        const res = await registerForEvent(ev.id);
+        if (res.code === 200 && res.result?.registered) {
+          toast.success("Đã đăng ký tham gia sự kiện");
+          setEvents((prev) =>
+            prev.map((e) =>
+              e.id === ev.id
+                ? {
+                    ...e,
+                    registeredByMe: true,
+                    registeredCount: e.registeredCount + 1,
+                  }
+                : e
+            )
+          );
+        } else {
+          toast.error(res.message || "Đăng ký thất bại");
+        }
+      } else {
+        const res = await unregisterFromEvent(ev.id);
+        if (res.code === 200 && !res.result?.registered) {
+          toast.success("Đã huỷ đăng ký sự kiện");
+          setEvents((prev) =>
+            prev.map((e) =>
+              e.id === ev.id
+                ? {
+                    ...e,
+                    registeredByMe: false,
+                    registeredCount: Math.max(
+                      0,
+                      e.registeredCount - 1
+                    ),
+                  }
+                : e
+            )
+          );
+        } else {
+          toast.error(res.message || "Huỷ đăng ký thất bại");
+        }
+      }
+    } catch {
+      toast.error("Không thể kết nối máy chủ");
+    }
+  };
   return (
     
     <div className="min-h-screen bg-gray-50">
@@ -223,7 +313,7 @@ const DiscoveryPage: React.FC = () => {
             <div className="mb-4">
               <div className="relative  mb-6">
                  <div className="absolute top-0 left-0 right-0 z-20 flex justify-end -translate-y-5">
-                  <DiscoverySearchToggle view={viewSearch} onFilterChange={onFilterChange} />
+                  <DiscoverySearchToggle view={viewSearch} onFilterChange={onFilterChange} loading={loading}/>
                 </div>    
               </div>
             {viewSearch === "ai" ? (             
@@ -328,8 +418,11 @@ const DiscoveryPage: React.FC = () => {
 
           {/* Sidebar */}
           <div className="lg:w-80">
-            <div className="sticky top-6 space-y-4">
-              <DiscoveryUpcomingEvents />
+            <div className="sticky top-6 space-y-4">           
+              <UpcomingEventsSidebar
+                events={upcomingForSidebar}
+                onToggleRegister={toggleRegister}
+              />      
             </div>
           </div>
         </div>

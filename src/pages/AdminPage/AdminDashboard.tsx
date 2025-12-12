@@ -42,7 +42,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Module, ModuleGroup } from "../../types/adminDashboard";
 import { useAuth } from '../../hooks/useAuth';
-
 type LucideIcon = React.ForwardRefExoticComponent<
   Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
 >;
@@ -50,7 +49,7 @@ type LucideIcon = React.ForwardRefExoticComponent<
 const AdminHomeDashboard = () => {
   const [selectedModule, setSelectedModule] = useState<ModuleGroup | null>(null);
   const navigate = useNavigate();
-  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+  const { isLoggedIn, logout: authLogout, userType } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = () => {
@@ -478,19 +477,37 @@ const AdminHomeDashboard = () => {
 
           {/* Báo cáo & Phân tích */}
           <div
-            onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[6] } })}
-            className="col-span-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#3498DB] group cursor-pointer overflow-hidden"
+            onClick={() => {
+              if (userType === "ADMIN") {
+                navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[6] } });
+              }
+            }}
+            className={`
+              col-span-6 bg-white rounded-2xl shadow-sm 
+              transition-all duration-300 border border-[#E5E7EB] 
+              group cursor-pointer overflow-hidden
+
+              ${userType !== "ADMIN" ? "pointer-events-none opacity-50 grayscale" 
+                                      : "hover:shadow-md hover:border-[#3498DB]"}
+            `}
           >
-            <div className={`${moduleGroups[6].color} p-5 h-full text-white relative overflow-hidden min-h-[140px]`}>
+            <div
+              className={`${moduleGroups[6].color} p-5 h-full text-white relative overflow-hidden min-h-[140px]`}
+            >
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/20 rounded-full -mr-10 -mt-10"></div>
+
               <div className="relative z-10 h-full flex items-center space-x-4">
                 <PieChart className="w-10 h-10 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-bold text-lg">{moduleGroups[6].title}</h3>
-                    <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">{moduleGroups[6].count}</span>
+                    <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">
+                      {moduleGroups[6].count}
+                    </span>
                   </div>
+
                   <p className="text-white text-sm mb-3">{moduleGroups[6].description}</p>
+
                   <div className="grid grid-cols-2 gap-1">
                     {moduleGroups[6].modules.slice(0, 4).map((module, idx) => (
                       <div key={idx} className="flex items-center space-x-1 text-xs">
@@ -503,6 +520,7 @@ const AdminHomeDashboard = () => {
               </div>
             </div>
           </div>
+
 
           {/* Quản lý Logistics */}
           {/* <div

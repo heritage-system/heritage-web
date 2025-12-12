@@ -40,8 +40,8 @@ import EventDetailPage from './pages/CommunityPage/EventDetailPage';
 import EventDetailView from './components/Community/EventDetailView';
 import TermsPage from './pages/TermsPage/TermsPage';
 import InteractionHistory from './components/ViewProfile/InteractionHistory/InteractionHistory';
-
-
+import ProtectedRoute from './components/Layouts/ProtectedRoute';
+import RoleProtectedRoute from './components/Layouts/RoleProtectedRoute';
 import ScrollToTop from "./components/Layouts/ScrollToTop";
 const App: React.FC = () => {
   return (
@@ -63,16 +63,15 @@ const App: React.FC = () => {
         <Route path="/reset-password" element={<MainLayout><ResetPassword /></MainLayout>} />
         <Route path="/change-password" element={<MainLayout><ChangePassword /></MainLayout>} />
         <Route path="/heritagedetail/:id" element={<MainLayout><HeritageDetailPage /></MainLayout>} />     
-        <Route path="/view-profile" element={<MainLayout><ViewProfile /></MainLayout>} />
-        <Route path="/contribution-form/:id?" element={<MainLayout><ContributionFormPage /></MainLayout>} />
+        <Route path="/view-profile" element={<ProtectedRoute><MainLayout><ViewProfile /></MainLayout></ProtectedRoute>} />
+        <Route path="/contribution-form/:id?" element={<RoleProtectedRoute allow={["CONTRIBUTOR", "STAFF"]}><MainLayout><ContributionFormPage /></MainLayout></RoleProtectedRoute>} />
         <Route path="/oauth2/callback/google" element={<CallbackGoogle />} />
-        <Route path="/admin/adminPanelmanagement" element={<StreamingProvider><EventProvider><AdminPanelPage /></EventProvider></StreamingProvider>}/>
+        <Route path="/admin/adminPanelmanagement" element={<RoleProtectedRoute allow={["ADMIN", "STAFF"]}><StreamingProvider><EventProvider><AdminPanelPage /></EventProvider></StreamingProvider></RoleProtectedRoute>}/>
 
         <Route path="/heritage/:id" element={<HeritageDetailPage />} />
-        <Route path="/admin/reports" element={<ReportManagement />} />
        
         <Route path="/contributions" element={<MainLayout><ContributionSearchResponse /></MainLayout>} />
-        <Route path="/admin/adminHomeDashboard" element={<AdminHomeDashboard />} />
+        <Route path="/admin/adminHomeDashboard" element={<RoleProtectedRoute allow={["ADMIN", "STAFF"]}><AdminHomeDashboard /> </RoleProtectedRoute>} />
         <Route path="/contributions/:id" element={<MainLayout><ArticleDetailPage /></MainLayout>} />  
         <Route path="/live/:roomId" element={<StreamingProvider><LiveRoomPage /> </StreamingProvider>} /> 
         <Route path="/premium-packages" element={<MainLayout><ActivePackageList /></MainLayout>} />
@@ -80,7 +79,7 @@ const App: React.FC = () => {
         <Route path="/payment/result" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/payment/cancel" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/term" element={<MainLayout><TermsPage /></MainLayout>} />
-        <Route path="/interaction-history" element={<MainLayout><InteractionHistory /></MainLayout>} />
+        <Route path="/interaction-history" element={<ProtectedRoute><MainLayout><InteractionHistory /></MainLayout></ProtectedRoute>} />
 
       
        

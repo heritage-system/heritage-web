@@ -5,6 +5,7 @@ import { PageResponse } from "../types/pageResponse";
 
 import { AI_API_URL,API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
+
 export const predictHeritage = async (
   file: File,
   params?: { top_k?: number; results?: number; threshold?: number }

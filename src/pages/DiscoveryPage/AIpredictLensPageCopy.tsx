@@ -5,7 +5,7 @@ import { PredictApiPayload, PredictResponse } from "../../types/AIpredict";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { HeritageSearchResponse} from "../../types/heritage";
-
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner"
 interface Props {
   fetchHeritagesAi: (heritages: HeritageSearchResponse[]) => void;
 }
@@ -73,43 +73,51 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
         ? "Ảnh vẫn mờ sau khi xử lý tăng chất lượng."
         : code === "INVALID_IMAGE"
         ? "Không thể đọc ảnh. Vui lòng tải PNG/JPG/WebP hợp lệ."
+        : code === "NON_PHOTOGRAPHIC"
+        ? "Hình này trông giống anime hoặc tranh digital art, không phải ảnh thật. Vui lòng tải lên một bức ảnh chụp thực tế của địa điểm di sản."
+        : code === "IMAGE_TOO_SMALL"
+        ? "Hình ảnh được cắt quá nhỏ không thể nhận diện"
         : undefined;
 
-    const message = (isStringErr ? null : err?.message) ?? fallbackMessage;
+    const message =
+  fallbackMessage ??
+  (isStringErr ? null : err?.message) ??
+  "Đã xảy ra lỗi không xác định.";
+
 
     
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 mt-3">
         <div className="font-semibold mb-1">Không thể trả kết quả tìm kiếm</div>
         <div className="flex flex-col gap-1">
           {/* <div>
             <span className="font-medium">Mã lỗi:</span> {code}
           </div> */}
 
-          {label && (
+          {/* {label && (
             <div>
               <span className="font-medium">Phân loại:</span> {label}
               {typeof confidence === "number"
                 ? ` (~${Math.round(confidence * 100)}%)`
                 : ""}
             </div>
-          )}
+          )} */}
 
-          {Array.isArray(size) && size.length === 2 && (
+          {/* {Array.isArray(size) && size.length === 2 && (
             <div>
               <span className="font-medium">Kích thước ảnh:</span>{" "}
               {size[0]}×{size[1]} px
             </div>
-          )}
+          )} */}
 
           {message && <div>{message}</div>}
 
-          <details className="mt-1">
+          {/* <details className="mt-1">
             <summary className="cursor-pointer">Chi tiết kỹ thuật</summary>
             <pre className="mt-2 max-h-64 overflow-auto text-xs text-red-900">
               {JSON.stringify(err, null, 2)}
             </pre>
-          </details>
+          </details> */}
         </div>
       </div>
     );
@@ -137,10 +145,15 @@ const AIpredictLensPage: React.FC<Props> = ({fetchHeritagesAi}) => {
 
     //const res = await PredictJsonService.loadFromUrlRandomPost(url, 5, formData);
     //const res = await PredictJsonService.loadFromUrlPost(AiUrl!, formData);
-    const res = await PredictJsonService.loadFromUrlRandom("/result-AI.json",3);
-    setPayload(res ?? null);
+    //const res = await PredictJsonService.loadFromUrlRandom("/result-AI.json",3);
+    const res = await predictHeritage(file, {
+        top_k: 20,
+        results: 5,
+        threshold: 0.65,
+      });
+    setPayload(res.result ?? null);
 
-    const heritages = mapPredictToHeritage(res ?? null);
+    const heritages = mapPredictToHeritage(res.result! ?? null);
     fetchHeritagesAi(heritages);
 
     console.log("Heritages:", heritages);
@@ -253,51 +266,40 @@ useEffect(() => {
           {!collapsed && (
             <>
             {loading ? (
-  <div className="flex items-center gap-2 text-blue-600 text-sm mt-3">
-    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-        fill="none"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      />
-    </svg>
-    Đang nhận diện ảnh...
-  </div>
-) : (
-  <>
-              {!payload ? (
-                <div className="text-sm text-gray-600">
-                  <div className="flex gap-2 mt-2">
-                    <input
-                      type="text"                   
-                      value={AiUrl ?? ""}
-                      onChange={(e) => setAiUrl(e.target.value)}
-                      className="flex-1 px-3 py-2 border rounded-lg"
-                    />
-
-                    <button
-                      onClick={() => {
-                        if (AiUrl) {
-                          sessionStorage.setItem("ai-lens-url", AiUrl);
-                        }
-                      }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      Lưu
-                    </button>
-
-                  </div>
+                <div className="flex items-center gap-2 text-yellow-700 text-sm mt-3">
+                  <Spinner size={22} thickness={3} className="text-yellow-700" ariaLabel="Đang nhận diện ảnh" />
+                  Đang nhận diện ảnh...
                 </div>
-              ) : getError(payload) ? (
+              ) : (
+              <>
+              {!payload ? 
+              (
+                // <div className="text-sm text-gray-600">
+                //   <div className="flex gap-2 mt-2">
+                //     <input
+                //       type="text"                   
+                //       value={AiUrl ?? ""}
+                //       onChange={(e) => setAiUrl(e.target.value)}
+                //       className="flex-1 px-3 py-2 border rounded-lg"
+                //     />
+
+                //     <button
+                //       onClick={() => {
+                //         if (AiUrl) {
+                //           sessionStorage.setItem("ai-lens-url", AiUrl);
+                //         }
+                //       }}
+                //       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                //     >
+                //       Lưu
+                //     </button>
+
+                //   </div>
+                // </div>
+                <div className="text-sm text-gray-600"></div>
+              ) 
+              : 
+              getError(payload) ? (
                 <ErrorCard err={getError(payload)} />
               ) : getMatches(payload).length === 0 ? (
                 <div className="text-sm text-gray-500">Không tìm thấy kết quả phù hợp.</div>

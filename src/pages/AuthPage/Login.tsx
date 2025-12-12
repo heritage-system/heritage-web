@@ -9,7 +9,7 @@ import { GoogleConfiguration } from '../../configuration/GoogleConfiguration';
 import { Eye, EyeOff } from "lucide-react"; 
 
 const Login: React.FC = () => {
-  const [form, setForm] = useState<SignInRequest>({ emailOrUsername: "", password: "", remember: false });
+  const [form, setForm] = useState<SignInRequest>({ emailOrUsername: "", password: "", remember: true });
   const [showPassword, setShowPassword] = useState(false); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,6 +41,7 @@ const Login: React.FC = () => {
         localStorage.setItem("refreshToken", response.result!.refreshToken);
         localStorage.setItem("userName", response.result!.userName);
         localStorage.setItem("avatarUrl", response.result!.avatarUrl);
+        localStorage.setItem("userType", response.result!.userType);
 
         toast.success('Đăng nhập thành công! Chào mừng bạn trở lại!', {
           duration: 1000,
@@ -53,7 +54,7 @@ const Login: React.FC = () => {
         setTimeout(() => navigate(redirectPath), 500);
       }
       else{
-        toast.error(response.message ||'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!', {
+        toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!', {
         duration: 5000,
         position: 'top-right',
         style: { background: '#DC2626', color: '#fff' },
@@ -134,7 +135,7 @@ const Login: React.FC = () => {
                   name="remember"
                   checked={form.remember}
                   onChange={handleChange}
-                  className="mr-2"
+                  className="mr-2 accent-yellow-700"
                 />
                 Ghi nhớ tôi
               </label>

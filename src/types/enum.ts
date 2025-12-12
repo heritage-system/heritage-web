@@ -181,3 +181,17 @@ export enum PointHistoriesReason
     UNLOCK_QUIZ = 4,
     DAILY_BONUS = 5,          
 }
+
+export enum RoomType
+{
+    RANDOM = 0, 
+    PLAY_WITH_FRIEND = 1, 
+    BOT = 2,    
+}
+
+export enum Winner
+{
+     PLAYER_1 = 0
+     ,PLAYER_2 = 1,
+     DRAW = 2   
+}
