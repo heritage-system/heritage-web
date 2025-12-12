@@ -84,7 +84,7 @@ const HomePage: React.FC = () => {
     <>
       {/* <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} /> */}
       <HeroSection />
-      <SearchSection 
+      {/* <SearchSection 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
@@ -101,10 +101,10 @@ const HomePage: React.FC = () => {
             />
           ))}
         </div>
-      </section>
+      </section> */}
       <FeaturesSection />
       <TestimonialsSection />
-      <NewsletterSection />
+      {/* <NewsletterSection /> */}
       {/* <Footer /> */}
     </>
   );

@@ -56,7 +56,7 @@ const Register: React.FC = () => {
     setIsSubmitting(true);
     try {
       const res = await registration(form);
-      if (res.code) {
+      if (res.code === 200 || res.code === 201) {
         toast.success("Đăng ký thành công, vui lòng kích hoạt bằng email mã chúng tôi đã gửi!", {
           duration: 1000,
           position: 'top-right',
@@ -178,7 +178,7 @@ const Register: React.FC = () => {
               />
               Tôi đồng ý với{" "}
               <a
-                href="#"
+                href="/term"
                 className="ml-1 text-yellow-700 hover:text-yellow-800 hover:underline"
               >
                 điều khoản

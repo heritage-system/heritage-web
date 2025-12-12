@@ -331,3 +331,16 @@ export const reactiveContributionStatus = async (id: number) => {
     { method: "PUT" }
   );
 };
+export const disableContributionStatusAdmin = async (id: number) => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/${id}/disable_contribution_admin`,
+    { method: "PUT" }
+  );
+};
+
+export const reactiveContributionStatusAdmin = async (id: number) => {
+  return await fetchInterceptor<boolean>(
+    `${API_URL}/api/v1/contributions/${id}/reactive_contribution_admin`,
+    { method: "PUT" }
+  );
+};

@@ -4,10 +4,10 @@ import { Input, Spin } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import Pagination from "../../Layouts/Pagination";
 
-import { TableProps, Report, TableColumn } from "../../../types/report";
-import { fetchReports, answerReport } from "../../../services/reportService";
+import { TableProps, ContributionReport, TableColumn } from "../../../types/contributionReport";
+import { fetchContributionReports, answerContributionReport } from "../../../services/contributionReportService";
 import { useNavigate } from "react-router-dom";
-import  ReportDetailManagement from "./ReportDetailManagement"
+import  ContributionReportDetailManagement from "./ContributionReportDetailManagement"
 function DataTable<T extends { id: number }>({
   data,
   columns,
@@ -80,11 +80,11 @@ function DataTable<T extends { id: number }>({
   );
 }
 type ViewMode = "list" | "detail" | "create" | "edit";
-// ===================== Report Management =====================
-const ReportManagement: React.FC = () => {
-  const [reports, setReports] = useState<Report[]>([]);
+// ===================== ContributionReport Management =====================
+const ContributionReportManagement: React.FC = () => {
+  const [reports, setContributionReports] = useState<ContributionReport[]>([]);
    const [viewMode, setViewMode] = useState<ViewMode>("list");
-   const [selectedReportId, setSelectedReportId] = useState<any>(null);
+   const [selectedContributionReportId, setSelectedContributionReportId] = useState<any>(null);
   // UI states
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,7 +109,7 @@ const ReportManagement: React.FC = () => {
   const load = async () => {
       setLoading(true);
       try {
-        const res = await fetchReports({
+        const res = await fetchContributionReports({
           page: currentPage,
           pageSize: itemsPerPage,
           keyword: searchTerm,
@@ -118,14 +118,14 @@ const ReportManagement: React.FC = () => {
           status: statusFilter,
         });
         const result = res.result;
-        setReports(result?.items || []);
+        setContributionReports(result?.items || []);
         setTotalPages(result?.totalPages || 1);
         setTotalElements(result?.totalElements || 0);
 
         const [pendingRes, answeredRes, cancelRes] = await Promise.all([
-          fetchReports({ page: 1, pageSize: 10, status: "PENDING" }),
-          fetchReports({ page: 1, pageSize: 10, status: "ANSWERED" }),
-          fetchReports({ page: 1, pageSize: 10, status: "CANCEL" }),
+          fetchContributionReports({ page: 1, pageSize: 10, status: "PENDING" }),
+          fetchContributionReports({ page: 1, pageSize: 10, status: "ANSWERED" }),
+          fetchContributionReports({ page: 1, pageSize: 10, status: "CANCEL" }),
         ]);
 
         setStatusCounts({
@@ -142,10 +142,10 @@ const ReportManagement: React.FC = () => {
       load();
     }, [currentPage, searchTerm, startDate, endDate, statusFilter]);
 
-  const columns: TableColumn<Report>[] = [
+  const columns: TableColumn<ContributionReport>[] = [
     { key: "id", label: "ID" },
     { key: "userName", label: "Người dùng" },
-    { key: "heritageName", label: "Tên lễ hội" },
+    { key: "contributionName", label: "Bài viết" },
     {
       key: "reason",
       label: "Lý do",
@@ -168,31 +168,31 @@ const ReportManagement: React.FC = () => {
 };
 
 
-  const handleAnswer = (item: Report) => setSelectedReport(item);
+  const handleAnswer = (item: ContributionReport) => setSelectedContributionReport(item);
   const navigate = useNavigate();
 
-  const [viewReport, setViewReport] = useState<Report | null>(null);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [viewContributionReport, setViewContributionReport] = useState<ContributionReport | null>(null);
+  const [selectedContributionReport, setSelectedContributionReport] = useState<ContributionReport | null>(null);
   const [answerText, setAnswerText] = useState("");
 
   const handleSubmitAnswer = async () => {
-    if (!selectedReport || !answerText.trim()) return;
+    if (!selectedContributionReport || !answerText.trim()) return;
     try {
-      await answerReport({
-        reportId: selectedReport.id,
+      await answerContributionReport({
+        reportId: selectedContributionReport.id,
         answer: answerText.trim(),
       });
-      setSelectedReport(null);
+      setSelectedContributionReport(null);
       setAnswerText("");
       // Refresh the list after answering
-      const res = await fetchReports({
+      const res = await fetchContributionReports({
         page: currentPage,
         pageSize: itemsPerPage,
         keyword: searchTerm,
         status: statusFilter,
       });
       const result = res.result;
-      setReports(result?.items || []);
+      setContributionReports(result?.items || []);
       setTotalPages(result?.totalPages || 1);
       setTotalElements(result?.totalElements || 0);
     } catch (error) {
@@ -201,11 +201,11 @@ const ReportManagement: React.FC = () => {
   };
 
   const handleView = async (id: number) => {
-    setSelectedReportId(id);
+    setSelectedContributionReportId(id);
     setViewMode("detail");
   }
   const handleCloseView = async () => {
-    setSelectedReportId(null);
+    setSelectedContributionReportId(null);
     setViewMode("list");
     load();
   }
@@ -325,7 +325,7 @@ const ReportManagement: React.FC = () => {
         </div>
 
         {/* Table */}
-        <DataTable<Report>
+        <DataTable<ContributionReport>
           data={reports}
           columns={columns}
           loading={loading}
@@ -343,12 +343,12 @@ const ReportManagement: React.FC = () => {
         />)}
 
         {/* View Modal */}
-        {viewReport && (
+        {viewContributionReport && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
               <button
                 className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition-colors"
-                onClick={() => setViewReport(null)}
+                onClick={() => setViewContributionReport(null)}
               >
                 <X size={20} />
               </button>
@@ -357,41 +357,41 @@ const ReportManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-gray-500 mb-1">User Name</p>
-                    <p className="font-medium text-gray-900">{viewReport.userName}</p>
+                    <p className="font-medium text-gray-900">{viewContributionReport.userName}</p>
                   </div>
                   <div>
                     <p className="text-gray-500 mb-1">Id lễ hội</p>
-                    <p className="font-medium text-gray-900">{viewReport.heritageId}</p>
+                    <p className="font-medium text-gray-900">{viewContributionReport.contributionId}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-gray-500 mb-1">Tên lễ hội</p>
-                    <p className="font-medium text-gray-900">{viewReport.heritageName}</p>
+                    <p className="text-gray-500 mb-1">Tên bài viết</p>
+                    <p className="font-medium text-gray-900">{viewContributionReport.contributionName}</p>
                   </div>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Lý do</p>
                   <div className="bg-gray-50 rounded-md p-3">
                     <p className="font-medium text-gray-900 whitespace-pre-wrap">
-                      {viewReport.reason || "(không có)"}
+                      {viewContributionReport.reason || "(không có)"}
                     </p>
                   </div>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Trạng thái</p>
                   <p className="font-medium text-gray-900">
-                    {statusLabels[viewReport.status as keyof typeof statusLabels] || "(không có)"}
+                    {statusLabels[viewContributionReport.status as keyof typeof statusLabels] || "(không có)"}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Ngày tạo</p>
                   <p className="font-medium text-gray-900">
-                    {new Date(viewReport.createdAt).toLocaleString('vi-VN')}
+                    {new Date(viewContributionReport.createdAt).toLocaleString('vi-VN')}
                   </p>
                 </div>
               </div>
               <div className="flex justify-end mt-6 border-t pt-4">
                 <button
-                  onClick={() => setViewReport(null)}
+                  onClick={() => setViewContributionReport(null)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
                 >
                   Đóng
@@ -402,13 +402,13 @@ const ReportManagement: React.FC = () => {
         )}
 
         {/* Answer Modal */}
-        {selectedReport && (
+        {selectedContributionReport && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
               <h3 className="text-lg font-semibold mb-2">Trả lời báo cáo</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Báo cáo từ người dùng <b>{selectedReport.userName}</b> về di sản:{" "}
-                <b>{selectedReport.heritageName}</b>
+                Báo cáo từ người dùng <b>{selectedContributionReport.userName}</b> về di sản:{" "}
+                <b>{selectedContributionReport.contributionName}</b>
               </p>
               <textarea
                 value={answerText}
@@ -418,7 +418,7 @@ const ReportManagement: React.FC = () => {
               />
               <div className="flex justify-end gap-2 mt-6">
                 <button
-                  onClick={() => setSelectedReport(null)}
+                  onClick={() => setSelectedContributionReport(null)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
                 >
                   Hủy
@@ -438,11 +438,11 @@ const ReportManagement: React.FC = () => {
 
         {viewMode === "detail" && (
         <>
-          <ReportDetailManagement onClose={handleCloseView} reportId={selectedReportId}/>
+          <ContributionReportDetailManagement onClose={handleCloseView} reportId={selectedContributionReportId}/>
         </>)}
       </div>
     </Spin>
   );
 };
 
-export default ReportManagement;
+export default ContributionReportManagement;

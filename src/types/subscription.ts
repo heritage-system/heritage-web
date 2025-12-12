@@ -166,3 +166,41 @@ export interface ActiveSubscriptionData {
     used: number;
   }>;
 }
+
+export interface SubscriptionResponse {
+  id: number;
+  userId: number;
+  packageId: number;
+  startAt: string;
+  endAt: string;
+  status: SubscriptionStatus;
+
+  package: {
+    id: number;
+    name: string;
+    price: number;
+    currency?: string;
+    durationDays: number | null;
+    marketingMessage?: string;
+    isActive: boolean;
+    benefits: Array<{
+      benefitId: number;
+      benefitName: BenefitName;
+      benefitType: BenefitType;
+      value?: number | null;
+    }>;
+  };
+
+  payments: SubscriptionPayment[];
+
+  usageRecords: Array<{
+    id: number;
+    benefitName: BenefitName;
+    total: number | null;
+    used: number;
+    status: SubscriptionStatus; 
+  }>;
+
+  createdAt: string;
+  updatedAt?: string;
+}

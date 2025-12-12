@@ -82,7 +82,7 @@ const AdminHomeDashboard = () => {
       description: "Quản lý ngân sách, thanh toán và tài chính",
       modules: [
         { name: "Quản lý Ngân sách", icon: "DollarSign" },
-        { name: "Xử lý Thanh toán", icon: "CreditCard" },
+        { name: "Lịch sử tương tác", icon: "CreditCard" },
         { name: "Báo cáo Tài chính", icon: "PieChart" },
         { name: "Quản lý Hóa đơn", icon: "FileSpreadsheet" },
         { name: "Theo dõi Chi tiêu", icon: "TrendingUp" },
@@ -95,13 +95,13 @@ const AdminHomeDashboard = () => {
       count: 6,
       description: "Quản lý nhân viên và tổ chức",
       modules: [       
-        { name: "Quản lý Người Dùng", icon: "Users" },
+        // { name: "Quản lý Người Dùng", icon: "Users" },
         { name: "Quản lý Nhân viên", icon: "Users" },
-        { name: "Quản lý Phòng ban", icon: "Briefcase" },
-        { name: "Vai trò & Phân quyền", icon: "Shield" },
-        { name: "Theo dõi Chấm công", icon: "Clock" },
-        { name: "Đánh giá Hiệu suất", icon: "BarChart3" },
-        { name: "Quản lý Lương", icon: "CreditCard" },
+        { name: "Quản lý Cộng tác viên", icon: "Briefcase" },
+        // { name: "Vai trò & Phân quyền", icon: "Shield" },
+        // { name: "Theo dõi Chấm công", icon: "Clock" },
+        // { name: "Đánh giá Hiệu suất", icon: "BarChart3" },
+        // { name: "Quản lý Lương", icon: "CreditCard" },
       ],
     },
     {
@@ -141,10 +141,10 @@ const AdminHomeDashboard = () => {
       description: "CRM và quản lý quan hệ khách hàng",
       modules: [
         { name: "Cơ sở dữ liệu Khách hàng", icon: "Users" },
-        { name: "Phiếu hỗ trợ", icon: "MessageSquare" },
-        { name: "Trung tâm Giao tiếp", icon: "Mail" },
+        // { name: "Phiếu hỗ trợ", icon: "MessageSquare" },
+        // { name: "Trung tâm Giao tiếp", icon: "Mail" },
         { name: "Quản lý Phản hồi", icon: "MessageSquare" },
-        { name: "Phân tích Khách hàng", icon: "BarChart3" },
+        { name: "Quản lý Báo cáo", icon: "BarChart3" },
       ],
     },
     {
@@ -370,7 +370,7 @@ const AdminHomeDashboard = () => {
           {/* Quản lý Tài chính */}
           <div
             onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[1] } })}
-            className="col-span-3 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#50C878] group cursor-pointer overflow-hidden"
+            className="col-span-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#50C878] group cursor-pointer overflow-hidden"
           >
             <div className={`${moduleGroups[1].color} p-5 h-full text-white relative overflow-hidden min-h-[120px]`}>
               <div className="relative z-10 h-full flex flex-col">
@@ -385,7 +385,7 @@ const AdminHomeDashboard = () => {
           </div>
 
           {/* Hệ thống & Bảo mật */}
-          <div
+          {/* <div
             onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[4] } })}
             className="col-span-3 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#A3BFFA] group cursor-pointer overflow-hidden"
           >
@@ -399,25 +399,9 @@ const AdminHomeDashboard = () => {
                 <p className="text-white text-xs">{moduleGroups[4].description}</p>
               </div>
             </div>
-          </div>
+          </div> */}
 
-          {/* Quản lý Nhân sự */}
-          <div
-            onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[2] } })}
-            className="col-span-2 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#6D8299] group cursor-pointer overflow-hidden"
-          >
-            <div className={`${moduleGroups[2].color} p-5 h-full text-white relative overflow-hidden min-h-[120px]`}>
-              <div className="relative z-10 h-full flex flex-col">
-                <div className="flex items-center justify-between mb-3">
-                  <UserCog className="w-8 h-8" />
-                  <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">{moduleGroups[2].count}</span>
-                </div>
-                <h3 className="font-bold text-base mb-1">{moduleGroups[2].title}</h3>
-                <p className="text-white text-xs">{moduleGroups[2].description}</p>
-              </div>
-            </div>
-          </div>
-
+          
           {/* Quản lý Dự án */}
           <div
             onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[3] } })}
@@ -435,10 +419,39 @@ const AdminHomeDashboard = () => {
             </div>
           </div>
 
+          {/* Quản lý Nhân sự */}
+          <div
+            onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[2] } })}
+            className="col-span-3 row-span-2 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#6D8299] group cursor-pointer overflow-hidden"
+          >
+            <div className={`${moduleGroups[2].color} p-5 h-full text-white relative overflow-hidden min-h-[120px]`}>
+              <div className="relative z-10 h-full flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <UserCog className="w-8 h-8" />
+                  <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">{moduleGroups[2].count}</span>
+                </div>
+                <h3 className="font-bold text-base mb-1">{moduleGroups[2].title}</h3>
+                <p className="text-white text-xs">{moduleGroups[2].description}</p>
+                <div className="mt-auto">
+                  <div className="space-y-2">
+                    {moduleGroups[2].modules.slice(0, 4).map((module, idx) => (
+                      <div key={idx} className="flex items-center space-x-2 text-sm">
+                        <div className="w-1 h-1 bg-white rounded-full"></div>
+                        <span className="text-white">{module.name}</span>
+                      </div>
+                    ))}
+                    <div className="text-xs text-white mt-2">+{moduleGroups[0].modules.length - 4} modules khác</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
           {/* Quản lý Khách hàng */}
           <div
             onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[5] } })}
-            className="col-span-2 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#EC7063] group cursor-pointer overflow-hidden"
+            className="col-span-3 row-span-2 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#EC7063] group cursor-pointer overflow-hidden"
           >
             <div className={`${moduleGroups[5].color} p-5 h-full text-white relative overflow-hidden min-h-[120px]`}>
               <div className="relative z-10 h-full flex flex-col">
@@ -448,6 +461,17 @@ const AdminHomeDashboard = () => {
                 </div>
                 <h3 className="font-bold text-base mb-1">{moduleGroups[5].title}</h3>
                 <p className="text-white text-xs">{moduleGroups[5].description}</p>
+                <div className="mt-auto">
+                  <div className="space-y-2">
+                    {moduleGroups[5].modules.slice(0, 4).map((module, idx) => (
+                      <div key={idx} className="flex items-center space-x-2 text-sm">
+                        <div className="w-1 h-1 bg-white rounded-full"></div>
+                        <span className="text-white">{module.name}</span>
+                      </div>
+                    ))}
+                    <div className="text-xs text-white mt-2">+{moduleGroups[0].modules.length - 4} modules khác</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -455,7 +479,7 @@ const AdminHomeDashboard = () => {
           {/* Báo cáo & Phân tích */}
           <div
             onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[6] } })}
-            className="col-span-5 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#3498DB] group cursor-pointer overflow-hidden"
+            className="col-span-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#3498DB] group cursor-pointer overflow-hidden"
           >
             <div className={`${moduleGroups[6].color} p-5 h-full text-white relative overflow-hidden min-h-[140px]`}>
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/20 rounded-full -mr-10 -mt-10"></div>
@@ -481,7 +505,7 @@ const AdminHomeDashboard = () => {
           </div>
 
           {/* Quản lý Logistics */}
-          <div
+          {/* <div
             onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[7] } })}
             className="col-span-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#2E86C1] group cursor-pointer overflow-hidden"
           >
@@ -506,10 +530,10 @@ const AdminHomeDashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Tuân thủ & Rủi ro */}
-          <div
+          {/* <div
             onClick={() => navigate('/admin/adminPanelmanagement', { state: { module: moduleGroups[8] } })}
             className="col-span-3 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] hover:border-[#F1C40F] group cursor-pointer overflow-hidden"
           >
@@ -532,7 +556,9 @@ const AdminHomeDashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
+
+
         </div>
       </div>
     </div>

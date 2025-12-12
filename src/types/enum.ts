@@ -122,7 +122,8 @@ export enum SubscriptionStatus {
   ACTIVE = 0, 
   EXPIRED = 1,
   CANCELLED = 2,
-  PENDING = 3
+  PENDING = 3,
+  UPGRADED = 4
 }
 // ⚡ Khớp với backend C#
 export enum RoomRole {
@@ -177,5 +178,6 @@ export enum PointHistoriesReason
     CONTRIBUTION_VIEW = 1,      
     UNLOCK_CONTRIBUTION = 2,
     UNLOCK_SCENE = 3,
-    DAILY_BONUS = 4,          
+    UNLOCK_QUIZ = 4,
+    DAILY_BONUS = 5,          
 }

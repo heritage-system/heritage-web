@@ -1,5 +1,5 @@
 import { SortBy, PremiumType, QuizCategory, QuizLevel} from "./enum";
-
+import {SubscriptionDto} from "./subscription"
 export interface Question {
   id: number;
   question: string;
@@ -38,7 +38,8 @@ export interface QuizListResponse {
   bannerUrl: string,
   totalQuestions: number,
   numberOfClear: number,
-  isPremium: boolean
+  isPremium: boolean,
+  isUnlock: boolean
 }
 
 export interface QuizDetailResponse {
@@ -130,3 +131,12 @@ export interface QuizDetailAdminResponse {
   updatedAt: string;
 }
 
+export interface QuizOverviewResponse {
+  id: number,
+  title: string,
+  numberOfClear: number,
+  numberOfQuestion: number,
+  subscription: SubscriptionDto,
+  userPoint: number,
+  unSubscriptionLock: true
+}
