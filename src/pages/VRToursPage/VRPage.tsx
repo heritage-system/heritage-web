@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import {PointHistoriesReason} from "../../types/enum";
 import { tradePointToUnlockScene } from "../../services/userPointService";
-
+import TheasysViewer from "../../components/VRTours/TheasysViewer";
 const VRToursPage = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [tours, setTours] = useState<PanoramaTourSearchResponse[]>([]); 
@@ -253,9 +253,26 @@ const VRToursPage = () => {
       </div>  
 
       
-      {isPopupOpen && selectedTour && (
-        <VRTourPopup tour={selectedTour} onClose={handleClosePopup}  onHandleUnlock={handleUnlock} unlockLoading={unlockLoading} onUnlockWithPoints={onUnlockWithPoints} isAuthenticated={isLoggedIn}/>
-      )}
+      <>
+ 
+{/* <TheasysViewer
+    embedId="9U5sTljkNoN9M0t3KiTPzLaGnIQRiS"
+    open={isPopupOpen}
+    height={window.innerHeight * 0.85}
+  /> */}
+  {isPopupOpen && selectedTour && (
+    <VRTourPopup
+      tour={selectedTour}
+      onClose={handleClosePopup}
+      onHandleUnlock={handleUnlock}
+      unlockLoading={unlockLoading}
+      onUnlockWithPoints={onUnlockWithPoints}
+      isAuthenticated={isLoggedIn}
+    />
+  )}
+
+   
+</>
 
 {/* 
         <iframe

@@ -43,6 +43,8 @@ import InteractionHistory from './components/ViewProfile/InteractionHistory/Inte
 import ProtectedRoute from './components/Layouts/ProtectedRoute';
 import RoleProtectedRoute from './components/Layouts/RoleProtectedRoute';
 import ScrollToTop from "./components/Layouts/ScrollToTop";
+import Forbidden403 from './pages/Forbidden403/Forbidden403';
+import TheasysEmbed from './pages/VRToursPage/TheasysEmbed';
 const App: React.FC = () => {
   return (
     <Router>
@@ -79,7 +81,12 @@ const App: React.FC = () => {
         <Route path="/payment/result" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/payment/cancel" element={<MainLayout><PaymentResultPage /></MainLayout>} />
         <Route path="/term" element={<MainLayout><TermsPage /></MainLayout>} />
+        <Route path="/403" element={<MainLayout><Forbidden403 /></MainLayout>} />
         <Route path="/interaction-history" element={<ProtectedRoute><MainLayout><InteractionHistory /></MainLayout></ProtectedRoute>} />
+        <Route path="/the" element={<MainLayout><TheasysEmbed
+      embedId={"9U5sTljkNoN9M0t3KiTPzLaGnIQRiS"}
+      height={window.innerHeight * 0.85}
+    /></MainLayout>} />
 
       
        

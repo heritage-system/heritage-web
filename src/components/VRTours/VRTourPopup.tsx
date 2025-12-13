@@ -3,6 +3,8 @@ import { X, Eye, ChevronDown, ChevronUp, Star, HelpCircle, Coins, Ticket } from 
 import { PanoramaTourDetailResponse } from "../../types/panoramaTour";
 import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../Layouts/ModalLayouts/ConfirmModal"
+import TheasysEmbed from "../../pages/VRToursPage/TheasysEmbed";
+
 type Scene = {
   title: string;
   description: string;
@@ -360,14 +362,25 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
     </div>
   ) : (
     /* NORMAL MODE — SHOW IFRAME */
-    <iframe
-      key={currentScene}
-      src={tour.scenes[currentScene].panoramaUrl}
-      allowFullScreen
-      frameBorder="0"
-      scrolling="no"
-      allow="fullscreen; vr; accelerometer; gyroscope; magnetometer"
-      style={{ width: "100%", height: "100%" }}
+    // <iframe
+    //   key={currentScene}
+    //   src={tour.scenes[currentScene].panoramaUrl}
+    //   allowFullScreen
+    //   frameBorder="0"
+    //   scrolling="no"
+    //   allow="fullscreen; vr; accelerometer; gyroscope; magnetometer"
+    //   style={{ width: "100%", height: "100%" }}
+    // />
+
+//     <TheasysViewer
+//       key={tour.scenes[currentScene].id}
+//       embedId={"9U5sTljkNoN9M0t3KiTPzLaGnIQRiS"}
+//       height={window.innerHeight * 0.85}
+// /> 
+
+    <TheasysEmbed
+      embedId={tour.scenes[currentScene].panoramaUrl}
+      height={window.innerHeight * 0.85}
     />
   )}
 
