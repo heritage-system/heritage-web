@@ -40,7 +40,9 @@ const JoinRoomPage: React.FC = () => {
     setLoading(true);
     setErr(null);
     try {
-      const res = await getEvents({});
+      const today = new Date().toISOString(); // yyyy-MM-ddTHH:mm:ss
+     
+      const res = await getEvents({ from: today });
       if (res.code === 200 && res.result) {
         setEvents(res.result);
       } else {
