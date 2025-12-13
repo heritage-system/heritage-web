@@ -65,6 +65,16 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
     },
   ];
 
+  const extractEmbedId = (url: string) => {
+    try {
+      const match = url.match(/viewer\/([A-Za-z0-9]+)/);
+      return match ? match[1] : url;
+    } catch {
+      return url;
+    }
+  };
+
+
   useEffect(() => {
     const timeout = setTimeout(() => setIsLoading(false), 1200);
     return () => clearTimeout(timeout);
@@ -379,7 +389,7 @@ const VRTourPopup: React.FC<VRTourPopupProps> = ({ tour, onClose, onHandleUnlock
 // /> 
 
     <TheasysEmbed
-      embedId={tour.scenes[currentScene].panoramaUrl}
+      embedId={extractEmbedId(tour.scenes[currentScene].panoramaUrl)}
       height={window.innerHeight * 0.85}
     />
   )}
