@@ -230,14 +230,19 @@ useEffect(() => {
             String(p.rtcUid) === String(myRtcUid)
         );
 
-      if (isKicked) {
+          if (isKicked) {
         toast.error("Bạn đã bị host kick khỏi phòng");
         try {
           await leaveLive(); // 👈 dùng hàm context
         } finally {
-          window.location.assign("/stream/join");
+          if (window.history.length > 1) {
+            window.history.back();         // quay lại trang trước
+          } else {
+            window.location.assign("/");   // fallback nếu không có history
+          }
         }
       }
+
     } catch {
       // ignore
     }
@@ -361,41 +366,46 @@ const fetchTokens = async (nameOverride?: string) => {
 
 
 const setRoleFn: Ctx["setRole"] = async (userId, role) => {
-  if (!effectiveRoomName) { toast.error("Nhập roomName"); return; }
+  if (!effectiveRoomName) {
+    toast.error("Nhập roomName");
+    return;
+  }
+
   const res = await setParticipantRole(effectiveRoomName, { userId, role });
-  if (res.code === 200) {
-    toast.success("Đã đổi quyền");
-    await refreshRoster(); // cập nhật role mới vào roster
 
-    // Nếu người bị đổi quyền là chính mình → nâng cấp client ngay
-    if (selfUserId && userId === selfUserId) {
-      const newGrant = await fetchTokens(); // lấy token publisher nếu thành host-ish
-      if (newGrant) {
-        // map role → clientRole
-       const clientRole =
-  role === RoomRole.HOST ||
-  role === RoomRole.COHOST ||
-  role === RoomRole.SPEAKER
-    ? "host"
-    : "audience";
-
-        try {
-          await rtcSetClientRole(clientRole);
-          await renewRtcToken(newGrant.rtcToken);
-          toast.success("Đã áp dụng quyền mới cho client");
-        } catch (e: any) {
-          // fallback: nếu renewToken không đủ, có thể leave & join lại
-          toast.error("Cần rời & vào lại phòng để áp dụng quyền mới");
-        }
-      }
-    } else {
-      // nếu đổi quyền người khác → chỉ cần reload roster
-      await refreshRoster();
-    }
-  } else {
+  if (res.code !== 200) {
     toast.error(res.message || "Đổi quyền thất bại");
+    return;
+  }
+
+  toast.success("Đã đổi quyền");
+
+  // 🔥 1) Gửi lệnh RESYNC cho TOÀN PHÒNG + tự refresh cho host
+  await resyncParticipantsAll();
+
+  // 🔥 2) Nếu chính mình được đổi quyền → apply xuống RTC client
+  if (selfUserId && userId === selfUserId) {
+    const newGrant = await fetchTokens(); // lấy token mới nếu role cho phép publish
+    if (!newGrant) return;
+
+    const clientRole =
+      role === RoomRole.HOST ||
+      role === RoomRole.COHOST ||
+      role === RoomRole.SPEAKER
+        ? "host"
+        : "audience";
+
+    try {
+      await rtcSetClientRole(clientRole);
+      await renewRtcToken(newGrant.rtcToken);
+      toast.success("Đã áp dụng quyền mới cho client");
+    } catch (e: any) {
+      // Nếu renewToken fail (VD: role change phức tạp), để user tự re-join
+      toast.error("Cần rời & vào lại phòng để áp dụng quyền mới");
+    }
   }
 };
+
   // ----- Roster & Waiting helpers -----
 
 
@@ -431,11 +441,17 @@ const bindAgoraListenersOnce = () => {
     if (remoteWrapRef.current) removeRemoteSlot(remoteWrapRef.current, user.uid!);
     scheduleRefreshRoster();
   };
-  const pub = async (user: any, mediaType: "audio"|"video") => {
+const pub = async (user: any, mediaType: "audio" | "video") => {
+  if (mediaType === "video") {
     if (!remoteWrapRef.current) return;
     const slot = createRemoteSlot(remoteWrapRef.current, user.uid!);
     await subscribeAndPlay(user, mediaType, slot);
-  };
+  } else {
+    // audio không cần container
+    await subscribeAndPlay(user, mediaType);
+  }
+};
+
   const unpub = (user: any) => {
     if (remoteWrapRef.current) removeRemoteSlot(remoteWrapRef.current, user.uid!);
   };
@@ -731,9 +747,25 @@ const toggleCam: Ctx["toggleCam"] = async () => {
 
 useEffect(() => {
   if (!joined) return;
+
+  // 1) Bind listener cho user-joined / user-published / ...
   bindAgoraListenersOnce();
-  return () => { unbindAgoraListeners(); };
+
+  // 2) Sau khi listener đã bind, cố gắng "bắt kịp" tất cả remote đang có
+  const wrap = remoteWrapRef.current;
+  if (wrap) {
+    // có container → tạo slot cho từng uid
+    void catchUpExistingRemotes((uid) => createRemoteSlot(wrap, uid));
+  } else {
+    // không có container (ít khi xảy ra) → ít nhất vẫn subscribe audio
+    void catchUpExistingRemotes();
+  }
+
+  return () => {
+    unbindAgoraListeners();
+  };
 }, [joined]);
+
 
 const toggleMic: Ctx["toggleMic"] = async () => {
   if (!joined) {

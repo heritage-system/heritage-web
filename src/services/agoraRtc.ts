@@ -114,14 +114,24 @@ export async function disableCamera() {
 export async function enableMic() {
   if (!client) throw new Error("Chưa join kênh");
   try { await setClientRole("host"); } catch {}
-  if (!localAudioTrack) {
-    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+
+  try {
+    if (!localAudioTrack) {
+      console.log("[enableMic] creating microphone track...");
+      localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    } else {
+      console.log("[enableMic] reusing mic track");
+      await localAudioTrack.setEnabled(true);
+    }
     await client!.publish([localAudioTrack]);
-  } else {
-    await localAudioTrack.setEnabled(true);
-    await client!.publish([localAudioTrack]);
+    console.log("[enableMic] mic published");
+  } catch (err: any) {
+    console.error("[enableMic] error", err);
+    // (option) phân tích err.name / err.message giống toggleMic
+    throw err;
   }
 }
+
 export async function catchUpExistingRemotes(containerFactory?: (uid: string|number) => HTMLElement) {
   if (!client) return;
   const users = client.remoteUsers;
