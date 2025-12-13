@@ -400,14 +400,14 @@ const SceneFormUI = ({
         />
       </div>
       {/* Panorama View */}
-      <div className="w-full aspect-video bg-black rounded-xl overflow-hidden border shadow">
+      {/* <div className="w-full aspect-video bg-black rounded-xl overflow-hidden border shadow">
         <iframe
           src={scene.panoramaUrl}
           className="w-full h-full"
           allowFullScreen
           loading="lazy"
         />
-      </div>
+      </div> */}
 
       {/* Description */}
       <div className="space-y-1">

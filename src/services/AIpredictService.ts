@@ -3,7 +3,7 @@ import { HeritageSearchResponse } from "../types/heritage";
 import { ApiResponse } from "../types/apiResponse";
 import { PageResponse } from "../types/pageResponse";
 
-import { AI_API_URL,API_URL } from "../utils/baseUrl";
+import { API_URL } from "../utils/baseUrl";
 import { fetchInterceptor } from "../utils/interceptor";
 
 // export const predictHeritage = async (
