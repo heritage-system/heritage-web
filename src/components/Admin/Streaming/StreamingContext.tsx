@@ -688,21 +688,18 @@ const sendRoomText = async (text: string) => {
 };
 
 
-
 const toggleCam: Ctx["toggleCam"] = async () => {
   if (!joined) {
     toast.error("Bạn chưa join phòng");
     return;
   }
-  if (!isHost) {
-    toast.error("Chỉ Host/CoHost được bật/tắt camera");
-    return;
-  }
+
+  // ❗ Audience gọi tới thì bỏ qua, KHÔNG toast
+  if (!isHost) return;
 
   const wantOn = !camOn;
 
   if (wantOn) {
-    // BẬT CAMERA
     try {
       const container = document.getElementById("local-player") as HTMLDivElement | null;
       await enableCamera(container ?? undefined);
@@ -726,13 +723,10 @@ const toggleCam: Ctx["toggleCam"] = async () => {
         toast.error("Không thể bật camera. Vui lòng kiểm tra thiết bị & quyền truy cập.");
       }
 
-      // rollback UI
       setLocalVideoReady(false);
       setCamOn(false);
-      // KHÔNG ném lại lỗi, tránh React show error đỏ
     }
   } else {
-    // TẮT CAMERA
     try {
       await disableCamera();
     } catch (err) {
@@ -772,10 +766,9 @@ const toggleMic: Ctx["toggleMic"] = async () => {
     toast.error("Bạn chưa join phòng");
     return;
   }
-  if (!isHost) {
-    toast.error("Chỉ Host/CoHost được bật/tắt mic");
-    return;
-  }
+
+  // ❗ Audience gọi tới thì bỏ qua, KHÔNG toast
+  if (!isHost) return;
 
   const wantOn = !micOn;
 
@@ -795,6 +788,7 @@ const toggleMic: Ctx["toggleMic"] = async () => {
         msg.includes("permission") ||
         msg.includes("not allowed")
       ) {
+        // ❗ Đây là lỗi permission của TRÌNH DUYỆT – chỉ user hiện tại thấy
         toast.error("Bạn đã từ chối cho phép sử dụng micro cho tab này.");
       } else {
         toast.error("Không thể bật micro. Vui lòng kiểm tra thiết bị & quyền truy cập.");
@@ -812,7 +806,6 @@ const toggleMic: Ctx["toggleMic"] = async () => {
     }
   }
 };
-
 
  const startShare = async (withAudio = true) => {
   if (!joined) {
