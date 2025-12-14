@@ -215,9 +215,9 @@ const DiscoveryPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const today = new Date().toISOString(); // yyyy-MM-ddTHH:mm:ss
+        // const today = new Date().toISOString(); // yyyy-MM-ddTHH:mm:ss
 
-        const res = await getEvents({ from: today });
+        const res = await getEvents({ });
         if (res.code === 200 && res.result) {
           setEvents(res.result);
         }
