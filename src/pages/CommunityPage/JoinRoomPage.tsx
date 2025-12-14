@@ -36,56 +36,24 @@ const JoinRoomPage: React.FC = () => {
   const navigate = useNavigate();
   const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
 
-  // const load = async () => {
-  //   setLoading(true);
-  //   setErr(null);
-  //   try {
-  //     const today = new Date().toISOString(); // yyyy-MM-ddTHH:mm:ss
-  //     const res = await getEvents({ from: today });
-  //     if (res.code === 200 && res.result) {
-  //       setEvents(res.result);
-  //     } else {
-  //       setErr(res.message || "Không tải được danh sách sự kiện.");
-  //     }
-  //   } catch (e) {
-  //     setErr("Không thể kết nối máy chủ.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-const load = async () => {
-  setLoading(true);
-  setErr(null);
-  try {
-    const now = new Date();
-
-    // 👉 Tạo mốc 00:00 của ngày hôm nay (theo local time)
-    const startOfToday = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(), // 0h00
-      0,
-      0,
-      0,
-      0
-    );
-
-    const from = startOfToday.toISOString(); // gửi lên backend
-
-    const res = await getEvents({ from });
-    if (res.code === 200 && res.result) {
-      setEvents(res.result);
-    } else {
-      setErr(res.message || "Không tải được danh sách sự kiện.");
+  const load = async () => {
+    setLoading(true);
+    setErr(null);
+    try {
+      //const today = new Date().toISOString(); // yyyy-MM-ddTHH:mm:ss
+     
+      const res = await getEvents({ });
+      if (res.code === 200 && res.result) {
+        setEvents(res.result);
+      } else {
+        setErr(res.message || "Không tải được danh sách sự kiện.");
+      }
+    } catch (e) {
+      setErr("Không thể kết nối máy chủ.");
+    } finally {
+      setLoading(false);
     }
-  } catch (e) {
-    setErr("Không thể kết nối máy chủ.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     void load();
