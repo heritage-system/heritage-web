@@ -173,7 +173,7 @@ const moduleStructure = {
     { id: "events", name: "Sự kiện & Workshop", icon: CalendarRange, component: EventList,onlyAdmin: false },
    // { id: "eventCreate", name: "Tạo sự kiện", icon: PlusCircle, component: EventCreate },
     //{ id: "liveRooms", name: "Phòng livestream", icon: Video, component: LiveRoomManager },
-    { id: "participants", name: "Người tham gia", icon: Users, component: ParticipantManager,onlyAdmin: false },
+    //{ id: "participants", name: "Người tham gia", icon: Users, component: ParticipantManager,onlyAdmin: false },
   ]
 },
   systemSecurity: {
