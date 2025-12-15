@@ -218,7 +218,7 @@ const TermsPage: React.FC = () => {
               
               {/* Introduction */}
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-blue-800">Cơ chế "Điểm Lĩnh Hội" & Phần thưởng</h2>
+                <h2 className="text-2xl font-bold text-blue-800">Cơ chế "Điểm Linh Hội" & Phần thưởng</h2>
                 <p className="text-gray-500 mt-2">Tham gia tranh tài, tích lũy điểm và đổi lấy những đặc quyền giá trị.</p>
               </div>
 
