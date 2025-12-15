@@ -28,7 +28,7 @@ const DiscoveryUpcomingEvents = () => {
       time: '20:00',
       location: 'Hà Nội',
       attendees: 180,
-      image: 'https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a?w=80&h=60&fit=crop'
+      image: 'https://consosukien.vn/pic/News/Nam_2022/ro-i-nuo-c-loa-i-hi-nh-nghe-thuat-dan-gian-doc-dao-cua-vie-t-nam.jpg'
     }
   ];
 

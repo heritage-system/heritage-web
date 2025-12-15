@@ -1,84 +1,187 @@
-import { MapPin, Star, Eye, MessageSquare, Calendar, Heart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // Thêm dòng này
-import { Heritage } from "../../types/heritage";
+import { useState } from "react";
+import { MapPin, Calendar } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  HeritageSearchResponse,
+  HeritageLocation,
+  HeritageOccurrence,
+} from "../../types/heritage";
+import FavoriteButton from "../Layouts/ButtonLayouts/FavoriteButton";
+import ScoreRing from "../Layouts/ButtonLayouts/ScoreRing";
+import { useAuth } from '../../hooks/useAuth';
 
 interface DiscoveryHeritageCardProps {
-  heritage: Heritage;
+  heritage: HeritageSearchResponse;
 }
 
-const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({ heritage }) => {
-  const navigate = useNavigate(); // Thêm dòng này
+const DEFAULT_IMAGE = "https://placehold.co/600x400?text=No+Image";
 
-const handleCardClick = () => {
-    navigate('/heritagedetail'); 
+const DiscoveryHeritageCard: React.FC<DiscoveryHeritageCardProps> = ({
+  heritage,
+}) => {
+  const navigate = useNavigate();
+  const [showAllLocations, setShowAllLocations] = useState(false);
+  const { isLoggedIn, logout: authLogout, userName, avatarUrl } = useAuth();
+
+  
+  const handleCardClick = () => {
+    navigate(`/heritagedetail/${heritage.id}`);
+  };
+  const imageUrl = heritage.media?.url || DEFAULT_IMAGE;
+
+  const formatLocation = (loc: HeritageLocation) => {
+    return [loc.province, loc.district, loc.ward, loc.addressDetail]
+      .filter(Boolean)
+      .join(", ");
   };
 
-  return (
-   <div
-  className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow group cursor-pointer"
-  onClick={handleCardClick}
->
-  <div className="relative">
-    <img
-      src={heritage.image}
-      alt={heritage.name}
-      className="w-full h-48 object-cover rounded-t-xl"
-    />
-    <div className="absolute top-3 left-3 flex gap-2">
-      {heritage.hasVR && (
-        <span className="bg-yellow-700 text-white px-2 py-1 rounded-full text-xs font-medium">
-          VR
+  const locationNames = heritage.heritageLocations?.length
+    ? heritage.heritageLocations.map(formatLocation)
+    : ["Chưa rõ địa điểm"];
+
+  const displayLocation = showAllLocations ? (
+    <div className="flex flex-col space-y-1">
+      {locationNames.map((loc, i) => (
+        <span key={i} className="truncate max-w-[220px]">
+          {loc}
         </span>
-      )}
-      {heritage.isHot && (
-        <span className="bg-red-700 text-white px-2 py-1 rounded-full text-xs font-medium">
-          Hot
-        </span>
+      ))}
+      {locationNames.length > 1 && (
+        <button
+          className="text-blue-600 text-xs mt-1 hover:underline self-start"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAllLocations(false);
+          }}
+        >
+          Thu gọn
+        </button>
       )}
     </div>
-    <button className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-yellow-50 transition-colors">
-      <Heart className="w-4 h-4 text-gray-400 hover:text-red-700" />
-    </button>
-  </div>
-
-  <div className="p-4">
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-xs text-gray-500 flex items-center">
-        <Calendar className="w-3 h-3 mr-1" />
-        {heritage.date}
+  ) : (
+    <div className="flex flex-col">
+      <span className="truncate max-w-[200px] inline-block align-bottom">
+        {locationNames[0]}
       </span>
-      <div className="flex items-center">
-        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-        <span className="text-sm font-medium text-gray-700 ml-1">{heritage.rating}</span>
-      </div>
+      {locationNames.length > 1 && (
+        <button
+          className="text-blue-600 font-medium whitespace-nowrap text-xs hover:underline mt-1 text-left"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAllLocations(true);
+          }}
+        >
+          +{locationNames.length - 1} địa điểm khác
+        </button>
+      )}
     </div>
+  );
 
-    <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
-      {heritage.name}
-    </h3>
+  const occurrence: HeritageOccurrence | undefined =
+    heritage.heritageOccurrences?.[0];
 
-    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-      {heritage.description}
-    </p>
+  const calendarLabelMap: Record<string, string> = {
+    SOLAR: "Dương lịch",
+    LUNAR: "Âm lịch",
+  };
 
-    <div className="flex items-center justify-between">
-      <div className="flex items-center text-sm text-gray-500">
-        <MapPin className="w-4 h-4 mr-1" />
-        {heritage.location}
+ let rawDateLabel = "Không xác định";
+
+  if (occurrence) {
+    if (occurrence.occurrenceTypeName === "RECURRINGRULE") {
+      rawDateLabel = occurrence.recurrenceRule || "Định kỳ";
+    } else {
+      rawDateLabel = `${occurrence.startDay}/${occurrence.startMonth}${
+        occurrence.occurrenceTypeName !== "EXACTDATE" &&
+        occurrence.endDay &&
+        occurrence.endMonth
+          ? ` - ${occurrence.endDay}/${occurrence.endMonth}`
+          : ""
+      } (${calendarLabelMap[occurrence.calendarTypeName] || occurrence.calendarTypeName})`;
+    }
+  }
+
+
+  const [showFullDate, setShowFullDate] = useState(false);
+const isLongText = rawDateLabel.length > 45; 
+const displayedDateLabel =
+  isLongText && !showFullDate ? rawDateLabel.slice(0, 45) + "..." : rawDateLabel;
+
+  return (
+    <div
+      className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow group cursor-pointer"
+      onClick={handleCardClick}
+    >
+      {/* Image */}
+      <div className="relative">
+        <img
+          src={imageUrl}
+          alt={heritage.name}
+          className="w-full h-48 object-cover rounded-t-xl"
+        />
+        <div
+          className="absolute top-3 right-3"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >      
+            {isLoggedIn &&
+            heritage.score == null && (
+              <FavoriteButton
+                heritageId={heritage.id}
+                isFavorite={heritage.isSave}
+                size="md"
+              />
+            )}
+        
+        </div>
       </div>
-      <div className="flex items-center space-x-4 text-sm text-gray-500">
-        <span className="flex items-center">
-          <Eye className="w-4 h-4 mr-1" />
-          {heritage.views}
-        </span>
-        <span className="flex items-center">
-          <MessageSquare className="w-4 h-4 mr-1" />
-          {heritage.comments}
-        </span>
-      </div>
-    </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {/* Date */}
+        <div className="flex items-center justify-between mb-2">
+          {/* Date */}
+<div className="flex items-center justify-between">
+  <div className="text-xs text-gray-500 flex items-center">
+    <Calendar className="w-3 h-3 mr-1 shrink-0" />
+    
+    <span
+      className="truncate max-w-[200px] cursor-help"
+      title={rawDateLabel} // <-- tooltip hiển thị toàn bộ nội dung khi hover
+    >
+      {rawDateLabel}
+    </span>
   </div>
 </div>
+
+        </div>
+
+        {/* Title */}
+        <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
+          {heritage.name}
+        </h3>
+
+        {/* Category & Tags */}
+        <p className="text-xs text-gray-500 mb-1">
+          <strong>Danh mục:</strong>{" "}
+          {heritage.categoryName || "Chưa rõ danh mục"}
+        </p>
+        <p className="text-xs text-gray-500 mb-3">
+          <strong>Thể loại:</strong>{" "}
+          {heritage.heritageTags.length
+            ? heritage.heritageTags.join(", ")
+            : "Chưa có tag"}
+        </p>
+
+        {/* Footer */}
+        <div className="flex items-start text-sm text-gray-500 overflow-hidden">
+          <MapPin className="w-4 h-4 mr-1 shrink-0 mt-1" />
+          
+          {displayLocation}
+        </div>
+      </div>
+    </div>
   );
 };
 

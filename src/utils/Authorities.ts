@@ -1,14 +1,10 @@
 
 export const getRedirectPath = (userType: string): string => {
-  switch (userType) {
-    case "DOCTOR":
-      return "/dashboard";
+  switch (userType) {  
     case "STAFF":
-      return "/staff";
-    case "RECEPTIONIST":
-      return "/receptionist";
+      return "/admin/adminHomeDashboard";
     case "ADMIN":
-      return "/";
+      return "/admin/adminHomeDashboard";
     case "USER":
     default:
       return "/";

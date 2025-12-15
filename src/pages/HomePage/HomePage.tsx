@@ -24,7 +24,7 @@ const HomePage: React.FC = () => {
     lat: 20.5531,
     lng: 105.5872,
     description: "Lễ hội lớn nhất miền Bắc, diễn ra tại chùa Hương với nhiều hoạt động tâm linh.",
-    image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400&h=240&fit=crop",
+    image: "https://hnm.1cdn.vn/2025/02/03/chua-huong-trong-hoi.jpg",
     location: "Hà Nội",
     date: "15/01/2025",
     rating: 4.9,
@@ -42,7 +42,7 @@ const HomePage: React.FC = () => {
     lat: 16.4637,
     lng: 107.5909,
     description: "Di sản văn hóa phi vật thể được UNESCO công nhận.",
-    image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=240&fit=crop",
+    image: "https://imgnvsk.vnanet.vn/MediaUpload/Org/2023/07/29/vna-potal-nha-nhac-cung-dinh-hue-thang-hoa-cung-thoi-gian-678775429-10-47-16.jpg",
     location: "Thừa Thiên Huế",
     date: "20/03/2025",
     rating: 4.8,
@@ -60,7 +60,7 @@ const HomePage: React.FC = () => {
     lat: 21.0285,
     lng: 105.8542,
     description: "Nghệ thuật múa rối nước truyền thống của Việt Nam.",
-    image: "https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a?w=400&h=240&fit=crop",
+    image: "https://consosukien.vn/pic/News/Nam_2022/ro-i-nuo-c-loa-i-hi-nh-nghe-thuat-dan-gian-doc-dao-cua-vie-t-nam.jpg",
     location: "Hà Nội",
     date: "25/02/2025",
     rating: 4.6,
@@ -84,7 +84,7 @@ const HomePage: React.FC = () => {
     <>
       {/* <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} /> */}
       <HeroSection />
-      <SearchSection 
+      {/* <SearchSection 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
@@ -101,10 +101,10 @@ const HomePage: React.FC = () => {
             />
           ))}
         </div>
-      </section>
+      </section> */}
       <FeaturesSection />
       <TestimonialsSection />
-      <NewsletterSection />
+      {/* <NewsletterSection /> */}
       {/* <Footer /> */}
     </>
   );

@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser, SignInWithGoogle } from "../../services/authService";
+import { loginUser} from "../../services/authService"; 
 import { getRedirectPath } from "../../utils/Authorities";
 import toast, { Toaster } from 'react-hot-toast';
 import { SignInRequest } from "../../types/auth";
@@ -9,8 +9,10 @@ import { GoogleConfiguration } from '../../configuration/GoogleConfiguration';
 import { Eye, EyeOff } from "lucide-react"; 
 
 const Login: React.FC = () => {
-  const [form, setForm] = useState<SignInRequest>({ emailOrUsername: "", password: "", remember: false });
+  const [form, setForm] = useState<SignInRequest>({ emailOrUsername: "", password: "", remember: true });
   const [showPassword, setShowPassword] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -21,6 +23,10 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return; 
+
+    setIsSubmitting(true);
+
     try {
       const request: SignInRequest = {
         emailOrUsername: form.emailOrUsername,
@@ -30,18 +36,32 @@ const Login: React.FC = () => {
 
       const response = await loginUser(request);
 
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
+      if(response.code === 200){
+        localStorage.setItem("accessToken", response.result!.accessToken);
+        localStorage.setItem("refreshToken", response.result!.refreshToken);
+        localStorage.setItem("userName", response.result!.userName);
+        localStorage.setItem("avatarUrl", response.result!.avatarUrl);
+        localStorage.setItem("userType", response.result!.userType);
 
-      toast.success('Đăng nhập thành công! Chào mừng bạn trở lại!', {
-        duration: 1000,
+        toast.success('Đăng nhập thành công! Chào mừng bạn trở lại!', {
+          duration: 1000,
+          position: 'top-right',
+          style: { background: '#059669', color: '#fff' },
+          iconTheme: { primary: '#fff', secondary: '#059669' },
+        });
+        authLogin(response);
+        const redirectPath = getRedirectPath(response.result!.userType);
+        setTimeout(() => navigate(redirectPath), 500);
+      }
+      else{
+        toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!', {
+        duration: 5000,
         position: 'top-right',
-        style: { background: '#059669', color: '#fff' },
-        iconTheme: { primary: '#fff', secondary: '#059669' },
+        style: { background: '#DC2626', color: '#fff' },
+        iconTheme: { primary: '#fff', secondary: '#DC2626' },
       });
-      authLogin(response);
-      const redirectPath = getRedirectPath(response.userType);
-      setTimeout(() => navigate(redirectPath), 500);
+      }
+      
     } catch (error) {
       toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin!', {
         duration: 5000,
@@ -49,7 +69,9 @@ const Login: React.FC = () => {
         style: { background: '#DC2626', color: '#fff' },
         iconTheme: { primary: '#fff', secondary: '#DC2626' },
       });
-    }
+    } finally {
+        setIsSubmitting(false);
+      }
   };
   const handleGoogleLogin = () => {
         const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GoogleConfiguration.client_id}&redirect_uri=${GoogleConfiguration.redirect_uri}&response_type=${GoogleConfiguration.response_type}&scope=${GoogleConfiguration.scope}&prompt=consent`;
@@ -113,27 +135,49 @@ const Login: React.FC = () => {
                   name="remember"
                   checked={form.remember}
                   onChange={handleChange}
-                  className="mr-2"
+                  className="mr-2 accent-yellow-700"
                 />
                 Ghi nhớ tôi
               </label>
-              <Link to="/forgot-password" className="text-sm text-purple-600 hover:underline">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-yellow-700 hover:text-yellow-800 hover:underline"
+              >
                 Quên mật khẩu?
               </Link>
+
+
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition duration-300"
+              disabled={isSubmitting}
+              className={`
+                w-full py-3 mb-4 rounded-xl font-semibold transition duration-300
+                ${isSubmitting 
+                  ? "bg-gray-300 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-yellow-800 to-yellow-600 text-white hover:shadow-lg"
+                }
+              `}
             >
-              Đăng nhập
+              {isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
             </button>
+
+
 
             <button
               type="button"
-              className="w-full py-3 mb-4 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:shadow-md transition duration-300 flex justify-center items-center space-x-2"
-              onClick={handleGoogleLogin}
+              disabled={isSubmitting}
+              className={`
+                w-full py-3 mb-4 border rounded-xl font-semibold flex justify-center items-center space-x-2 transition
+                ${isSubmitting 
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200" 
+                  : "bg-white border-gray-300 text-gray-700 hover:shadow-md"
+                }
+              `}
+              onClick={!isSubmitting ? handleGoogleLogin : undefined}
             >
+
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png"
                 alt="Google"
@@ -143,11 +187,19 @@ const Login: React.FC = () => {
             </button>
 
             <p className="text-center text-sm text-gray-700">
-              Chưa có tài khoản?{" "}
-              <Link to="/register" className="text-purple-600 font-medium hover:underline">
-                Đăng ký
-              </Link>
-            </p>
+                Chưa có tài khoản?{" "}
+                {isSubmitting ? (
+                  <span className="text-gray-400 cursor-not-allowed">Đăng ký</span>
+                ) : (
+                  <Link
+                    to="/register"
+                    className="text-yellow-700 font-medium hover:text-yellow-800 hover:underline"
+                  >
+                    Đăng ký
+                  </Link>
+                )}
+              </p>
+
           </form>
         </div>
       </div>

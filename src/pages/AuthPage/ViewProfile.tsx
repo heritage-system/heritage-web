@@ -1,42 +1,28 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 
-interface User {
-  avatar: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  joined: string;
-  gender: string;
-  birthdate: string;
-  job: string;
-  hobbies: string;
-  bio: string;
+// Components
+import ProfileSidebar from "../../components/ViewProfile/ProfileSidebar";
+import ProfileHeader from "../../components/ViewProfile/ProfileHeader";
+import ProfileInfoCard from "../../components/ViewProfile/ProfileInfoCards";
+import TabContent from "../../components/ViewProfile/TabContent";
+import ChangePassword from "../../components/ViewProfile/ChangePassword";
+import { toast } from 'react-hot-toast';
+import Spinner from "../../components/Layouts/LoadingLayouts/Spinner";
+// Services & Types
+import { getProfile, updateProfile, updatePassword } from "../../services/userService";
+import { getListContributionOverview } from "../../services/contributionService";
+import { UpdateProfileResponse, UpdateProfileRequest } from "../../types/user";
+import {
+  ContributionOverviewItemListResponse 
+} from "../../types/contribution";
+// Thêm interface cho Change Password (sync với backend)
+interface ChangePasswordFormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
-interface HeritageItem {
-  name: string;
-  type: string;
-  rating?: number;
-}
-
-interface EventItem {
-  name: string;
-  date: string;
-}
-
-interface QuizItem {
-  title: string;
-  score: number;
-  total: number;
-  date: string;
-}
-
-interface ContributionItem {
-  title: string;
-  status: string;
-}
 
 interface ContributionForm {
   title: string;
@@ -44,92 +30,147 @@ interface ContributionForm {
   type: string;
 }
 
-interface MenuItem {
-  key: string;
-  label: string;
-  icon: string;
-}
-
-const mockUser: User = {
-  avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-  name: "Nguyễn Văn A",
-  email: "nguyenvana@email.com",
-  phone: "0123 456 789",
-  address: "123 Đường ABC, Quận 1, TP.HCM",
-  joined: "01/07/2024",
-  gender: "Nam",
-  birthdate: "1995-05-15",
-  job: "Kỹ sư phần mềm",
-  hobbies: "Đọc sách, đi du lịch, chụp ảnh",
-  bio: "Yêu thích khám phá di sản Việt Nam, đam mê công nghệ và du lịch.",
-};
-
-const mockHeritage: HeritageItem[] = [
-  { name: "Vịnh Hạ Long", type: "Yêu thích", rating: 5 },
-  { name: "Phố cổ Hội An", type: "Đánh giá", rating: 4 },
-];
-
-const mockEvents: EventItem[] = [
-  { name: "Lễ hội Áo dài", date: "20/03/2025" },
-  { name: "Ngày Di sản Việt Nam", date: "23/11/2024" },
-];
-
-const mockQuiz: QuizItem[] = [
-  { title: "Quiz Văn hóa miền Bắc", score: 8, total: 10, date: "01/06/2025" },
-  { title: "Quiz Ẩm thực Việt", score: 7, total: 10, date: "15/05/2025" },
-];
-
-const mockContributions: ContributionItem[] = [
-  { title: "Bài viết về Chùa Một Cột", status: "Đã duyệt" },
-  { title: "Ảnh Lễ hội Đền Hùng", status: "Chờ duyệt" },
-];
-
-const MENU: MenuItem[] = [
-  { key: "profile", label: "Thông tin cá nhân", icon: "👤" },
-  { key: "heritage", label: "Di sản đã tương tác", icon: "🏛️" },
-  { key: "events", label: "Sự kiện đã tham gia", icon: "🎉" },
-  { key: "quiz", label: "Lịch sử quiz", icon: "📝" },
-  { key: "contributions", label: "Đóng góp đã gửi", icon: "📤" },
-];
 
 const ViewProfile: React.FC = () => {
-  const user = mockUser;
+  // State management
+  const [profile, setProfile] = useState<UpdateProfileResponse | null>(null);
   const [editMode, setEditMode] = useState<boolean>(false);
-  const [formData, setFormData] = useState<User>({ ...user });
+  const [formData, setFormData] = useState<UpdateProfileRequest>({});
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get("tab") || "profile";
-  const [menu, setMenu] = useState<string>(currentTab);
   const [contributionForm, setContributionForm] = useState<ContributionForm>({
     title: "",
     description: "",
     type: "Bài viết",
   });
-  const [contributions, setContributions] = useState<ContributionItem[]>(mockContributions);
+  const [contributions, setContributions] = useState<ContributionOverviewItemListResponse[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [passwordLoading, setPasswordLoading] = useState(false);  
+  const [selectedContributionId, setSelectedContributionId] = useState<number | null>(null);
 
+
+  // Load profile data
   useEffect(() => {
-    setMenu(currentTab);
-  }, [currentTab]);
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const res = await getProfile();
+        if (res.code === 200 && res.result) {
+          setProfile(res.result);
+          // Đảm bảo chỉ lấy các field hợp lệ cho formData
+          setFormData({
+            fullName: res.result.fullName,
+            email: res.result.email,
+            userName: res.result.userName,
+            phone: res.result.phone,
+            address: res.result.address,
+            dateOfBirth: res.result.dateOfBirth,
+            avatarUrl: res.result.avatarUrl,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        toast.error("Không thể tải thông tin profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
+  // // sau khi load profile thành công
+  // useEffect(() => {
+  //   const loadContributions = async () => {
+  //     if (!profile) return;
+
+  //     try {
+  //       const res = await getListContributionOverview({     
+  //         page: 1,
+  //         pageSize: 10,
+  //       });
+
+  //       if (res.code === 200 && res.result) {
+  //         setContributions(res.result.items); 
+  //       }
+  //     } catch (err) {
+  //       console.error("Error loading contributions:", err);
+  //       toast.error("Không thể tải danh sách đóng góp");
+  //     }
+  //   };
+
+  //   loadContributions();
+  // },[profile]);
+
+
+  // Event handlers
   const handleMenuChange = (key: string) => {
     setSearchParams({ tab: key });
   };
 
-  const handleContributionChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleEdit = () => {
+    setEditMode(true);
+  };
+
+  const handleCancel = () => {
+    setEditMode(false);
+    if (profile) {
+      setFormData({
+        fullName: profile.fullName,
+        email: profile.email,
+        userName: profile.userName,
+        phone: profile.phone,
+        address: profile.address,
+        dateOfBirth: profile.dateOfBirth,
+        avatarUrl: profile.avatarUrl,
+      });
+    }
+  };
+
+  const handleSave = async (data?: UpdateProfileRequest) => {
+    try {
+      const payload = data ?? formData;
+      const res = await updateProfile(payload);
+
+      if (res.code === 200 && res.result) {
+        setProfile(res.result);
+        setFormData({
+          fullName: res.result.fullName,
+          email: res.result.email,
+          userName: res.result.userName,
+          phone: res.result.phone,
+          address: res.result.address,
+          dateOfBirth: res.result.dateOfBirth,
+          avatarUrl: res.result.avatarUrl,
+        });
+        setEditMode(false);
+        localStorage.setItem("avatarUrl", res.result.avatarUrl!);
+        localStorage.setItem("userName", res.result.userName!);
+        toast.success("Cập nhật thông tin thành công", { position: "top-right" });
+      } else {
+        toast.error(res.message || "Có lỗi xảy ra khi cập nhật thông tin");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Có lỗi xảy ra khi cập nhật thông tin");
+    }
+  };
+
+  const handleContributionChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setContributionForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleContributionSubmit = () => {
-    if (!contributionForm.title || !contributionForm.description) {
-      alert("Vui lòng điền đầy đủ tiêu đề và mô tả!");
+    if (!contributionForm.title.trim() || !contributionForm.description.trim()) {
+      showNotification("Vui lòng điền đầy đủ tiêu đề và mô tả!", "error");
       return;
-    }
-    setContributions([
-      ...contributions,
-      { title: contributionForm.title, status: "Chờ duyệt" },
-    ]);
+    }   
+    
     setContributionForm({ title: "", description: "", type: "Bài viết" });
     handleMenuChange("contributions");
+    showNotification("Đã gửi đóng góp thành công!", "success");
   };
 
   const handleContributionCancel = () => {
@@ -137,367 +178,145 @@ const ViewProfile: React.FC = () => {
     handleMenuChange("contributions");
   };
 
+  // Change Password handlers
+  const handleChangePassword = () => {
+    handleMenuChange("change-password");
+  };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center py-20 px-6">
-      <div className="bg-white rounded-3xl shadow-2xl flex max-w-7xl w-full overflow-hidden min-h-[800px]">
-        {/* Sidebar */}
-        <div className="w-60 bg-gradient-to-b from-purple-100 to-pink-100 py-8 px-4 flex flex-col gap-2">
-          <div className="flex flex-col items-center mb-8">
-            <img
-              src={user.avatar}
-              alt="Avatar"
-              className="w-16 h-16 rounded-full border-2 border-purple-200 shadow mb-2"
-            />
-            <div className="font-bold text-gray-800">{user.name}</div>
-            <div className="text-xs text-gray-500">{user.email}</div>
+  const handlePasswordCancel = () => {
+    handleMenuChange("profile");
+  };
+
+  const handlePasswordSubmit = async (data: ChangePasswordFormData) => {
+    try {
+      setPasswordLoading(true);
+      const res = await updatePassword({
+        oldPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+
+      if (res.code === 200) {
+        toast.success("Đổi mật khẩu thành công!");
+        handleMenuChange("profile");
+      } else {
+        toast.error(res.message || "Đổi mật khẩu thất bại");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi đổi mật khẩu");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // Notification system
+  const showNotification = (message: string, type: "success" | "error") => {
+    if (type === "success") {
+      toast.success(message);
+    } else {
+      toast.error(message);
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4">
+            <Spinner size={45} thickness={5}/>
           </div>
-          {MENU.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => handleMenuChange(item.key)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl font-medium transition text-left ${
-                menu === item.key
-                  ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow"
-                  : "text-gray-700 hover:bg-purple-50"
-              }`}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
+          <div className="text-xl font-semibold text-gray-700">Đang tải thông tin...</div>
+          <div className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</div>
         </div>
-        {/* Main content */}
-        <div className="flex-1 p-8">
-          {/* User Info Header */}
-          <div className="mb-6">
-            <div className="flex flex-wrap gap-4 mb-2">
-              <div>
-                <span className="block text-xs text-gray-500">SĐT</span>
-                <span className="bg-gray-100 rounded-xl px-3 py-1 text-gray-700">
-                  {user.phone}
-                </span>
-              </div>
-              <div>
-                <span className="block text-xs text-gray-500">Địa chỉ</span>
-                <span className="bg-gray-100 rounded-xl px-3 py-1 text-gray-700">
-                  {user.address}
-                </span>
-              </div>
-              <div>
-                <span className="block text-xs text-gray-500">Thành viên từ</span>
-                <span className="bg-gray-100 rounded-xl px-3 py-1 text-gray-700">
-                  {user.joined}
-                </span>
-              </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😞</div>
+          <div className="text-xl font-semibold text-gray-700 mb-2">Không thể tải thông tin</div>
+          <div className="text-gray-500">Vui lòng thử lại sau</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-6 py-3 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-colors duration-200"
+          >
+            Tải lại trang
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Render
+  return (
+    <div className="min-h-screen bg-gradient-to-br py-8 px-4">
+      <div className="max-w-[1600px] mx-auto">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl flex overflow-hidden min-h-[900px] border border-white/20">
+          {/* Sidebar */}
+          <ProfileSidebar
+            profile={profile}
+            currentTab={currentTab}
+            onMenuChange={handleMenuChange}
+          />
+
+          {/* Main Content */}
+          <div className="flex-1 overflow-hidden">
+            <div className="h-full overflow-y-auto p-8">
+              {currentTab === "profile" ? (
+                <div className="max-w-6xl mx-auto">
+                  {/* Profile Header */}
+                  <ProfileHeader
+                    profile={profile}
+                    formData={formData}
+                    setFormData={setFormData}
+                    editMode={editMode}
+                    onEdit={handleEdit}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    onChangePassword={handleChangePassword} 
+                  />
+                  {/* Profile Information Cards */}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                    <ProfileInfoCard
+                      profile={profile}
+                      formData={formData}
+                      setFormData={setFormData}
+                      editMode={editMode}
+                      type="personal"
+                    />
+                    <ProfileInfoCard
+                      profile={profile}
+                      formData={formData}
+                      setFormData={setFormData}
+                      editMode={editMode}
+                      type="contact"
+                    />
+                  </div>
+                </div>
+              ) : currentTab === "change-password" ? (
+                <ChangePassword
+                  onSubmit={handlePasswordSubmit}
+                  onCancel={handlePasswordCancel}
+                  isLoading={passwordLoading}
+                />
+              ) : (
+                <TabContent
+                  currentTab={currentTab}
+                  contributionForm={contributionForm}
+                  contributions={contributions}
+                  selectedContributionId={selectedContributionId ?? 0}
+                  onMenuChange={handleMenuChange}
+                  onContributionChange={handleContributionChange}
+                  onContributionSubmit={handleContributionSubmit}
+                  onContributionCancel={handleContributionCancel}
+                  onSelectContribution={setSelectedContributionId}
+                />
+              )}
             </div>
-            <div className="text-sm text-gray-600 italic">{user.bio}</div>
-          </div>
-          {/* Content Sections */}
-          <div className="bg-purple-50 rounded-2xl p-4 min-h-[120px]">
-            {menu === "profile" && (
-              <div className="bg-purple-50 rounded-2xl p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-bold text-purple-700">Thông tin cá nhân</h2>
-                  {!editMode ? (
-                    <button
-                      onClick={() => setEditMode(true)}
-                      className="px-3 py-1 text-sm bg-purple-600 text-white rounded-xl hover:bg-purple-700"
-                    >
-                      Chỉnh sửa
-                    </button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setEditMode(false);
-                          setFormData({ ...user });
-                        }}
-                        className="px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-xl hover:bg-gray-300"
-                      >
-                        Hủy
-                      </button>
-                      <button
-                        onClick={() => {
-                          Object.assign(user, formData);
-                          setEditMode(false);
-                        }}
-                        className="px-3 py-1 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700"
-                      >
-                        Lưu
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-                  <div>
-                    <span className="block text-xs text-gray-500">Họ và tên</span>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.name}</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Email</span>
-                    {editMode ? (
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.email}</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">SĐT</span>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.phone}</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Địa chỉ</span>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.address}</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Giới tính</span>
-                    {editMode ? (
-                      <select
-                        value={formData.gender}
-                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      >
-                        <option>Nam</option>
-                        <option>Nữ</option>
-                        <option>Khác</option>
-                      </select>
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.gender}</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Ngày sinh</span>
-                    {editMode ? (
-                      <input
-                        type="date"
-                        value={formData.birthdate}
-                        onChange={(e) => setFormData({ ...formData, birthdate: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">
-                        {new Date(user.birthdate).toLocaleDateString("vi-VN")}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Nghề nghiệp</span>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={formData.job}
-                        onChange={(e) => setFormData({ ...formData, job: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.job}</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Sở thích</span>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={formData.hobbies}
-                        onChange={(e) => setFormData({ ...formData, hobbies: e.target.value })}
-                        className="w-full px-3 py-1 border rounded-xl"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-1">{user.hobbies}</span>
-                    )}
-                  </div>
-                  <div className="sm:col-span-2">
-                    <span className="block text-xs text-gray-500">Giới thiệu</span>
-                    {editMode ? (
-                      <textarea
-                        value={formData.bio}
-                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-xl h-60 resize-none"
-                      />
-                    ) : (
-                      <span className="block bg-white rounded-xl px-3 py-2">{user.bio}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            {menu === "heritage" && (
-              <ul>
-                {mockHeritage.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-center justify-between py-2 border-b border-purple-100 last:border-b-0"
-                  >
-                    <span>{item.name}</span>
-                    <span className="text-xs text-gray-500">
-                      {item.type} {item.rating && `- ${item.rating}★`}
-                    </span>
-                  </li>
-                ))}
-                {mockHeritage.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
-                )}
-              </ul>
-            )}
-            {menu === "events" && (
-              <ul>
-                {mockEvents.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-center justify-between py-2 border-b border-purple-100 last:border-b-0"
-                  >
-                    <span>{item.name}</span>
-                    <span className="text-xs text-gray-500">{item.date}</span>
-                  </li>
-                ))}
-                {mockEvents.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
-                )}
-              </ul>
-            )}
-            {menu === "quiz" && (
-              <ul>
-                {mockQuiz.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-center justify-between py-2 border-b border-purple-100 last:border-b-0"
-                  >
-                    <span>{item.title}</span>
-                    <span className="text-xs text-gray-500">
-                      {item.score}/{item.total} điểm ({item.date})
-                    </span>
-                  </li>
-                ))}
-                {mockQuiz.length === 0 && (
-                  <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
-                )}
-              </ul>
-            )}
-            {menu === "contributions" && (
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-bold text-purple-700">Đóng góp đã gửi</h2>
-                  <button
-                    onClick={() => handleMenuChange("add-contribution")}
-                    className="px-3 py-1 text-sm bg-purple-600 text-white rounded-xl hover:bg-purple-700"
-                  >
-                    Thêm đóng góp
-                  </button>
-                </div>
-                <ul>
-                  {contributions.map((item, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-center justify-between py-2 border-b border-purple-100 last:border-b-0"
-                    >
-                      <span>{item.title}</span>
-                      <span
-                        className={`text-xs font-semibold ${
-                          item.status === "Đã duyệt"
-                            ? "text-green-600"
-                            : item.status === "Chờ duyệt"
-                            ? "text-yellow-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </li>
-                  ))}
-                  {contributions.length === 0 && (
-                    <div className="text-gray-400 text-center">Chưa có dữ liệu</div>
-                  )}
-                </ul>
-              </div>
-            )}
-            {menu === "add-contribution" && (
-              <div className="bg-purple-50 rounded-2xl p-4">
-                <h2 className="text-lg font-bold text-purple-700 mb-4">Thêm đóng góp di sản</h2>
-                <div className="grid grid-cols-1 gap-4 text-sm text-gray-700">
-                  <div>
-                    <span className="block text-xs text-gray-500">Tiêu đề</span>
-                    <input
-                      type="text"
-                      name="title"
-                      value={contributionForm.title}
-                      onChange={handleContributionChange}
-                      className="w-full px-3 py-1 border rounded-xl"
-                      placeholder="Nhập tiêu đề đóng góp"
-                    />
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Loại đóng góp</span>
-                    <select
-                      name="type"
-                      value={contributionForm.type}
-                      onChange={handleContributionChange}
-                      className="w-full px-3 py-1 border rounded-xl"
-                    >
-                      <option>Bài viết</option>
-                      <option>Hình ảnh</option>
-                      <option>Video</option>
-                    </select>
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Mô tả</span>
-                    <textarea
-                      name="description"
-                      value={contributionForm.description}
-                      onChange={handleContributionChange}
-                      className="w-full px-3 py-2 border rounded-xl h-40 resize-none"
-                      placeholder="Mô tả chi tiết về đóng góp của bạn"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleContributionCancel}
-                      className="px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-xl hover:bg-gray-300"
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      onClick={handleContributionSubmit}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700"
-                    >
-                      Gửi đóng góp
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

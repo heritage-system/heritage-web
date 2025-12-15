@@ -3,22 +3,23 @@ import {
   PlayCircle,
   Sparkles,
 } from 'lucide-react';
-
+import { useNavigate } from "react-router-dom";
 
 // Hero Section Component
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
   {/* ✅ Video Background */}
-  <video
-  className="absolute inset-0 w-full h-full object-cover z-0"
+ <video
+  className="absolute inset-0 w-full h-full object-cover"
   autoPlay
   muted
   loop
   playsInline
 >
   <source
-    src="https://res.cloudinary.com/dlsgtrtdl/video/upload/v1751090106/XINCHAOVIETNAM_nmyncl.mp4"
+    src="https://res.cloudinary.com/dea92gqx4/video/upload/v1759586137/Trailer_xjy6kb.mp4"
     type="video/mp4"
   />
   Trình duyệt của bạn không hỗ trợ video.
@@ -56,13 +57,17 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <button className="bg-gradient-to-r from-yellow-700 to-red-700 text-white px-8 py-4 rounded-2xl 
+          <button onClick={() => {
+           navigate("/DiscoveryPage");
+          }} className="bg-gradient-to-r from-yellow-700 to-red-700 text-white px-8 py-4 rounded-2xl 
             hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-3">
             <PlayCircle className="w-6 h-6" />
             <span className="font-semibold">Bắt đầu khám phá</span>
           </button>
 
-          <button className="bg-white/90 backdrop-blur-sm text-gray-800 px-8 py-4 rounded-2xl border border-yellow-600 
+          <button onClick={() => {
+           navigate("/VRToursPage");
+          }} className="bg-white/90 backdrop-blur-sm text-gray-800 px-8 py-4 rounded-2xl border border-yellow-600 
             hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-3">
             <Eye className="w-6 h-6 text-yellow-700" />
             <span className="font-semibold">Trải nghiệm VR</span>
@@ -70,7 +75,7 @@ const HeroSection = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 max-w-2xl mx-auto">
+          {/* <div className="grid grid-cols-2 md:grid-cols-4 max-w-2xl mx-auto">
             {[
               { number: '500+', label: 'Di sản văn hóa' },
               { number: '50+', label: 'Tours VR' },
@@ -82,7 +87,7 @@ const HeroSection = () => {
               <div className="text-gray-200">{stat.label}</div>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
     </section>

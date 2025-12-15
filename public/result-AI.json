@@ -1,0 +1,286 @@
+{
+  "matches": [
+    {
+      "id": 53,
+      "name": "Lễ hội Phủ Dầy",
+      "description": " Lễ hội Phủ Dầy là một trong những lễ hội lớn của tín ngưỡng thờ Mẫu Tam phủ ở Việt Nam, được tổ chức hằng năm tại quần thể di tích Phủ Dầy, Nam Định. Lễ hội nhằm tưởng niệm Thánh Mẫu Liễu Hạnh – vị thần được tôn thờ là một trong Tứ bất tử của tín ngưỡng dân gian Việt Nam. Đây là nơi hội tụ các hoạt động tín ngưỡng, nghi lễ hầu đồng, rước kiệu và các sinh hoạt văn hóa dân gian phong phú.",
+      "categoryName": "Lễ hội tôn giáo – tín ngưỡng",
+      "media": {
+        "id": 132,
+        "mediaTypeName": "IMAGE",
+        "url": "https://images.baodantoc.vn/uploads/banchuyende/2025bn/pg/3.jpg",
+        "description": ""
+      },
+      "heritageOccurrences": [
+        {
+          "id": 33,
+          "occurrenceTypeName": "RANGE",
+          "calendarTypeName": "LUNAR",
+          "startDay": 3,
+          "startMonth": 3,
+          "endDay": 8,
+          "endMonth": 3,
+          "frequencyName": "ANNUAL",
+          "description": null
+        }
+      ],
+      "heritageTags": [
+        "Văn hóa",
+        "Truyền thống",
+        "Cộng đồng",
+        "Tín ngưỡng",
+        "Du lịch",
+        "Bảo tồn",
+        "Nông nghiệp",
+        "Thờ Mẫu",
+        "Lịch sử"
+      ],
+      "heritageTagIds": [
+        9,
+        10,
+        12,
+        18,
+        25,
+        26,
+        29,
+        31,
+        51
+      ],
+      "heritageLocations": [
+        {
+          "id": 45,
+          "province": "Nam Định  ",
+          "district": "Vụ Bản  ",
+          "ward": "Tiên Hương  ",
+          "addressDetail": "Đền Phủ Dày Mẫu Chính",
+          "latitude": 20.3663247617,
+          "longitude": 106.0794964305
+        }
+      ],
+      "score": 0.8477988839149475
+    },
+    {
+      "id": 83,
+      "name": "Lễ hội làng Diềm",
+      "description": "Lễ hội làng Diềm là một trong những lễ hội cổ truyền đặc sắc của vùng Kinh Bắc, gắn liền với làng Viêm Xá – quê hương quan họ, thuộc thành phố Bắc Ninh. Lễ hội diễn ra hằng năm nhằm tưởng nhớ Thần tổ Vua Bà – người được coi là thủy tổ của dân ca quan họ Bắc Ninh, đồng thời cầu cho quốc thái dân an, mùa màng bội thu, nhân khang vật thịnh. Đây cũng là dịp cộng đồng quan họ gặp gỡ, giao lưu qua những làn điệu quan họ mượt mà.",
+      "categoryName": "Lễ hội lịch sử – văn hóa",
+      "media": {
+        "id": 262,
+        "mediaTypeName": "IMAGE",
+        "url": "https://congdankhuyenhoc.qltns.mediacdn.vn/449484899827462144/2025/3/6/c47cb1f515f3a4adfde2-17412675235221863804169.jpg",
+        "description": ""
+      },
+      "heritageOccurrences": [
+        {
+          "id": 63,
+          "occurrenceTypeName": "EXACTDATE",
+          "calendarTypeName": "LUNAR",
+          "startDay": 6,
+          "startMonth": 3,
+          "endDay": null,
+          "endMonth": null,
+          "frequencyName": "ANNUAL",
+          "description": null
+        }
+      ],
+      "heritageTags": [
+        "Văn hóa",
+        "Truyền thống",
+        "Cộng đồng",
+        "Bảo tồn di sản",
+        "Du lịch văn hóa",
+        "Quan họ",
+        "Lịch sử"
+      ],
+      "heritageTagIds": [
+        9,
+        10,
+        12,
+        15,
+        16,
+        20,
+        51
+      ],
+      "heritageLocations": [
+        {
+          "id": 75,
+          "province": "Bắc Ninh",
+          "district": "Bắc Ninh",
+          "ward": "Hòa Long",
+          "addressDetail": "Làng Viêm Xá (làng Diềm), khu vực đình – đền Vua Bà và giếng Ngọc",
+          "latitude": 21.214540099,
+          "longitude": 106.049544931
+        }
+      ],
+      "score": 0.8430510759353638
+    },
+    {
+      "id": 130,
+      "name": "Lễ hội Đền Quả Sơn",
+      "description": " Lễ hội Đền Quả Sơn là một trong những lễ hội lớn ở xứ Nghệ, nhằm tưởng niệm Uy Minh Vương Lý Nhật Quang – em trai vua Lý Thái Tông, người có công lớn trong việc trấn thủ, phát triển vùng đất Nghệ An. Lễ hội không chỉ là dịp tri ân công đức tiền nhân mà còn là sinh hoạt văn hóa – tâm linh đặc sắc của cộng đồng địa phương.\n",
+      "categoryName": "Lễ hội lịch sử – văn hóa",
+      "media": {
+        "id": 451,
+        "mediaTypeName": "IMAGE",
+        "url": "https://bna.1cdn.vn/2024/02/29/uploaded-minhquanbna-2024_02_29-_bna-le-ruoc-2-3697.jpg",
+        "description": ""
+      },
+      "heritageOccurrences": [
+        {
+          "id": 110,
+          "occurrenceTypeName": "RANGE",
+          "calendarTypeName": "LUNAR",
+          "startDay": 19,
+          "startMonth": 2,
+          "endDay": 21,
+          "endMonth": 2,
+          "frequencyName": "ANNUAL",
+          "description": null
+        }
+      ],
+      "heritageTags": [
+        "Văn hóa",
+        "Truyền thống",
+        "Cộng đồng",
+        "Lễ hội",
+        "Bảo tồn di sản",
+        "Du lịch văn hóa",
+        "Lịch sử"
+      ],
+      "heritageTagIds": [
+        9,
+        10,
+        12,
+        13,
+        15,
+        16,
+        51
+      ],
+      "heritageLocations": [
+        {
+          "id": 122,
+          "province": "Nghệ An",
+          "district": "Đô Lương",
+          "ward": "Bồi Sơn",
+          "addressDetail": "",
+          "latitude": 18.935808995,
+          "longitude": 105.2803371799
+        }
+      ],
+      "score": 0.8423628807067871
+    },
+    {
+      "id": 70,
+      "name": "Lễ hội Y Sơn",
+      "description": "Lễ hội Y Sơn là lễ hội truyền thống lâu đời của cư dân vùng Y Sơn (nay thuộc huyện Việt Yên, tỉnh Bắc Giang), gắn với tín ngưỡng thờ Thành hoàng làng, nhằm tưởng nhớ công lao các bậc tiền nhân, cầu mưa thuận gió hòa, mùa màng bội thu và mang đậm sắc thái văn hóa vùng Kinh Bắc. Đây là một trong những lễ hội tiêu biểu của Bắc Giang, vừa mang tính lịch sử – tín ngưỡng, vừa có giá trị cố kết cộng đồng.\n",
+      "categoryName": "Lễ hội lịch sử – văn hóa",
+      "media": {
+        "id": 210,
+        "mediaTypeName": "IMAGE",
+        "url": "https://file3.qdnd.vn/data/images/0/2024/02/24/upload_2049/le-hoi.jpg?dpi=150&quality=100&w=870",
+        "description": ""
+      },
+      "heritageOccurrences": [
+        {
+          "id": 50,
+          "occurrenceTypeName": "RANGE",
+          "calendarTypeName": "LUNAR",
+          "startDay": 12,
+          "startMonth": 2,
+          "endDay": 15,
+          "endMonth": 2,
+          "frequencyName": "ANNUAL",
+          "description": null
+        }
+      ],
+      "heritageTags": [
+        "Văn hóa",
+        "Truyền thống",
+        "Cộng đồng",
+        "Lễ hội",
+        "Bảo tồn di sản",
+        "Du lịch văn hóa",
+        "Lịch sử"
+      ],
+      "heritageTagIds": [
+        9,
+        10,
+        12,
+        13,
+        15,
+        16,
+        51
+      ],
+      "heritageLocations": [
+        {
+          "id": 62,
+          "province": "Hà Nội",
+          "district": "Hà Đông",
+          "ward": "Y Sơn",
+          "addressDetail": "Đình Y Sơn",
+          "latitude": 20.930623194,
+          "longitude": 105.7352735492
+        }
+      ],
+      "score": 0.8409194946289062
+    },
+    {
+      "id": 10209,
+      "name": "Lễ hội Từ Lương Xâm",
+      "description": "Lễ hội Từ Lương Xâm là lễ hội truyền thống ở Hải Phòng, được tổ chức nhằm tưởng nhớ và tri ân các vị thần linh bảo hộ làng Từ Lương, đồng thời cầu mùa màng bội thu, dân cư an khang. Đây là một trong những lễ hội tiêu biểu của vùng đồng bằng Bắc Bộ, kết hợp nghi lễ tôn giáo và trò chơi dân gian.",
+      "categoryName": "Lễ hội tôn giáo – tín ngưỡng",
+      "media": {
+        "id": 10785,
+        "mediaTypeName": "IMAGE",
+        "url": "https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2025/2/8/doan-ruoc-kieu-ngay-gio-duc-vuong-ngo-quyen-o-hai-phong-17390255749311605140721.jpg",
+        "description": ""
+      },
+      "heritageOccurrences": [
+        {
+          "id": 10189,
+          "occurrenceTypeName": "RANGE",
+          "calendarTypeName": "LUNAR",
+          "startDay": 14,
+          "startMonth": 1,
+          "endDay": 18,
+          "endMonth": 1,
+          "frequencyName": "ANNUAL",
+          "description": null
+        }
+      ],
+      "heritageTags": [
+        "Văn hóa",
+        "Truyền thống",
+        "Cộng đồng",
+        "Lễ hội",
+        "Bảo tồn di sản",
+        "Du lịch văn hóa",
+        "Tín ngưỡng",
+        "Lịch sử"
+      ],
+      "heritageTagIds": [
+        9,
+        10,
+        12,
+        13,
+        15,
+        16,
+        18,
+        51
+      ],
+      "heritageLocations": [
+        {
+          "id": 1201,
+          "province": "Hải Phòng",
+          "district": "Hải An",
+          "ward": "Nam Hải",
+          "addressDetail": "Từ Lương Xâm",
+          "latitude": 20.8394239692,
+          "longitude": 106.7373887622
+        }
+      ],
+      "score": 0.8363860845565796
+    }
+  ],
+  "inputDescription": "Cảnh chụp trong nhà hoặc không rõ (ước lượng) tại một địa điểm công cộng. Thời gian ước lượng là ban ngày. một nhóm người hoặc hoạt động văn hóa (ước lượng)."
+}
