@@ -49,3 +49,17 @@ export async function destroyRtm() {
   try { await leaveRtmChannel(); } catch {}
   if (rtmClient) { try { await rtmClient.logout(); } finally { rtmClient = null; } }
 }
+
+export function onConnectionStateChanged(
+  cb: (state: string, reason: string) => void
+) {
+  if (!rtmClient) throw new Error("initRtm first");
+  const handler = (newState: string, reason: string) => {
+    cb(newState, reason);
+  };
+  rtmClient.on("ConnectionStateChanged", handler);
+  // trả về hàm để unsubscribe
+  return () => {
+    rtmClient?.off("ConnectionStateChanged", handler as any);
+  };
+}
