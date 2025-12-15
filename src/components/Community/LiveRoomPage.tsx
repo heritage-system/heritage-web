@@ -105,6 +105,30 @@ const LiveRoomPage: React.FC = () => {
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
     return scrollHeight - scrollTop - clientHeight < THRESHOLD;
   };
+const handleToggleMic = async () => {
+  if (!joined) {
+    toast.error("Bạn chưa join phòng");
+    return;
+  }
+  if (!isHost) {
+    // ❗ Chỉ tab này thấy – không qua RTM
+    toast.error("Chỉ Host/CoHost được bật/tắt mic");
+    return;
+  }
+  await toggleMic();
+};
+
+const handleToggleCam = async () => {
+  if (!joined) {
+    toast.error("Bạn chưa join phòng");
+    return;
+  }
+  if (!isHost) {
+    toast.error("Chỉ Host/CoHost được bật/tắt camera");
+    return;
+  }
+  await toggleCam();
+};
 
   const handleChatScroll = () => {
     isUserNearBottom.current = checkIfNearBottom();
@@ -617,20 +641,27 @@ const LiveRoomPage: React.FC = () => {
                 <span>Đang kết nối...</span>
               </button>
             )}
-            <button
-              onClick={toggleMic}
-              disabled={!joined}
-              className={`p-3 rounded-full shadow transition ${micOn ? "bg-gray-200 hover:bg-gray-300" : "bg-red-500 hover:bg-red-600 text-white"} disabled:opacity-50`}
-            >
-              {micOn ? <Mic className="w-5 h-5 text-gray-800" /> : <MicOff className="w-5 h-5 text-white" />}
-            </button>
-            <button
-              onClick={toggleCam}
-              disabled={!joined}
-              className={`p-3 rounded-full shadow transition ${camOn ? "bg-gray-200 hover:bg-gray-300" : "bg-red-500 hover:bg-red-600 text-white"} disabled:opacity-50`}
-            >
-              {camOn ? <Video className="w-5 h-5 text-gray-800" /> : <VideoOff className="w-5 h-5 text-white" />}
-            </button>
+       <button
+  onClick={handleToggleMic}
+  disabled={!joined || !isHost}
+  title={!isHost ? "Chỉ Host/CoHost mới bật/tắt mic" : ""}
+  className={`p-3 rounded-full shadow transition ${
+    micOn ? "bg-gray-200 hover:bg-gray-300" : "bg-red-500 hover:bg-red-600 text-white"
+  } disabled:opacity-50`}
+>
+  {micOn ? <Mic className="w-5 h-5 text-gray-800" /> : <MicOff className="w-5 h-5 text-white" />}
+</button>
+          <button
+  onClick={handleToggleCam}
+  disabled={!joined || !isHost}
+  title={!isHost ? "Chỉ Host/CoHost mới bật/tắt camera" : ""}
+  className={`p-3 rounded-full shadow transition ${
+    camOn ? "bg-gray-200 hover:bg-gray-300" : "bg-red-500 hover:bg-red-600 text-white"
+  } disabled:opacity-50`}
+>
+  {camOn ? <Video className="w-5 h-5 text-gray-800" /> : <VideoOff className="w-5 h-5 text-white" />}
+</button>
+
             <button
               onClick={() => togglePanel("chat")}
               className={`p-3 rounded-full shadow transition ${activePanel === "chat" ? "bg-purple-500 ring-2 ring-purple-600 text-white" : "bg-gray-200 hover:bg-gray-300"}`}

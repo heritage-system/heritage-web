@@ -41,6 +41,7 @@ import EventDetailView from './components/Community/EventDetailView';
 import TermsPage from './pages/TermsPage/TermsPage';
 import InteractionHistory from './components/ViewProfile/InteractionHistory/InteractionHistory';
 import ProtectedRoute from './components/Layouts/ProtectedRoute';
+import ProtectedAuthRoute from './components/Layouts/ProtectedAuthRoute';
 import RoleProtectedRoute from './components/Layouts/RoleProtectedRoute';
 import ScrollToTop from "./components/Layouts/ScrollToTop";
 import Forbidden403 from './pages/Forbidden403/Forbidden403';
@@ -59,8 +60,8 @@ const App: React.FC = () => {
         <Route path="/confirm-email-address" element={<MainLayout><ConfirmEmailPage/></MainLayout>} />
         <Route path="CommunityPage" element={<MainLayout><StreamingProvider><EventProvider><JoinRoomPage/></EventProvider></StreamingProvider></MainLayout>}/>
         <Route path="/QuizzPage" element={<MainLayout><QuizzPage /></MainLayout>} />
-        <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
-        <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
+        <Route path="/login" element={<ProtectedAuthRoute><MainLayout><Login /></MainLayout></ProtectedAuthRoute>} />
+        <Route path="/register" element={<ProtectedAuthRoute><MainLayout><Register /></MainLayout></ProtectedAuthRoute>} />
         <Route path="/forgot-password" element={<MainLayout><ForgotPassword /></MainLayout>} />
         <Route path="/reset-password" element={<MainLayout><ResetPassword /></MainLayout>} />
         <Route path="/change-password" element={<MainLayout><ChangePassword /></MainLayout>} />

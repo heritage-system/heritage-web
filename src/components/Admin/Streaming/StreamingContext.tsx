@@ -29,7 +29,7 @@ import {
   disableMic,
   
 } from "../../../services/agoraRtc";
-import { initRtm, loginRtm, joinRtmChannel, leaveRtmChannel, destroyRtm, onChannelMessage, channelSendText } from "../../../services/agoraRtm";
+import { initRtm, loginRtm, joinRtmChannel, leaveRtmChannel, destroyRtm, onChannelMessage, channelSendText, onConnectionStateChanged } from "../../../services/agoraRtm";
 import { setClientRole as rtcSetClientRole, renewRtcToken } from "../../../services/agoraRtc";
 import { startScreenShare, stopScreenShare, isScreenSharing } from "../../../services/agoraRtc";
 import { ParticipantStatus, RoomRole } from "../../../types/enum";
@@ -114,7 +114,10 @@ const [localPinned, setLocalPinned] = useState<RoomChatMsg | null>(null); // ghi
 
   const [sharing, setSharing] = useState(false);
    const [roster, setRoster] = useState<RosterItem[]>([]);
-const rtmUnsubRef = useRef<null | (()=>void)>(null);
+
+const rtmUnsubRef = useRef<null | (() => void)>(null);
+const rtmConnUnsubRef = useRef<null | (() => void)>(null); // 👈 THÊM
+
 const [roomMessages, setRoomMessages] = useState<RoomChatMsg[]>([]);
   const remoteWrapRef = useRef<HTMLDivElement | null>(null);
   
@@ -173,14 +176,20 @@ const leaveLive: Ctx["leaveLive"] = async () => {
   }
 
   // 4️⃣ Rời RTM + destroy client
-  try {
-    rtmUnsubRef.current?.();
-    rtmUnsubRef.current = null;
-    await leaveRtmChannel();
-    await destroyRtm();
-  } catch (e) {
-    console.warn("[leaveLive] RTM leave/destroy error", e);
-  }
+// 4️⃣ Rời RTM + destroy client
+try {
+  rtmUnsubRef.current?.();
+  rtmUnsubRef.current = null;
+
+  rtmConnUnsubRef.current?.();        // 👈 HUỶ luôn ConnectionStateChanged listener
+  rtmConnUnsubRef.current = null;
+
+  await leaveRtmChannel();
+  await destroyRtm();
+} catch (e) {
+  console.warn("[leaveLive] RTM leave/destroy error", e);
+}
+
 
   // 5️⃣ Reset state
   setJoined(false);
@@ -589,12 +598,43 @@ const joinLive: Ctx["joinLive"] = async (arg) => {
   console.groupEnd();
 
   try {
-    initRtm(appId);
+        initRtm(appId);
     await loginRtm({ uid: String(g.rtcUid), token: g.rtmToken });
     await joinRtmChannel(g.channel);
 
+    // --- Lắng nghe khi RTM bị logout vì login từ thiết bị khác ---
+    rtmConnUnsubRef.current?.();
+    try {
+      rtmConnUnsubRef.current = onConnectionStateChanged(
+        (state, reason) => {
+          console.log("[RTM] ConnectionStateChanged =", state, reason);
+          // khi cùng UID login ở thiết bị khác → phiên hiện tại bị ABORTED với reason REMOTE_LOGIN
+          if (state === "ABORTED" && reason === "REMOTE_LOGIN") {
+            toast.error(
+              "Phiên live trên thiết bị này đã bị thay thế bởi đăng nhập từ thiết bị khác. Sẽ tự thoát khỏi phòng."
+            );
+
+            (async () => {
+              try {
+                await leaveLive(); // rời phòng, clean RTC/RTM/local state
+              } finally {
+                if (window.history.length > 1) {
+                  window.history.back();   // giống navigate(-1)
+                } else {
+                  window.location.assign("/"); // fallback
+                }
+              }
+            })();
+          }
+        }
+      );
+    } catch (err) {
+      console.warn("[RTM] cannot bind ConnectionStateChanged listener", err);
+    }
+
+    // --- listener ChannelMessage cũ giữ nguyên ---
     rtmUnsubRef.current?.();
-  rtmUnsubRef.current = onChannelMessage((m) => {
+    rtmUnsubRef.current = onChannelMessage((m) => {
   try {
     const data = JSON.parse(m.text);
 
@@ -688,21 +728,18 @@ const sendRoomText = async (text: string) => {
 };
 
 
-
 const toggleCam: Ctx["toggleCam"] = async () => {
   if (!joined) {
     toast.error("Bạn chưa join phòng");
     return;
   }
-  if (!isHost) {
-    toast.error("Chỉ Host/CoHost được bật/tắt camera");
-    return;
-  }
+
+  // ❗ Audience gọi tới thì bỏ qua, KHÔNG toast
+  if (!isHost) return;
 
   const wantOn = !camOn;
 
   if (wantOn) {
-    // BẬT CAMERA
     try {
       const container = document.getElementById("local-player") as HTMLDivElement | null;
       await enableCamera(container ?? undefined);
@@ -726,13 +763,10 @@ const toggleCam: Ctx["toggleCam"] = async () => {
         toast.error("Không thể bật camera. Vui lòng kiểm tra thiết bị & quyền truy cập.");
       }
 
-      // rollback UI
       setLocalVideoReady(false);
       setCamOn(false);
-      // KHÔNG ném lại lỗi, tránh React show error đỏ
     }
   } else {
-    // TẮT CAMERA
     try {
       await disableCamera();
     } catch (err) {
@@ -772,10 +806,9 @@ const toggleMic: Ctx["toggleMic"] = async () => {
     toast.error("Bạn chưa join phòng");
     return;
   }
-  if (!isHost) {
-    toast.error("Chỉ Host/CoHost được bật/tắt mic");
-    return;
-  }
+
+  // ❗ Audience gọi tới thì bỏ qua, KHÔNG toast
+  if (!isHost) return;
 
   const wantOn = !micOn;
 
@@ -795,6 +828,7 @@ const toggleMic: Ctx["toggleMic"] = async () => {
         msg.includes("permission") ||
         msg.includes("not allowed")
       ) {
+        // ❗ Đây là lỗi permission của TRÌNH DUYỆT – chỉ user hiện tại thấy
         toast.error("Bạn đã từ chối cho phép sử dụng micro cho tab này.");
       } else {
         toast.error("Không thể bật micro. Vui lòng kiểm tra thiết bị & quyền truy cập.");
@@ -812,7 +846,6 @@ const toggleMic: Ctx["toggleMic"] = async () => {
     }
   }
 };
-
 
  const startShare = async (withAudio = true) => {
   if (!joined) {

@@ -480,7 +480,7 @@ const renderBenefitsList = (benefits: any[]) => {
               textAlign: 'right',
               flexShrink: 0
             }}>
-              {isUnlimited ? "Không giới hạn" : `${b.value} lượt`}
+              {isUnlimited ? "Không giới hạn" : `${b.value} lượt mở`}
 
             </span>
           </div>
@@ -840,7 +840,7 @@ const renderBenefitsList = (benefits: any[]) => {
               {!currentPackage ? (
                 <>
                   <strong style={{ color: THEME.primary }}>Đăng ký gói mới:</strong>{" "}
-                  Gói sẽ được kích hoạt ngay sau khi thanh toán. Bạn sẽ nhận toàn bộ lượt tương ứng.
+                  Gói sẽ được kích hoạt ngay sau khi thanh toán. Bạn sẽ nhận toàn bộ  mở tương ứng.
                 </>
               ) : (currentPackage?.price * currentPackage?.durationDays) < (selectedPackage.price * selectedPackage.durationDays) ? (
                 <>
