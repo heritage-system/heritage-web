@@ -125,10 +125,10 @@ const EventCard: React.FC<EventCardProps> = ({ event, onToggleRegister }) => {
         </div>
 
         {/* Tags (optional, nếu bạn dùng bitmask) */}
-        <div className="flex items-center gap-1 mb-3 text-xs text-gray-500">
+        {/* <div className="flex items-center gap-1 mb-3 text-xs text-gray-500">
           <Tag className="w-3 h-3" />
           <span>{event.tags}</span>
-        </div>
+        </div> */}
 
         {/* Actions */}
         <div className="mt-auto flex gap-2">
